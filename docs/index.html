@@ -5,305 +5,251 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="dark" />
   <title>GitHub → Google Drive Backup</title>
+  <!-- Google Identity Services -->
+  <script src="https://accounts.google.com/gsi/client" async></script>
   <style>
-    /* ── Force dark regardless of OS preference ────────────────────────── */
     html, body { color-scheme: dark; background: #0d1117 !important; color: #e6edf3 !important; }
-
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --bg:        #0d1117;
-      --bg-card:   #161b22;
-      --bg-hover:  #21262d;
-      --border:    #30363d;
-      --text:      #e6edf3;
-      --muted:     #8b949e;
-      --primary:   #238636;
-      --primary-h: #2ea043;
-      --accent:    #1f6feb;
-      --accent-h:  #388bfd;
-      --warn:      #bb8009;
-      --danger:    #da3633;
-      --success:   #238636;
-      --radius:    8px;
-      --sidebar-w: 230px;
-      --transition: 180ms ease;
+      --bg: #0d1117; --bg-card: #161b22; --bg-hover: #21262d; --border: #30363d;
+      --text: #e6edf3; --muted: #8b949e;
+      --primary: #238636; --primary-h: #2ea043;
+      --accent: #1f6feb; --accent-h: #388bfd;
+      --warn: #bb8009; --danger: #da3633; --success: #238636;
+      --radius: 8px; --sidebar-w: 230px; --transition: 180ms ease;
     }
-    body {
-      display: flex; min-height: 100vh;
-      background: var(--bg) !important;
-      color: var(--text) !important;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      font-size: 14px; line-height: 1.6;
-    }
+    body { display: flex; min-height: 100vh; background: var(--bg) !important; color: var(--text) !important; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 14px; line-height: 1.6; }
 
-    /* ── Sidebar ─────────────────────────────────────────────────────── */
-    .sidebar {
-      width: var(--sidebar-w); min-height: 100vh;
-      background: var(--bg-card); border-right: 1px solid var(--border);
-      display: flex; flex-direction: column;
-      position: fixed; top: 0; left: 0; bottom: 0; z-index: 100;
-    }
-    .sidebar-logo {
-      display: flex; align-items: center; gap: 10px;
-      padding: 20px 16px 16px; font-weight: 700; font-size: 16px;
-      border-bottom: 1px solid var(--border);
-    }
-    .logo-icon { font-size: 22px; }
+    /* ── Sidebar ────────────────────────────────────────────────────────── */
+    .sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--bg-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; bottom: 0; z-index: 100; }
+    .sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 20px 16px 16px; font-weight: 700; font-size: 16px; border-bottom: 1px solid var(--border); }
     .sidebar-nav { list-style: none; padding: 12px 8px; flex: 1; }
     .sidebar-nav li + li { margin-top: 2px; }
-    .nav-link {
-      display: flex; align-items: center; gap: 10px; padding: 9px 10px;
-      border-radius: var(--radius); color: var(--muted); text-decoration: none;
-      font-weight: 500; transition: background var(--transition), color var(--transition); cursor: pointer;
-    }
+    .nav-link { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: var(--radius); color: var(--muted); text-decoration: none; font-weight: 500; transition: background var(--transition), color var(--transition); cursor: pointer; }
     .nav-link svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
     .nav-link:hover { background: var(--bg-hover); color: var(--text); }
     .nav-link.active { background: var(--accent); color: #fff; }
-    .sidebar-footer { padding: 16px; border-top: 1px solid var(--border); }
-    .status-pill {
-      display: flex; align-items: center; gap: 6px; font-size: 12px;
-      font-weight: 500; padding: 5px 10px; border-radius: 20px; background: var(--bg-hover);
-    }
+    .sidebar-footer { padding: 12px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 6px; }
+    .status-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 5px 10px; border-radius: 20px; background: var(--bg-hover); }
     .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--muted); }
-    .status-ok .dot   { background: #3fb950; }
+    .status-ok .dot { background: #3fb950; }
     .status-warn .dot { background: #d29922; }
-    .status-err .dot  { background: var(--danger); }
+    .status-err .dot { background: var(--danger); }
 
-    /* ── Main ────────────────────────────────────────────────────────── */
+    /* ── Main ────────────────────────────────────────────────────────────── */
     .main { margin-left: var(--sidebar-w); flex: 1; padding: 32px; max-width: 1100px; }
-    .page { display: none; }
-    .page.active { display: block; }
-    .page-header {
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;
-    }
+    .page { display: none; } .page.active { display: block; }
+    .page-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
     .page-header h1 { font-size: 22px; font-weight: 700; }
     .page-subtitle { font-size: 13px; color: var(--muted); margin-top: 2px; }
 
-    /* ── Cards ───────────────────────────────────────────────────────── */
+    /* ── Cards ───────────────────────────────────────────────────────────── */
     .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
     .card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
     .mt-4 { margin-top: 16px; }
 
-    /* ── Stats ───────────────────────────────────────────────────────── */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .stat-card {
-      background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 20px; display: flex; align-items: center; gap: 14px;
-    }
-    .stat-icon { font-size: 26px; }
-    .stat-value { font-size: 24px; font-weight: 700; line-height: 1; }
+    /* ── Stats ───────────────────────────────────────────────────────────── */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; display: flex; align-items: center; gap: 14px; }
+    .stat-icon { font-size: 24px; }
+    .stat-value { font-size: 22px; font-weight: 700; line-height: 1; }
     .stat-label { font-size: 11px; color: var(--muted); margin-top: 4px; }
 
-    /* ── Two-col ─────────────────────────────────────────────────────── */
+    /* ── Two-col ─────────────────────────────────────────────────────────── */
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
     @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
 
-    /* ── Forms ───────────────────────────────────────────────────────── */
+    /* ── Forms ───────────────────────────────────────────────────────────── */
     .form-group { margin-bottom: 16px; }
     .form-label { display: block; font-size: 11px; font-weight: 600; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: .5px; }
-    .form-input {
-      width: 100%; background: var(--bg); border: 1px solid var(--border);
-      border-radius: var(--radius); color: var(--text); padding: 8px 12px; font-size: 14px;
-    }
+    .form-input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); color: var(--text); padding: 8px 12px; font-size: 14px; }
     .form-input:focus { outline: none; border-color: var(--accent); }
-    select.form-input { cursor: pointer; }
-    .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
     .checkbox-label { display: flex; align-items: center; gap: 8px; cursor: pointer; color: var(--text); }
     .checkbox-label input[type=checkbox] { accent-color: var(--accent); width: 15px; height: 15px; }
+    .checkbox-group { display: flex; flex-direction: column; gap: 8px; }
 
-    /* ── Buttons ─────────────────────────────────────────────────────── */
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px;
-      border-radius: var(--radius); border: none; font-size: 14px; font-weight: 600;
-      cursor: pointer; transition: background var(--transition), opacity var(--transition);
-    }
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: var(--radius); border: none; font-size: 14px; font-weight: 600; cursor: pointer; transition: background var(--transition), opacity var(--transition); }
     .btn:disabled { opacity: .45; cursor: not-allowed; }
-    .btn-primary   { background: var(--primary); color: #fff; }
-    .btn-primary:hover:not(:disabled)   { background: var(--primary-h); }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover:not(:disabled) { background: var(--primary-h); }
     .btn-secondary { background: var(--bg-hover); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover:not(:disabled) { background: var(--border); }
-    .btn-warning   { background: #9e6a03; color: #fff; }
-    .btn-warning:hover:not(:disabled)   { background: var(--warn); }
-    .btn-danger    { background: var(--danger); color: #fff; }
+    .btn-warning { background: #9e6a03; color: #fff; }
+    .btn-warning:hover:not(:disabled) { background: var(--warn); }
+    .btn-google { background: #fff; color: #3c4043; border: 1px solid #dadce0; display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 500; padding: 10px 20px; border-radius: 4px; cursor: pointer; transition: box-shadow var(--transition); }
+    .btn-google:hover { box-shadow: 0 1px 3px rgba(0,0,0,.4); }
     .btn-full { width: 100%; justify-content: center; margin-top: 8px; }
+    .btn-danger { background: var(--danger); color: #fff; }
 
-    /* ── Repo list ───────────────────────────────────────────────────── */
+    /* ── Search + repo list ──────────────────────────────────────────────── */
     .search-bar { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-    .search-bar .form-input { margin: 0; flex: 1; }
-    .repo-list {
-      max-height: 340px; overflow-y: auto;
-      border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg);
-    }
+    .search-bar .form-input { flex: 1; margin: 0; }
+    .repo-list { max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
     .repo-list.small { max-height: 200px; }
-    .repo-item {
-      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
-      border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition);
-    }
+    .repo-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition); }
     .repo-item:last-child { border-bottom: none; }
     .repo-item:hover { background: var(--bg-hover); }
     .repo-name { font-weight: 500; flex: 1; color: var(--text); }
-    .repo-badge {
-      font-size: 11px; padding: 2px 7px; border-radius: 20px;
-      border: 1px solid var(--border); color: var(--muted);
-    }
+    .repo-badge { font-size: 11px; padding: 2px 7px; border-radius: 20px; border: 1px solid var(--border); color: var(--muted); }
     .repo-badge.private { border-color: #9e6a03; color: #d29922; }
 
-    /* ── Session list ────────────────────────────────────────────────── */
-    .session-list {
-      max-height: 360px; overflow-y: auto;
-      border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg);
-    }
-    .session-item {
-      display: flex; align-items: center; gap: 10px; padding: 12px 14px;
-      border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition);
-    }
+    /* ── Session list ────────────────────────────────────────────────────── */
+    .session-list { max-height: 340px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); }
+    .session-item { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition); }
     .session-item:last-child { border-bottom: none; }
     .session-item:hover { background: var(--bg-hover); }
     .session-item.selected { background: rgba(31,111,235,.12); border-left: 3px solid var(--accent); }
     .session-name { font-weight: 500; flex: 1; color: var(--text); }
     .session-date { font-size: 12px; color: var(--muted); }
+    .session-count { font-size: 11px; background: var(--bg-hover); border: 1px solid var(--border); border-radius: 20px; padding: 2px 8px; color: var(--muted); }
 
-    /* ── Job / run list ──────────────────────────────────────────────── */
+    /* ── Run list ────────────────────────────────────────────────────────── */
     .run-list { display: flex; flex-direction: column; }
-    .run-item {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 0; border-bottom: 1px solid var(--border);
-    }
+    .run-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); }
     .run-item:last-child { border-bottom: none; }
-    .run-badge {
-      font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; min-width: 72px; text-align: center;
-    }
+    .run-badge { font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 20px; min-width: 72px; text-align: center; }
     .badge-queued     { background: rgba(139,148,158,.15); color: var(--muted); }
-    .badge-in_progress{ background: rgba(31,111,235,.2);  color: #58a6ff; }
-    .badge-success    { background: rgba(35,134,54,.2);   color: #3fb950; }
-    .badge-failure    { background: rgba(218,54,51,.2);   color: #f85149; }
-    .badge-cancelled  { background: rgba(139,148,158,.15);color: var(--muted); }
+    .badge-in_progress{ background: rgba(31,111,235,.2); color: #58a6ff; }
+    .badge-success    { background: rgba(35,134,54,.2); color: #3fb950; }
+    .badge-failure    { background: rgba(218,54,51,.2); color: #f85149; }
+    .badge-cancelled  { background: rgba(139,148,158,.15); color: var(--muted); }
     .run-name { flex: 1; font-weight: 500; }
     .run-time { font-size: 12px; color: var(--muted); }
     .run-link { font-size: 12px; color: var(--accent-h); text-decoration: none; }
     .run-link:hover { text-decoration: underline; }
 
-    /* ── Progress / log area ─────────────────────────────────────────── */
-    .progress-area {
-      margin-top: 16px; padding: 14px; background: var(--bg);
-      border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px;
-      color: var(--text);
-    }
-    .progress-area.success { border-color: var(--success); }
-    .progress-area.error   { border-color: var(--danger); }
+    /* ── Progress / result ───────────────────────────────────────────────── */
+    .result-area { margin-top: 16px; padding: 14px; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius); font-size: 13px; color: var(--text); }
+    .result-area.success { border-color: var(--success); }
+    .result-area.error   { border-color: var(--danger); }
 
-    /* ── Settings status rows ────────────────────────────────────────── */
-    .settings-status { display: flex; flex-direction: column; gap: 10px; }
-    .settings-row {
-      display: flex; align-items: center; gap: 10px; padding: 10px 14px;
-      border-radius: var(--radius); background: var(--bg); border: 1px solid var(--border);
-    }
+    /* ── Drive connection card ───────────────────────────────────────────── */
+    .drive-connected { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(35,134,54,.08); border: 1px solid rgba(35,134,54,.3); border-radius: var(--radius); }
+    .drive-disconnected { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: rgba(218,54,51,.08); border: 1px solid rgba(218,54,51,.25); border-radius: var(--radius); }
+    .drive-avatar { width: 36px; height: 36px; border-radius: 50%; }
+    .drive-info { flex: 1; }
+    .drive-name { font-weight: 600; font-size: 14px; }
+    .drive-email { font-size: 12px; color: var(--muted); }
+    .drive-quota { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .quota-bar { width: 100%; height: 6px; background: var(--bg-hover); border-radius: 3px; margin-top: 4px; overflow: hidden; }
+    .quota-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s; }
+
+    /* ── Settings rows ───────────────────────────────────────────────────── */
+    .settings-row { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: var(--radius); background: var(--bg); border: 1px solid var(--border); }
     .settings-row .label { flex: 1; font-weight: 500; }
 
-    /* ── Notice banner ───────────────────────────────────────────────── */
-    .notice {
-      padding: 12px 16px; border-radius: var(--radius); margin-bottom: 20px;
-      font-size: 13px; border: 1px solid;
-    }
+    /* ── Notice ──────────────────────────────────────────────────────────── */
+    .notice { padding: 12px 16px; border-radius: var(--radius); margin-bottom: 16px; font-size: 13px; border: 1px solid; }
     .notice-info { background: rgba(31,111,235,.1); border-color: rgba(31,111,235,.3); color: #8ac5ff; }
-    .notice-warn { background: rgba(187,128,9,.1);  border-color: rgba(187,128,9,.3);  color: #d29922; }
+    .notice-warn { background: rgba(187,128,9,.1); border-color: rgba(187,128,9,.3); color: #d29922; }
+    .notice-success { background: rgba(35,134,54,.1); border-color: rgba(35,134,54,.3); color: #3fb950; }
 
-    /* ── Setup steps ─────────────────────────────────────────────────── */
-    .setup-steps { padding-left: 20px; display: flex; flex-direction: column; gap: 10px; color: var(--muted); }
-    .setup-steps li strong { color: var(--text); }
-    .setup-steps code { background: var(--bg-hover); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-family: monospace; font-size: 12px; color: var(--text); }
+    /* ── Tab group ───────────────────────────────────────────────────────── */
+    .tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+    .tab-btn { padding: 10px 18px; background: none; border: none; color: var(--muted); font-size: 14px; font-weight: 500; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color var(--transition); }
+    .tab-btn:hover { color: var(--text); }
+    .tab-btn.active { color: var(--accent-h); border-bottom-color: var(--accent); }
+    .tab-panel { display: none; } .tab-panel.active { display: block; }
 
-    /* ── Misc ────────────────────────────────────────────────────────── */
-    .hidden  { display: none !important; }
-    .muted   { color: var(--muted); }
-    .mb-2    { margin-bottom: 8px; }
-    .mb-4    { margin-bottom: 16px; }
+    /* ── Misc ────────────────────────────────────────────────────────────── */
+    .hidden { display: none !important; }
+    .muted { color: var(--muted); }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-4 { margin-bottom: 16px; }
+    .flex-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     code { background: var(--bg-hover); border: 1px solid var(--border); border-radius: 4px; padding: 1px 5px; font-family: monospace; font-size: 12px; color: var(--text); }
     a { color: var(--accent-h); }
+    .setup-steps { padding-left: 20px; display: flex; flex-direction: column; gap: 10px; color: var(--muted); }
+    .setup-steps li strong { color: var(--text); }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* Google Sign-In button custom */
+    .google-btn-wrap { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .google-btn-wrap .or { color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
 
-<!-- ── Sidebar ──────────────────────────────────────────────────────────── -->
+<!-- ── Sidebar ───────────────────────────────────────────────────────────── -->
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <span class="logo-icon">🗄️</span>
-    <span class="logo-text">GH Backup</span>
+    <span>🗄️</span>
+    <span>GH Backup</span>
   </div>
   <ul class="sidebar-nav">
     <li><a class="nav-link active" data-page="dashboard">
-      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"/></svg>
-      Dashboard
+      <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"/></svg>Dashboard
     </a></li>
     <li><a class="nav-link" data-page="backup">
-      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-      Backup
+      <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Backup
     </a></li>
     <li><a class="nav-link" data-page="restore">
-      <svg viewBox="0 0 24 24"><path d="M19 15h-4v6H9v-6H5l7-7 7 7zM5 6V4h14v2H5z"/></svg>
-      Restore
+      <svg viewBox="0 0 24 24"><path d="M19 15h-4v6H9v-6H5l7-7 7 7zM5 6V4h14v2H5z"/></svg>Restore
     </a></li>
     <li><a class="nav-link" data-page="runs">
-      <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
-      Workflow Runs
+      <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>Workflow Runs
     </a></li>
     <li><a class="nav-link" data-page="settings">
-      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>
-      Settings
+      <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>Settings
     </a></li>
   </ul>
   <div class="sidebar-footer">
-    <div id="connection-status" class="status-pill">
-      <span class="dot"></span> <span id="status-text">Not connected</span>
+    <div id="gh-status" class="status-pill status-err">
+      <span class="dot"></span><span id="gh-status-text">GitHub: not connected</span>
+    </div>
+    <div id="drive-status" class="status-pill status-err">
+      <span class="dot"></span><span id="drive-status-text">Drive: not connected</span>
     </div>
   </div>
 </nav>
 
-<!-- ── Main ─────────────────────────────────────────────────────────────── -->
+<!-- ── Main ──────────────────────────────────────────────────────────────── -->
 <main class="main">
 
-  <!-- Dashboard -->
+  <!-- ── Dashboard ──────────────────────────────────────────────────────── -->
   <section id="page-dashboard" class="page active">
     <div class="page-header">
-      <div>
-        <h1>Dashboard</h1>
-        <div class="page-subtitle">GitHub → Google Drive Backup</div>
-      </div>
+      <div><h1>Dashboard</h1><div class="page-subtitle">GitHub → Google Drive Backup</div></div>
       <button class="btn btn-secondary" onclick="loadDashboard()">↻ Refresh</button>
     </div>
-    <div id="no-token-banner" class="notice notice-warn hidden">
-      ⚠️ No GitHub token set — go to <strong>Settings</strong> to connect your account.
+    <div id="dash-warn" class="notice notice-warn hidden">
+      ⚠️ GitHub or Google Drive not connected — go to <strong>Settings</strong> to configure.
     </div>
     <div class="stats-grid">
       <div class="stat-card"><div class="stat-icon">📦</div><div><div class="stat-value" id="stat-repos">—</div><div class="stat-label">Repositories</div></div></div>
-      <div class="stat-card"><div class="stat-icon">▶️</div><div><div class="stat-value" id="stat-runs">—</div><div class="stat-label">Workflow Runs</div></div></div>
-      <div class="stat-card"><div class="stat-icon">✅</div><div><div class="stat-value" id="stat-last-run">—</div><div class="stat-label">Last Backup Run</div></div></div>
+      <div class="stat-card"><div class="stat-icon">💾</div><div><div class="stat-value" id="stat-sessions">—</div><div class="stat-label">Backup Sessions</div></div></div>
+      <div class="stat-card"><div class="stat-icon">✅</div><div><div class="stat-value" id="stat-last">—</div><div class="stat-label">Last Backup</div></div></div>
       <div class="stat-card"><div class="stat-icon">⚡</div><div><div class="stat-value" id="stat-active">—</div><div class="stat-label">Active Runs</div></div></div>
     </div>
     <div class="card">
       <div class="card-title">Recent Workflow Runs</div>
-      <div id="dashboard-runs" class="run-list"><p class="muted">Loading…</p></div>
+      <div id="dash-runs" class="run-list"><p class="muted">Loading…</p></div>
     </div>
   </section>
 
-  <!-- Backup -->
+  <!-- ── Backup ─────────────────────────────────────────────────────────── -->
   <section id="page-backup" class="page">
     <div class="page-header"><h1>Backup GitHub → Drive</h1></div>
-    <div class="notice notice-info">
-      ℹ️ Backup runs via <strong>GitHub Actions</strong>. Your token and Drive credentials must be set as repository secrets.
-      <a href="https://github.com/OmarRao/github-gdrive-backup/settings/secrets/actions" target="_blank">Manage secrets →</a>
+
+    <!-- Drive connection status banner -->
+    <div id="backup-drive-banner" class="notice notice-warn mb-4">
+      ⚠️ Google Drive not connected. <a href="#" onclick="navTo('settings')">Connect in Settings →</a>
     </div>
+    <div id="backup-drive-ok" class="notice notice-success mb-4 hidden">
+      ✅ Google Drive connected. Backup will upload to folder: <strong id="backup-folder-display">—</strong>
+    </div>
+
     <div class="two-col">
       <div class="card">
         <div class="card-title">Select Repositories</div>
         <div class="search-bar">
-          <input type="text" id="repo-search" class="form-input" placeholder="Filter repositories…" oninput="filterRepos(this.value)" />
-          <label class="checkbox-label"><input type="checkbox" id="select-all" onchange="toggleAll(this.checked)"> All</label>
+          <input type="text" class="form-input" placeholder="Filter…" oninput="filterRepos(this.value)" />
+          <label class="checkbox-label"><input type="checkbox" onchange="toggleAll(this.checked)"> All</label>
         </div>
-        <div id="repo-list" class="repo-list"><p class="muted" style="padding:12px">Loading repositories…</p></div>
+        <div id="repo-list" class="repo-list"><p class="muted" style="padding:12px">Loading…</p></div>
       </div>
       <div class="card">
         <div class="card-title">Backup Options</div>
@@ -319,22 +265,27 @@
             <label class="checkbox-label"><input type="checkbox" name="inc" value="milestones" checked> Milestones</label>
           </div>
         </div>
+        <div class="form-group">
+          <div class="form-label">Google Drive Folder ID</div>
+          <input type="text" id="backup-folder-id" class="form-input" placeholder="Paste folder ID or connect Drive in Settings" />
+          <div style="margin-top:6px;font-size:12px;color:var(--muted)">Get from Drive URL: <code>drive.google.com/drive/folders/<strong>FOLDER_ID</strong></code></div>
+        </div>
         <button class="btn btn-primary btn-full" onclick="triggerBackup()">▶ Trigger Backup Workflow</button>
-        <div id="backup-result" class="progress-area hidden"></div>
+        <div id="backup-result" class="result-area hidden"></div>
       </div>
     </div>
   </section>
 
-  <!-- Restore -->
+  <!-- ── Restore ────────────────────────────────────────────────────────── -->
   <section id="page-restore" class="page">
     <div class="page-header"><h1>Restore Drive → GitHub</h1></div>
-    <div class="notice notice-info">
-      ℹ️ Restore runs via <strong>GitHub Actions</strong>. Select a session name and click trigger — the workflow fetches from Drive automatically.
+    <div id="restore-drive-banner" class="notice notice-info">
+      ℹ️ Connect Google Drive in Settings to browse real backup sessions automatically.
     </div>
     <div class="two-col">
       <div class="card">
-        <div class="card-title">Recent Backup Runs</div>
-        <div id="restore-session-list" class="session-list"><p class="muted" style="padding:12px">Loading…</p></div>
+        <div class="card-title">Backup Sessions <span id="session-source-badge" style="font-size:11px;color:var(--muted);font-weight:400"></span></div>
+        <div id="session-list" class="session-list"><p class="muted" style="padding:12px">Loading sessions…</p></div>
       </div>
       <div class="card">
         <div class="card-title">Restore Options</div>
@@ -350,12 +301,12 @@
           <label class="checkbox-label"><input type="checkbox" id="restore-private" checked> Restore as private repos</label>
         </div>
         <button class="btn btn-warning btn-full" onclick="triggerRestore()">↺ Trigger Restore Workflow</button>
-        <div id="restore-result" class="progress-area hidden"></div>
+        <div id="restore-result" class="result-area hidden"></div>
       </div>
     </div>
   </section>
 
-  <!-- Workflow Runs -->
+  <!-- ── Workflow Runs ───────────────────────────────────────────────────── -->
   <section id="page-runs" class="page">
     <div class="page-header">
       <h1>Workflow Runs</h1>
@@ -366,58 +317,141 @@
     </div>
   </section>
 
-  <!-- Settings -->
+  <!-- ── Settings ───────────────────────────────────────────────────────── -->
   <section id="page-settings" class="page">
     <div class="page-header"><h1>Settings</h1></div>
-    <div class="card">
-      <div class="card-title">GitHub Connection</div>
-      <p class="muted mb-2">Token is stored in your browser only (localStorage). Needs scopes: <code>repo</code>, <code>workflow</code>.</p>
-      <div class="form-group">
-        <div class="form-label">GitHub Personal Access Token</div>
-        <input type="password" id="settings-token" class="form-input" placeholder="ghp_… or github_pat_…" />
-      </div>
-      <div class="form-group">
-        <div class="form-label">GitHub Username</div>
-        <input type="text" id="settings-user" class="form-input" placeholder="your-username" />
-      </div>
-      <div style="display:flex;gap:10px;flex-wrap:wrap">
-        <button class="btn btn-primary" onclick="saveSettings()">Save &amp; Connect</button>
-        <button class="btn btn-secondary" onclick="clearSettings()">Clear saved token</button>
-      </div>
-      <div id="settings-status" class="settings-status mt-4"></div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(this,'tab-github')">GitHub</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-drive')">Google Drive</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-secrets')">Actions Secrets</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-setup')">Setup Guide</button>
     </div>
 
-    <div class="card mt-4">
-      <div class="card-title">Repository Secrets Required for Actions</div>
-      <table style="width:100%;border-collapse:collapse;font-size:13px">
-        <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted)">
-          <th style="text-align:left;padding:8px 0">Secret</th>
-          <th style="text-align:left;padding:8px 0">Description</th>
-        </tr></thead>
-        <tbody>
-          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0"><code>GH_BACKUP_TOKEN</code></td><td style="padding:8px 0;color:var(--muted)">GitHub PAT (repo, read:org, read:user)</td></tr>
-          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0"><code>GH_USER</code></td><td style="padding:8px 0;color:var(--muted)">GitHub username or org to back up</td></tr>
-          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0"><code>GDRIVE_FOLDER_ID</code></td><td style="padding:8px 0;color:var(--muted)">Google Drive folder ID</td></tr>
-          <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0"><code>GOOGLE_CLIENT_SECRET</code></td><td style="padding:8px 0;color:var(--muted)">Full JSON of google-client-secret.json</td></tr>
-          <tr><td style="padding:8px 0"><code>GOOGLE_TOKEN</code></td><td style="padding:8px 0;color:var(--muted)">Full JSON of google-token.json</td></tr>
-        </tbody>
-      </table>
-      <div style="margin-top:12px">
-        <a class="btn btn-secondary" href="https://github.com/OmarRao/github-gdrive-backup/settings/secrets/actions" target="_blank">Open Secrets Settings →</a>
+    <!-- GitHub tab -->
+    <div id="tab-github" class="tab-panel active">
+      <div class="card">
+        <div class="card-title">GitHub Connection</div>
+        <p class="muted mb-4">Token stored in your browser only (localStorage). Never sent anywhere except api.github.com.</p>
+        <div class="form-group">
+          <div class="form-label">Personal Access Token</div>
+          <input type="password" id="s-gh-token" class="form-input" placeholder="ghp_… or github_pat_…" />
+        </div>
+        <div class="form-group">
+          <div class="form-label">GitHub Username / Org to back up</div>
+          <input type="text" id="s-gh-user" class="form-input" placeholder="OmarRao" />
+        </div>
+        <div class="flex-row">
+          <button class="btn btn-primary" onclick="saveGitHub()">Save &amp; Connect</button>
+          <button class="btn btn-secondary" onclick="clearGitHub()">Clear</button>
+        </div>
+        <div id="gh-conn-status" class="mt-4"></div>
       </div>
     </div>
 
-    <div class="card mt-4">
-      <div class="card-title">Quick Setup Guide</div>
-      <ol class="setup-steps">
-        <li>Clone the repo and run <code>npm install</code></li>
-        <li>Copy <code>.env.example</code> → <code>.env</code> and fill in your tokens</li>
-        <li>Download OAuth credentials from <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> → save as <code>credentials/google-client-secret.json</code></li>
-        <li>Run <code>node src/auth/google-auth.js</code> to authorise Google Drive</li>
-        <li>Add all 5 secrets to your GitHub repository</li>
-        <li>Trigger a backup from the <strong>Backup</strong> tab or wait for the daily schedule (02:00 UTC)</li>
-      </ol>
+    <!-- Google Drive tab -->
+    <div id="tab-drive" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Google Drive Connection</div>
+        <p class="muted mb-4">
+          Sign in with Google to browse your Drive backup folder directly from this dashboard.
+          Your token stays in your browser — it is never sent to any server.
+        </p>
+
+        <!-- Connected state -->
+        <div id="drive-connected-ui" class="hidden">
+          <div class="drive-connected mb-4">
+            <img id="drive-avatar" class="drive-avatar" src="" alt="" />
+            <div class="drive-info">
+              <div class="drive-name" id="drive-display-name"></div>
+              <div class="drive-email" id="drive-email"></div>
+              <div class="drive-quota" id="drive-quota-text"></div>
+              <div class="quota-bar"><div class="quota-fill" id="drive-quota-fill" style="width:0%"></div></div>
+            </div>
+            <button class="btn btn-secondary" onclick="disconnectDrive()">Disconnect</button>
+          </div>
+          <div class="form-group">
+            <div class="form-label">Backup Folder ID</div>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="s-drive-folder" class="form-input" placeholder="Paste folder ID from Drive URL" />
+              <button class="btn btn-secondary" onclick="verifyFolder()">Verify</button>
+            </div>
+            <div style="margin-top:6px;font-size:12px;color:var(--muted)">
+              From Drive URL: <code>drive.google.com/drive/folders/<strong>FOLDER_ID</strong></code>
+            </div>
+          </div>
+          <div id="folder-verify-result" class="mt-4"></div>
+          <button class="btn btn-primary" onclick="saveDriveSettings()">Save Folder ID</button>
+        </div>
+
+        <!-- Disconnected state -->
+        <div id="drive-disconnected-ui">
+          <div class="form-group">
+            <div class="form-label">Google OAuth Client ID</div>
+            <input type="text" id="s-google-client-id" class="form-input" placeholder="123456789-abc.apps.googleusercontent.com" />
+            <div style="margin-top:6px;font-size:12px;color:var(--muted)">
+              Get this from <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> →
+              Create OAuth 2.0 Client ID (Web app) → add <code>https://omarrao.github.io</code> as authorised origin.
+            </div>
+          </div>
+          <div class="google-btn-wrap mb-4">
+            <button class="btn-google" onclick="signInWithGoogle()">
+              <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+              Sign in with Google
+            </button>
+            <span class="or">or</span>
+            <div style="flex:1;min-width:200px">
+              <div class="form-label">Paste access token (from CLI auth)</div>
+              <div style="display:flex;gap:8px">
+                <input type="password" id="s-drive-token-paste" class="form-input" placeholder="ya29.…" />
+                <button class="btn btn-secondary" onclick="pasteTokenConnect()">Use</button>
+              </div>
+            </div>
+          </div>
+          <div id="drive-conn-result" class="mt-4"></div>
+        </div>
+      </div>
     </div>
+
+    <!-- Actions secrets tab -->
+    <div id="tab-secrets" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Repository Secrets for GitHub Actions</div>
+        <p class="muted mb-4">Add these 5 secrets to enable the scheduled and manual backup workflows.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px">
+          <thead><tr style="border-bottom:1px solid var(--border);color:var(--muted)">
+            <th style="text-align:left;padding:8px 0">Secret</th>
+            <th style="text-align:left;padding:8px 0">Value / Where to get it</th>
+            <th style="text-align:left;padding:8px 0">Status</th>
+          </tr></thead>
+          <tbody id="secrets-table-body">
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0"><code>GH_BACKUP_TOKEN</code></td><td style="padding:8px 0;color:var(--muted)">GitHub PAT (repo, read:org, read:user)</td><td><span class="run-badge badge-queued">unknown</span></td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0"><code>GH_USER</code></td><td style="padding:8px 0;color:var(--muted)">Your GitHub username or org</td><td><span class="run-badge badge-queued">unknown</span></td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0"><code>GDRIVE_FOLDER_ID</code></td><td style="padding:8px 0;color:var(--muted)">Google Drive folder ID</td><td><span class="run-badge badge-queued">unknown</span></td></tr>
+            <tr style="border-bottom:1px solid var(--border)"><td style="padding:8px 0"><code>GOOGLE_CLIENT_SECRET</code></td><td style="padding:8px 0;color:var(--muted)">Full JSON of google-client-secret.json</td><td><span class="run-badge badge-queued">unknown</span></td></tr>
+            <tr><td style="padding:8px 0"><code>GOOGLE_TOKEN</code></td><td style="padding:8px 0;color:var(--muted)">Full JSON of google-token.json (from CLI auth)</td><td><span class="run-badge badge-queued">unknown</span></td></tr>
+          </tbody>
+        </table>
+        <div style="margin-top:16px">
+          <a class="btn btn-secondary" href="https://github.com/OmarRao/github-gdrive-backup/settings/secrets/actions" target="_blank">Open Secrets Settings →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Setup guide tab -->
+    <div id="tab-setup" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Quick Setup Guide</div>
+        <ol class="setup-steps">
+          <li><strong>Google Cloud OAuth app</strong> — go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a>, create an OAuth 2.0 Client ID (Web application), add <code>https://omarrao.github.io</code> as an authorised JavaScript origin, and copy the Client ID into the <strong>Google Drive</strong> settings tab.</li>
+          <li><strong>Sign in with Google</strong> — click the Sign in with Google button in the Drive settings tab. This authenticates your browser for browsing Drive sessions.</li>
+          <li><strong>CLI auth for Actions</strong> — clone the repo locally, run <code>node src/auth/google-auth.js</code>, follow the browser prompt, then copy the contents of <code>credentials/google-token.json</code> into the <code>GOOGLE_TOKEN</code> Actions secret.</li>
+          <li><strong>Add all 5 secrets</strong> — go to the Actions Secrets tab and add each secret.</li>
+          <li><strong>Trigger a backup</strong> — go to the Backup tab, select repos, click Trigger.</li>
+        </ol>
+      </div>
+    </div>
+
   </section>
 
 </main>
@@ -425,133 +459,256 @@
 <script>
 const REPO_OWNER = 'OmarRao';
 const REPO_NAME  = 'github-gdrive-backup';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
 
-// ── State ──────────────────────────────────────────────────────────────────
-let token = localStorage.getItem('gh_token') || '';
-let ghUser = localStorage.getItem('gh_user') || '';
+// ── Persisted state ────────────────────────────────────────────────────────
+let ghToken    = localStorage.getItem('gh_token') || '';
+let ghUser     = localStorage.getItem('gh_user')  || '';
+let driveToken = localStorage.getItem('drive_token') || '';
+let driveUser  = JSON.parse(localStorage.getItem('drive_user') || 'null');
+let driveFolderID = localStorage.getItem('drive_folder_id') || '';
+let googleClientId = localStorage.getItem('google_client_id') || '';
 let allRepos = [];
+let selectedSession = null;
 
-// ── Nav ────────────────────────────────────────────────────────────────────
+// ── Navigation ─────────────────────────────────────────────────────────────
 document.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', e => {
     e.preventDefault();
-    const page = link.dataset.page;
-    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    link.classList.add('active');
-    document.getElementById(`page-${page}`).classList.add('active');
-    if (page === 'dashboard') loadDashboard();
-    if (page === 'backup')    loadRepos();
-    if (page === 'restore')   loadRestoreSessions();
-    if (page === 'runs')      loadRuns();
-    if (page === 'settings')  initSettings();
+    navTo(link.dataset.page);
   });
 });
 
-// ── API helper ─────────────────────────────────────────────────────────────
+function navTo(page) {
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelector(`[data-page="${page}"]`).classList.add('active');
+  document.getElementById(`page-${page}`).classList.add('active');
+  if (page === 'dashboard') loadDashboard();
+  if (page === 'backup')    { loadRepos(); updateBackupDriveBanner(); }
+  if (page === 'restore')   loadSessions();
+  if (page === 'runs')      loadRuns();
+  if (page === 'settings')  initSettings();
+}
+
+function switchTab(btn, id) {
+  btn.closest('.tabs').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  btn.closest('section').querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── GitHub API helper ──────────────────────────────────────────────────────
 async function ghFetch(path, opts = {}) {
   const res = await fetch(`https://api.github.com${path}`, {
     ...opts,
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'X-GitHub-Api-Version': '2022-11-28',
-      ...(opts.headers || {}),
-    },
+    headers: { Authorization: `Bearer ${ghToken}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', ...(opts.headers || {}) },
   });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.message || res.statusText);
-  }
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.message || res.statusText); }
   return res.status === 204 ? null : res.json();
 }
 
-function relTime(iso) {
-  if (!iso) return '—';
-  const d = Date.now() - new Date(iso);
-  if (d < 60000) return 'just now';
-  if (d < 3600000) return `${Math.floor(d/60000)}m ago`;
-  if (d < 86400000) return `${Math.floor(d/3600000)}h ago`;
-  return new Date(iso).toLocaleDateString();
+// ── Google Drive API helper ────────────────────────────────────────────────
+async function driveFetch(path, opts = {}) {
+  const res = await fetch(`https://www.googleapis.com${path}`, {
+    ...opts,
+    headers: { Authorization: `Bearer ${driveToken}`, ...(opts.headers || {}) },
+  });
+  if (res.status === 401) { driveToken = ''; localStorage.removeItem('drive_token'); updateDriveStatus(); throw new Error('Drive token expired — please reconnect in Settings.'); }
+  if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error((e.error && e.error.message) || res.statusText); }
+  return res.json();
 }
 
-function runBadge(status, conclusion) {
-  const key = conclusion || status;
-  const map = {
-    queued: 'badge-queued', in_progress: 'badge-in_progress',
-    success: 'badge-success', failure: 'badge-failure',
-    cancelled: 'badge-cancelled', completed: conclusion ? `badge-${conclusion}` : 'badge-queued',
-  };
-  const cls = map[key] || 'badge-queued';
-  const label = conclusion || status;
-  return `<span class="run-badge ${cls}">${label}</span>`;
-}
-
-function renderRuns(runs, container) {
-  if (!runs.length) { container.innerHTML = '<p class="muted" style="padding:8px 0">No runs found.</p>'; return; }
-  container.innerHTML = runs.map(r => `
-    <div class="run-item">
-      ${runBadge(r.status, r.conclusion)}
-      <span class="run-name">${r.name} <span style="color:var(--muted);font-weight:400">#${r.run_number}</span></span>
-      <span class="run-time">${relTime(r.created_at)}</span>
-      <a class="run-link" href="${r.html_url}" target="_blank">View →</a>
-    </div>`).join('');
-}
-
-// ── Status pill ────────────────────────────────────────────────────────────
-async function refreshStatus() {
-  const pill = document.getElementById('connection-status');
-  const txt  = document.getElementById('status-text');
-  if (!token) {
-    pill.className = 'status-pill status-err';
-    txt.textContent = 'No token';
-    document.getElementById('no-token-banner')?.classList.remove('hidden');
-    return false;
-  }
+// ── Status pills ───────────────────────────────────────────────────────────
+async function updateGHStatus() {
+  const pill = document.getElementById('gh-status');
+  const txt  = document.getElementById('gh-status-text');
+  if (!ghToken) { pill.className = 'status-pill status-err'; txt.textContent = 'GitHub: not connected'; return false; }
   try {
     const u = await ghFetch('/user');
+    ghUser = u.login;
+    localStorage.setItem('gh_user', ghUser);
     pill.className = 'status-pill status-ok';
-    txt.textContent = u.login;
-    document.getElementById('no-token-banner')?.classList.add('hidden');
+    txt.textContent = `GitHub: ${u.login}`;
+    document.getElementById('dash-warn')?.classList.add('hidden');
     return true;
   } catch {
     pill.className = 'status-pill status-err';
-    txt.textContent = 'Auth error';
+    txt.textContent = 'GitHub: auth error';
     return false;
   }
 }
-refreshStatus();
+
+function updateDriveStatus() {
+  const pill = document.getElementById('drive-status');
+  const txt  = document.getElementById('drive-status-text');
+  if (driveToken) {
+    pill.className = 'status-pill status-ok';
+    txt.textContent = driveUser ? `Drive: ${driveUser.name.split(' ')[0]}` : 'Drive: connected';
+  } else {
+    pill.className = 'status-pill status-err';
+    txt.textContent = 'Drive: not connected';
+  }
+}
+
+// ── Google OAuth (GIS token model) ────────────────────────────────────────
+function signInWithGoogle() {
+  const clientId = document.getElementById('s-google-client-id').value.trim() || googleClientId;
+  if (!clientId) {
+    showResult('drive-conn-result', 'error', 'Enter your Google OAuth Client ID first.');
+    return;
+  }
+  localStorage.setItem('google_client_id', clientId);
+  googleClientId = clientId;
+
+  if (!window.google?.accounts?.oauth2) {
+    showResult('drive-conn-result', 'error', 'Google Identity Services not loaded yet — try again in a moment.');
+    return;
+  }
+
+  const tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: clientId,
+    scope: [
+      'https://www.googleapis.com/auth/drive.readonly',
+      'https://www.googleapis.com/auth/userinfo.profile',
+      'https://www.googleapis.com/auth/userinfo.email',
+    ].join(' '),
+    callback: async (resp) => {
+      if (resp.error) { showResult('drive-conn-result', 'error', `OAuth error: ${resp.error}`); return; }
+      driveToken = resp.access_token;
+      localStorage.setItem('drive_token', driveToken);
+      await loadDriveUserInfo();
+      updateDriveStatus();
+      showDriveConnected();
+    },
+  });
+  tokenClient.requestAccessToken();
+}
+
+function pasteTokenConnect() {
+  const t = document.getElementById('s-drive-token-paste').value.trim();
+  if (!t) return;
+  driveToken = t;
+  localStorage.setItem('drive_token', driveToken);
+  loadDriveUserInfo().then(() => { updateDriveStatus(); showDriveConnected(); });
+}
+
+async function loadDriveUserInfo() {
+  try {
+    const [profile, about] = await Promise.all([
+      driveFetch('/oauth2/v3/userinfo'),
+      driveFetch('/drive/v3/about?fields=storageQuota,user'),
+    ]);
+    driveUser = { name: profile.name, email: profile.email, picture: profile.picture };
+    localStorage.setItem('drive_user', JSON.stringify(driveUser));
+    // Quota
+    const q = about.storageQuota;
+    const used = parseInt(q.usage || 0);
+    const total = parseInt(q.limit || 0);
+    const pct = total ? Math.round(used / total * 100) : 0;
+    driveUser.quota = { used, total, pct };
+    return driveUser;
+  } catch { return null; }
+}
+
+function showDriveConnected() {
+  document.getElementById('drive-disconnected-ui').classList.add('hidden');
+  document.getElementById('drive-connected-ui').classList.remove('hidden');
+  if (driveUser) {
+    document.getElementById('drive-avatar').src = driveUser.picture || '';
+    document.getElementById('drive-display-name').textContent = driveUser.name;
+    document.getElementById('drive-email').textContent = driveUser.email;
+    if (driveUser.quota) {
+      const gb = n => (n / 1024 / 1024 / 1024).toFixed(2);
+      document.getElementById('drive-quota-text').textContent = `${gb(driveUser.quota.used)} GB used of ${gb(driveUser.quota.total)} GB`;
+      document.getElementById('drive-quota-fill').style.width = driveUser.quota.pct + '%';
+    }
+  }
+  if (driveFolderID) document.getElementById('s-drive-folder').value = driveFolderID;
+}
+
+function disconnectDrive() {
+  driveToken = ''; driveUser = null;
+  localStorage.removeItem('drive_token');
+  localStorage.removeItem('drive_user');
+  updateDriveStatus();
+  document.getElementById('drive-connected-ui').classList.add('hidden');
+  document.getElementById('drive-disconnected-ui').classList.remove('hidden');
+}
+
+async function verifyFolder() {
+  const fid = document.getElementById('s-drive-folder').value.trim();
+  const el  = document.getElementById('folder-verify-result');
+  if (!fid) { showResult('folder-verify-result', 'error', 'Enter a folder ID.'); return; }
+  try {
+    const f = await driveFetch(`/drive/v3/files/${fid}?fields=name,mimeType`);
+    if (f.mimeType !== 'application/vnd.google-apps.folder') throw new Error('That ID is not a folder.');
+    showResult('folder-verify-result', 'success', `✅ Found folder: "${f.name}"`);
+  } catch (err) {
+    showResult('folder-verify-result', 'error', `❌ ${err.message}`);
+  }
+}
+
+function saveDriveSettings() {
+  driveFolderID = document.getElementById('s-drive-folder').value.trim();
+  localStorage.setItem('drive_folder_id', driveFolderID);
+  updateBackupDriveBanner();
+  showResult('folder-verify-result', 'success', '✅ Folder ID saved.');
+}
+
+// ── Backup tab Drive banner ────────────────────────────────────────────────
+function updateBackupDriveBanner() {
+  const warn = document.getElementById('backup-drive-banner');
+  const ok   = document.getElementById('backup-drive-ok');
+  if (driveToken && driveFolderID) {
+    warn.classList.add('hidden');
+    ok.classList.remove('hidden');
+    document.getElementById('backup-folder-display').textContent = driveFolderID;
+    document.getElementById('backup-folder-id').value = driveFolderID;
+  } else {
+    warn.classList.remove('hidden');
+    ok.classList.add('hidden');
+  }
+}
 
 // ── Dashboard ──────────────────────────────────────────────────────────────
 async function loadDashboard() {
-  if (!token) { document.getElementById('no-token-banner').classList.remove('hidden'); return; }
+  const runs  = await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?per_page=10`).catch(() => ({ workflow_runs: [] }));
+  const repos = await ghFetch(`/users/${ghUser || REPO_OWNER}/repos?per_page=1&type=all`).catch(() => null);
+
+  if (!ghToken) document.getElementById('dash-warn').classList.remove('hidden');
+
+  // Repo count from Link header is awkward; just show from repos array length on first page
+  document.getElementById('stat-repos').textContent = repos ? '—' : '—';
   try {
-    const [repos, runs] = await Promise.all([
-      ghFetch(`/users/${ghUser || REPO_OWNER}/repos?per_page=100&type=all`).catch(() => []),
-      ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?per_page=10`).catch(() => ({ workflow_runs: [] })),
-    ]);
-    document.getElementById('stat-repos').textContent = repos.length || '—';
-    const allRuns = runs.workflow_runs || [];
-    document.getElementById('stat-runs').textContent = allRuns.length;
-    const active = allRuns.filter(r => r.status === 'in_progress' || r.status === 'queued').length;
-    document.getElementById('stat-active').textContent = active;
-    const lastBackup = allRuns.find(r => r.name?.toLowerCase().includes('backup'));
-    document.getElementById('stat-last-run').textContent = lastBackup ? relTime(lastBackup.created_at) : '—';
-    renderRuns(allRuns.slice(0, 8), document.getElementById('dashboard-runs'));
-  } catch (err) {
-    document.getElementById('dashboard-runs').innerHTML = `<p style="color:var(--danger)">Error: ${err.message}</p>`;
+    const all = await ghFetch(`/users/${ghUser || REPO_OWNER}/repos?per_page=100&type=all`);
+    document.getElementById('stat-repos').textContent = all.length;
+  } catch {}
+
+  const allRuns = runs.workflow_runs || [];
+  document.getElementById('stat-active').textContent = allRuns.filter(r => r.status === 'in_progress' || r.status === 'queued').length;
+  const lastBackup = allRuns.find(r => r.name?.toLowerCase().includes('backup'));
+  document.getElementById('stat-last').textContent = lastBackup ? relTime(lastBackup.created_at) : '—';
+
+  // Drive sessions count
+  if (driveToken && driveFolderID) {
+    try {
+      const data = await driveFetch(`/drive/v3/files?q='${driveFolderID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name)&orderBy=createdTime+desc`);
+      document.getElementById('stat-sessions').textContent = (data.files || []).length;
+    } catch { document.getElementById('stat-sessions').textContent = '—'; }
+  } else {
+    document.getElementById('stat-sessions').textContent = '—';
   }
+
+  renderRuns(allRuns.slice(0, 8), document.getElementById('dash-runs'));
 }
-loadDashboard();
 
 // ── Backup ─────────────────────────────────────────────────────────────────
 async function loadRepos() {
-  if (!token) return;
   const el = document.getElementById('repo-list');
   el.innerHTML = '<p class="muted" style="padding:12px">Loading…</p>';
   try {
-    const owner = ghUser || REPO_OWNER;
-    allRepos = await ghFetch(`/users/${owner}/repos?per_page=100&type=all`);
+    allRepos = await ghFetch(`/users/${ghUser || REPO_OWNER}/repos?per_page=100&type=all`);
     renderRepoList(allRepos);
   } catch (err) {
     el.innerHTML = `<p style="color:var(--danger);padding:12px">Error: ${err.message}</p>`;
@@ -570,76 +727,95 @@ function renderRepoList(repos) {
 }
 
 function filterRepos(q) { renderRepoList(allRepos.filter(r => r.name.toLowerCase().includes(q.toLowerCase()))); }
-function toggleAll(v) { document.querySelectorAll('.repo-cb').forEach(cb => cb.checked = v); }
+function toggleAll(v)   { document.querySelectorAll('.repo-cb').forEach(cb => cb.checked = v); }
 
 async function triggerBackup() {
-  const result = document.getElementById('backup-result');
-  result.className = 'progress-area';
-  result.classList.remove('hidden');
+  const result  = document.getElementById('backup-result');
+  const folderId = document.getElementById('backup-folder-id').value.trim() || driveFolderID;
+  const checked  = [...document.querySelectorAll('.repo-cb:checked')].map(c => c.value.split('/')[1]);
+  const include  = [...document.querySelectorAll('[name=inc]:checked')].map(c => c.value).join(',');
+
+  result.className = 'result-area'; result.classList.remove('hidden');
   result.innerHTML = 'Triggering backup workflow…';
-
-  const checked = [...document.querySelectorAll('.repo-cb:checked')].map(c => c.value.split('/')[1]);
-  const include = [...document.querySelectorAll('[name=inc]:checked')].map(c => c.value).join(',');
-
   try {
     await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/backup.yml/dispatches`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ref: 'main',
-        inputs: {
-          repos: checked.join(','),
-          include,
-        },
-      }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ref: 'main', inputs: { repos: checked.join(','), include } }),
     });
     result.classList.add('success');
-    result.innerHTML = `✅ Backup workflow triggered! <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/backup.yml" target="_blank">View runs →</a>`;
+    result.innerHTML = `✅ Backup workflow triggered! <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/backup.yml" target="_blank">View run →</a>`;
   } catch (err) {
     result.classList.add('error');
-    result.innerHTML = `❌ Failed: ${err.message}`;
+    result.innerHTML = `❌ ${err.message}`;
   }
 }
 
-// ── Restore ────────────────────────────────────────────────────────────────
-async function loadRestoreSessions() {
-  if (!token) return;
-  const el = document.getElementById('restore-session-list');
-  try {
-    const runs = await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/backup.yml/runs?per_page=10&status=success`);
-    const list = runs.workflow_runs || [];
-    if (!list.length) { el.innerHTML = '<p class="muted" style="padding:12px">No successful backup runs found.</p>'; return; }
-    el.innerHTML = list.map(r => `
-      <div class="session-item">
-        <span class="session-name">Run #${r.run_number}</span>
-        <span class="session-date">${relTime(r.created_at)}</span>
-      </div>`).join('');
-  } catch (err) {
-    el.innerHTML = `<p style="color:var(--danger);padding:12px">Error: ${err.message}</p>`;
+// ── Restore — real sessions from Drive ────────────────────────────────────
+async function loadSessions() {
+  const el     = document.getElementById('session-list');
+  const badge  = document.getElementById('session-source-badge');
+  const banner = document.getElementById('restore-drive-banner');
+
+  if (driveToken && driveFolderID) {
+    // Fetch real sessions from Drive
+    banner.classList.add('hidden');
+    badge.textContent = '— from Google Drive';
+    el.innerHTML = '<p class="muted" style="padding:12px">Loading from Drive…</p>';
+    try {
+      const data = await driveFetch(`/drive/v3/files?q='${driveFolderID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name,createdTime)&orderBy=createdTime+desc`);
+      const sessions = data.files || [];
+      if (!sessions.length) { el.innerHTML = '<p class="muted" style="padding:12px">No backup sessions found in this folder.</p>'; return; }
+      el.innerHTML = sessions.map(s => `
+        <div class="session-item" data-id="${s.id}" data-name="${s.name}" onclick="selectSession(this)">
+          <span class="session-name">${s.name}</span>
+          <span class="session-date">${relTime(s.createdTime)}</span>
+        </div>`).join('');
+    } catch (err) {
+      el.innerHTML = `<p style="color:var(--danger);padding:12px">Drive error: ${err.message}</p>`;
+    }
+  } else {
+    // Fall back to workflow run history
+    banner.classList.remove('hidden');
+    badge.textContent = '— from GitHub Actions';
+    el.innerHTML = '<p class="muted" style="padding:12px">Loading from workflow runs…</p>';
+    try {
+      const runs = await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/backup.yml/runs?per_page=15&status=success`);
+      const list = (runs.workflow_runs || []);
+      if (!list.length) { el.innerHTML = '<p class="muted" style="padding:12px">No successful backup runs yet.</p>'; return; }
+      el.innerHTML = list.map(r => `
+        <div class="session-item" data-id="${r.id}" data-name="Run #${r.run_number}" onclick="selectSession(this)">
+          <span class="session-name">Run #${r.run_number}</span>
+          <span class="session-date">${relTime(r.created_at)}</span>
+        </div>`).join('');
+    } catch (err) {
+      el.innerHTML = `<p style="color:var(--danger);padding:12px">Error: ${err.message}</p>`;
+    }
   }
+}
+
+function selectSession(el) {
+  document.querySelectorAll('.session-item').forEach(i => i.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedSession = { id: el.dataset.id, name: el.dataset.name };
 }
 
 async function triggerRestore() {
   const result = document.getElementById('restore-result');
-  result.className = 'progress-area';
-  result.classList.remove('hidden');
+  result.className = 'result-area'; result.classList.remove('hidden');
   result.innerHTML = 'Triggering restore workflow…';
-
-  const repos  = document.getElementById('restore-repos').value.trim();
-  const owner  = document.getElementById('restore-owner').value.trim();
-  const priv   = document.getElementById('restore-private').checked ? 'true' : 'false';
-
+  const repos = document.getElementById('restore-repos').value.trim();
+  const owner = document.getElementById('restore-owner').value.trim();
+  const priv  = document.getElementById('restore-private').checked ? 'true' : 'false';
   try {
     await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/restore.yml/dispatches`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ ref: 'main', inputs: { repos, target_owner: owner, private: priv } }),
     });
     result.classList.add('success');
-    result.innerHTML = `✅ Restore workflow triggered! <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/restore.yml" target="_blank">View runs →</a>`;
+    result.innerHTML = `✅ Restore triggered! <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/restore.yml" target="_blank">View run →</a>`;
   } catch (err) {
     result.classList.add('error');
-    result.innerHTML = `❌ Failed: ${err.message}`;
+    result.innerHTML = `❌ ${err.message}`;
   }
 }
 
@@ -657,39 +833,70 @@ async function loadRuns() {
 
 // ── Settings ───────────────────────────────────────────────────────────────
 function initSettings() {
-  document.getElementById('settings-token').value = token;
-  document.getElementById('settings-user').value  = ghUser;
-  const st = document.getElementById('settings-status');
-  if (token) {
-    st.innerHTML = `<div class="settings-row"><span class="label">Status</span><span style="color:#3fb950">✓ Token saved in browser</span></div>`;
-  } else {
-    st.innerHTML = `<div class="settings-row"><span class="label">Status</span><span style="color:var(--muted)">No token saved</span></div>`;
-  }
+  document.getElementById('s-gh-token').value = ghToken;
+  document.getElementById('s-gh-user').value  = ghUser;
+  if (googleClientId) document.getElementById('s-google-client-id').value = googleClientId;
+  if (driveToken) showDriveConnected();
+  updateDriveStatus();
 }
 
-async function saveSettings() {
-  token  = document.getElementById('settings-token').value.trim();
-  ghUser = document.getElementById('settings-user').value.trim();
-  localStorage.setItem('gh_token', token);
-  localStorage.setItem('gh_user',  ghUser);
-  const ok = await refreshStatus();
-  const st = document.getElementById('settings-status');
-  if (ok) {
-    st.innerHTML = `<div class="settings-row"><span class="label">Status</span><span style="color:#3fb950">✓ Connected</span></div>`;
-  } else {
-    st.innerHTML = `<div class="settings-row"><span class="label">Status</span><span style="color:var(--danger)">✗ Authentication failed</span></div>`;
-  }
+async function saveGitHub() {
+  ghToken = document.getElementById('s-gh-token').value.trim();
+  ghUser  = document.getElementById('s-gh-user').value.trim();
+  localStorage.setItem('gh_token', ghToken);
+  localStorage.setItem('gh_user', ghUser);
+  const ok = await updateGHStatus();
+  const el = document.getElementById('gh-conn-status');
+  if (ok) el.innerHTML = `<div class="notice notice-success">✅ Connected as <strong>${ghUser}</strong></div>`;
+  else    el.innerHTML = `<div class="notice notice-warn">❌ Authentication failed — check your token and scopes (needs: repo, workflow)</div>`;
 }
 
-function clearSettings() {
-  localStorage.removeItem('gh_token');
-  localStorage.removeItem('gh_user');
-  token = ''; ghUser = '';
-  document.getElementById('settings-token').value = '';
-  document.getElementById('settings-user').value  = '';
-  refreshStatus();
-  initSettings();
+function clearGitHub() {
+  ghToken = ''; ghUser = '';
+  ['gh_token','gh_user'].forEach(k => localStorage.removeItem(k));
+  document.getElementById('s-gh-token').value = '';
+  document.getElementById('s-gh-user').value  = '';
+  updateGHStatus();
 }
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+function relTime(iso) {
+  if (!iso) return '—';
+  const d = Date.now() - new Date(iso);
+  if (d < 60000) return 'just now';
+  if (d < 3600000) return `${Math.floor(d/60000)}m ago`;
+  if (d < 86400000) return `${Math.floor(d/3600000)}h ago`;
+  return new Date(iso).toLocaleDateString();
+}
+
+function runBadge(status, conclusion) {
+  const key = conclusion || status;
+  const cls = { queued:'badge-queued', in_progress:'badge-in_progress', success:'badge-success', failure:'badge-failure', cancelled:'badge-cancelled' }[key] || 'badge-queued';
+  return `<span class="run-badge ${cls}">${key}</span>`;
+}
+
+function renderRuns(runs, container) {
+  if (!runs.length) { container.innerHTML = '<p class="muted" style="padding:8px 0">No runs yet.</p>'; return; }
+  container.innerHTML = runs.map(r => `
+    <div class="run-item">
+      ${runBadge(r.status, r.conclusion)}
+      <span class="run-name">${r.name} <span style="color:var(--muted);font-weight:400">#${r.run_number}</span></span>
+      <span class="run-time">${relTime(r.created_at)}</span>
+      <a class="run-link" href="${r.html_url}" target="_blank">View →</a>
+    </div>`).join('');
+}
+
+function showResult(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = `result-area ${type}`; el.classList.remove('hidden');
+  el.innerHTML = msg;
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+updateGHStatus();
+updateDriveStatus();
+loadDashboard();
+updateBackupDriveBanner();
 </script>
 </body>
 </html>
