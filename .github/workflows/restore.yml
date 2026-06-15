@@ -1,0 +1,79 @@
+name: Restore from Google Drive → GitHub
+
+on:
+  workflow_dispatch:
+    inputs:
+      session_name:
+        description: 'Backup session folder name in Drive (leave blank for latest)'
+        required: false
+        default: ''
+      repos:
+        description: 'Comma-separated repo names to restore (leave blank for all in session)'
+        required: false
+        default: ''
+      target_owner:
+        description: 'Target GitHub owner/org (leave blank for authenticated user)'
+        required: false
+        default: ''
+      private:
+        description: 'Restore repos as private?'
+        required: false
+        default: 'true'
+        type: choice
+        options: ['true', 'false']
+
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write Google credentials
+        run: |
+          mkdir -p credentials
+          echo '${{ secrets.GOOGLE_CLIENT_SECRET }}' > credentials/google-client-secret.json
+          echo '${{ secrets.GOOGLE_TOKEN }}'         > credentials/google-token.json
+
+      - name: Run restore
+        env:
+          GITHUB_TOKEN:              ${{ secrets.GH_BACKUP_TOKEN }}
+          GITHUB_USER:               ${{ secrets.GH_USER }}
+          GDRIVE_FOLDER_ID:          ${{ secrets.GDRIVE_FOLDER_ID }}
+          GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
+          GOOGLE_TOKEN_PATH:         ./credentials/google-token.json
+          BACKUP_TMP_DIR:            /tmp/gh-restore
+          INPUT_SESSION:             ${{ github.event.inputs.session_name }}
+          INPUT_REPOS:               ${{ github.event.inputs.repos }}
+          INPUT_TARGET_OWNER:        ${{ github.event.inputs.target_owner }}
+          INPUT_PRIVATE:             ${{ github.event.inputs.private }}
+        run: |
+          node -e "
+            const { runRestore } = require('./src/restore/index');
+            const opts = {
+              repos: process.env.INPUT_REPOS ? process.env.INPUT_REPOS.split(',').map(r => r.trim()) : [],
+              targetOwner: process.env.INPUT_TARGET_OWNER || undefined,
+              private: process.env.INPUT_PRIVATE !== 'false',
+            };
+            runRestore(opts)
+              .then(r => { console.log(JSON.stringify(r, null, 2)); })
+              .catch(e => { console.error(e); process.exit(1); });
+          "
+
+      - name: Upload log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: restore-logs-${{ github.run_id }}
+          path: logs/
+          retention-days: 30
