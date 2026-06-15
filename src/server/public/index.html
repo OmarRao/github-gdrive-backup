@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GitHub → Google Drive Backup</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🗄️</text></svg>" />
+</head>
+<body>
+  <!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <span class="logo-icon">🗄️</span>
+      <span class="logo-text">GH Backup</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="#" class="nav-link active" data-page="dashboard">
+        <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3zm0 8h8v-6H3zm10 0h8V11h-8zm0-18v6h8V3z"/></svg>
+        Dashboard
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="backup">
+        <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+        Backup
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="restore">
+        <svg viewBox="0 0 24 24"><path d="M19 15h-4v6H9v-6H5l7-7 7 7zM5 6V4h14v2H5z"/></svg>
+        Restore
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="history">
+        <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
+        History
+      </a></li>
+      <li><a href="#" class="nav-link" data-page="settings">
+        <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87a.47.47 0 0 0 .12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.47.47 0 0 0-.12-.61l-2.01-1.58zM12 15.6a3.6 3.6 0 1 1 0-7.2 3.6 3.6 0 0 1 0 7.2z"/></svg>
+        Settings
+      </a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <div id="connection-status" class="status-pill status-checking">
+        <span class="dot"></span> Checking…
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Main ───────────────────────────────────────────────────────────── -->
+  <main class="main">
+    <!-- Dashboard -->
+    <section id="page-dashboard" class="page active">
+      <header class="page-header">
+        <h1>Dashboard</h1>
+        <button class="btn btn-secondary" id="btn-refresh-dashboard">↻ Refresh</button>
+      </header>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">📦</div>
+          <div class="stat-body">
+            <div class="stat-value" id="stat-repos">—</div>
+            <div class="stat-label">Repositories</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">💾</div>
+          <div class="stat-body">
+            <div class="stat-value" id="stat-backups">—</div>
+            <div class="stat-label">Backup Sessions</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-body">
+            <div class="stat-value" id="stat-last">—</div>
+            <div class="stat-label">Last Backup</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-body">
+            <div class="stat-value" id="stat-jobs">—</div>
+            <div class="stat-label">Active Jobs</div>
+          </div>
+        </div>
+      </div>
+      <div class="card mt-4">
+        <h2 class="card-title">Recent Jobs</h2>
+        <div id="dashboard-jobs" class="job-list"></div>
+      </div>
+    </section>
+
+    <!-- Backup -->
+    <section id="page-backup" class="page">
+      <header class="page-header">
+        <h1>Backup GitHub → Drive</h1>
+      </header>
+      <div class="two-col">
+        <div class="card">
+          <h2 class="card-title">Select Repositories</h2>
+          <div class="search-bar">
+            <input type="text" id="repo-search" class="form-input" placeholder="Filter repositories…" />
+            <label class="checkbox-label">
+              <input type="checkbox" id="select-all-repos" /> Select all
+            </label>
+          </div>
+          <div id="repo-list" class="repo-list">
+            <p class="muted">Loading repositories…</p>
+          </div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Backup Options</h2>
+          <div class="form-group">
+            <label class="form-label">Include</label>
+            <div class="checkbox-group">
+              <label class="checkbox-label"><input type="checkbox" name="include" value="code" checked /> Source code &amp; branches</label>
+              <label class="checkbox-label"><input type="checkbox" name="include" value="issues" checked /> Issues &amp; comments</label>
+              <label class="checkbox-label"><input type="checkbox" name="include" value="pull_requests" checked /> Pull requests</label>
+              <label class="checkbox-label"><input type="checkbox" name="include" value="releases" checked /> Releases &amp; assets</label>
+              <label class="checkbox-label"><input type="checkbox" name="include" value="wiki" checked /> Wiki</label>
+              <label class="checkbox-label"><input type="checkbox" name="include" value="labels" checked /> Labels</label>
+              <label class="checkbox-label"><input type="checkbox" name="include" value="milestones" checked /> Milestones</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Google Drive Folder ID</label>
+            <input type="text" id="backup-folder-id" class="form-input" placeholder="From .env or override here" />
+          </div>
+          <button class="btn btn-primary btn-full" id="btn-start-backup">
+            ▶ Start Backup
+          </button>
+          <div id="backup-progress" class="progress-area hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Restore -->
+    <section id="page-restore" class="page">
+      <header class="page-header">
+        <h1>Restore Drive → GitHub</h1>
+      </header>
+      <div class="two-col">
+        <div class="card">
+          <h2 class="card-title">Backup Sessions</h2>
+          <div id="session-list" class="session-list">
+            <p class="muted">Loading sessions…</p>
+          </div>
+        </div>
+        <div class="card">
+          <h2 class="card-title">Restore Options</h2>
+          <div class="form-group">
+            <label class="form-label">Session</label>
+            <select id="restore-session" class="form-input">
+              <option value="">— select a session —</option>
+            </select>
+          </div>
+          <div id="restore-repo-selector" class="hidden">
+            <div class="form-group">
+              <label class="form-label">Repositories to restore</label>
+              <div id="restore-repo-list" class="repo-list small"></div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Target GitHub owner (leave blank for self)</label>
+            <input type="text" id="restore-target-owner" class="form-input" placeholder="username or org" />
+          </div>
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="restore-private" checked /> Restore as private repos
+            </label>
+          </div>
+          <button class="btn btn-warning btn-full" id="btn-start-restore">
+            ↺ Start Restore
+          </button>
+          <div id="restore-progress" class="progress-area hidden"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- History -->
+    <section id="page-history" class="page">
+      <header class="page-header">
+        <h1>Job History</h1>
+        <button class="btn btn-secondary" id="btn-refresh-history">↻ Refresh</button>
+      </header>
+      <div class="card">
+        <div id="history-list" class="job-list"></div>
+      </div>
+    </section>
+
+    <!-- Settings -->
+    <section id="page-settings" class="page">
+      <header class="page-header">
+        <h1>Settings &amp; Setup</h1>
+      </header>
+      <div class="card">
+        <h2 class="card-title">Connection Status</h2>
+        <div id="settings-status" class="settings-status"></div>
+      </div>
+      <div class="card mt-4">
+        <h2 class="card-title">GitHub Token</h2>
+        <p class="muted mb-2">Needs scopes: <code>repo</code>, <code>read:org</code>, <code>read:user</code></p>
+        <div class="form-group">
+          <input type="password" id="settings-gh-token" class="form-input" placeholder="ghp_…" />
+        </div>
+        <div class="form-group">
+          <input type="text" id="settings-gh-owner" class="form-input" placeholder="GitHub username or org" />
+        </div>
+        <button class="btn btn-secondary" id="btn-test-github">Test GitHub connection</button>
+      </div>
+      <div class="card mt-4">
+        <h2 class="card-title">Google Drive</h2>
+        <p class="muted mb-2">
+          Authorise once with <code>node src/auth/google-auth.js</code>, then paste your Drive folder ID below.
+        </p>
+        <div class="form-group">
+          <input type="text" id="settings-drive-folder" class="form-input" placeholder="Google Drive folder ID" />
+        </div>
+        <button class="btn btn-secondary" id="btn-test-drive">Test Drive connection</button>
+      </div>
+      <div class="card mt-4">
+        <h2 class="card-title">Quick Setup Guide</h2>
+        <ol class="setup-steps">
+          <li>Copy <code>.env.example</code> → <code>.env</code> and fill in your tokens.</li>
+          <li>Create OAuth credentials in <a href="https://console.cloud.google.com/" target="_blank">Google Cloud Console</a> and download <code>google-client-secret.json</code> into the <code>credentials/</code> folder.</li>
+          <li>Run <code>node src/auth/google-auth.js</code> and follow the browser prompt.</li>
+          <li>Create a folder in Google Drive, copy its ID from the URL.</li>
+          <li>Set <code>GDRIVE_FOLDER_ID</code> in your <code>.env</code>.</li>
+          <li>Start a backup from the <strong>Backup</strong> tab — or trigger via GitHub Actions.</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
