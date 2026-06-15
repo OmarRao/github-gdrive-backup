@@ -1,0 +1,74 @@
+name: Scheduled GitHub → Google Drive Backup
+
+on:
+  schedule:
+    # Runs daily at 02:00 UTC — adjust to your preferred time
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      repos:
+        description: 'Comma-separated list of repos to back up (leave blank for all)'
+        required: false
+        default: ''
+      include:
+        description: 'What to include (comma-separated: code,issues,pull_requests,releases,wiki,labels,milestones)'
+        required: false
+        default: 'code,issues,pull_requests,releases,wiki,labels,milestones'
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write Google credentials
+        run: |
+          mkdir -p credentials
+          echo '${{ secrets.GOOGLE_CLIENT_SECRET }}' > credentials/google-client-secret.json
+          echo '${{ secrets.GOOGLE_TOKEN }}'         > credentials/google-token.json
+
+      - name: Run backup
+        env:
+          GITHUB_TOKEN:              ${{ secrets.GH_BACKUP_TOKEN }}
+          GITHUB_USER:               ${{ secrets.GH_USER }}
+          GDRIVE_FOLDER_ID:          ${{ secrets.GDRIVE_FOLDER_ID }}
+          GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
+          GOOGLE_TOKEN_PATH:         ./credentials/google-token.json
+          BACKUP_INCLUDE:            ${{ github.event.inputs.include || 'code,issues,pull_requests,releases,wiki,labels,milestones' }}
+          BACKUP_CONCURRENCY:        '3'
+          BACKUP_TMP_DIR:            /tmp/gh-backup
+        run: |
+          REPOS="${{ github.event.inputs.repos }}"
+          if [ -n "$REPOS" ]; then
+            node -e "
+              const { runBackup } = require('./src/backup/index');
+              runBackup({ repos: process.env.REPOS.split(',').map(r => r.trim()) })
+                .then(s => { console.log(JSON.stringify(s, null, 2)); process.exit(s.failed > 0 ? 1 : 0); })
+                .catch(e => { console.error(e); process.exit(1); });
+            "
+          else
+            node src/backup/index.js
+          fi
+        env:
+          REPOS: ${{ github.event.inputs.repos }}
+
+      - name: Upload log artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backup-logs-${{ github.run_id }}
+          path: logs/
+          retention-days: 30
