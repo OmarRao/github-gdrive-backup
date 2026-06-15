@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
+  <rect width="900" height="560" fill="#0d1117"/>
+  <rect width="230" height="560" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="20" y="38" font-family="sans-serif" font-size="20" fill="#e6edf3">🗄️</text>
+  <text x="50" y="38" font-family="sans-serif" font-size="16" font-weight="700" fill="#e6edf3">GH Backup</text>
+  <line x1="0" y1="56" x2="230" y2="56" stroke="#30363d"/>
+  <text x="20" y="95" font-family="sans-serif" font-size="14" fill="#8b949e">⊞  Dashboard</text>
+  <text x="20" y="135" font-family="sans-serif" font-size="14" fill="#8b949e">⬇  Backup</text>
+  <text x="20" y="175" font-family="sans-serif" font-size="14" fill="#8b949e">⬆  Restore</text>
+  <text x="20" y="215" font-family="sans-serif" font-size="14" fill="#8b949e">↻  Workflow Runs</text>
+  <rect x="8" y="228" width="214" height="36" rx="8" fill="#1f6feb"/>
+  <text x="42" y="251" font-family="sans-serif" font-size="14" font-weight="600" fill="#fff">Settings</text>
+  <text x="20" y="251" font-family="sans-serif" font-size="14" fill="#fff">⚙</text>
+  <rect x="12" y="528" width="150" height="24" rx="12" fill="#21262d"/>
+  <circle cx="26" cy="540" r="4" fill="#3fb950"/>
+  <text x="36" y="545" font-family="sans-serif" font-size="12" fill="#e6edf3">OmarRao ✓</text>
+
+  <text x="258" y="52" font-family="sans-serif" font-size="22" font-weight="700" fill="#e6edf3">Settings</text>
+
+  <!-- GitHub connection card -->
+  <rect x="258" y="64" width="622" height="200" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="278" y="92" font-family="sans-serif" font-size="15" font-weight="600" fill="#e6edf3">GitHub Connection</text>
+  <text x="278" y="112" font-family="sans-serif" font-size="12" fill="#8b949e">Token stored in browser only (localStorage). Needs scopes: repo, workflow</text>
+  <text x="278" y="136" font-family="sans-serif" font-size="11" font-weight="600" fill="#8b949e">GITHUB PERSONAL ACCESS TOKEN</text>
+  <rect x="278" y="144" width="582" height="32" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="290" y="165" font-family="sans-serif" font-size="13" fill="#8b949e">ghp_… or github_pat_…</text>
+  <text x="278" y="196" font-family="sans-serif" font-size="11" font-weight="600" fill="#8b949e">GITHUB USERNAME</text>
+  <rect x="278" y="204" width="582" height="32" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="290" y="225" font-family="sans-serif" font-size="13" fill="#8b949e">OmarRao</text>
+  <!-- Status row -->
+  <rect x="278" y="244" width="582" height="36" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <text x="296" y="266" font-family="sans-serif" font-size="13" font-weight="500" fill="#e6edf3">Status</text>
+  <text x="700" y="266" font-family="sans-serif" font-size="13" fill="#3fb950">✓ Connected as OmarRao</text>
+
+  <!-- Secrets card -->
+  <rect x="258" y="278" width="622" height="260" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
+  <text x="278" y="306" font-family="sans-serif" font-size="15" font-weight="600" fill="#e6edf3">Repository Secrets Required for Actions</text>
+  <line x1="278" y1="318" x2="860" y2="318" stroke="#30363d"/>
+  <text x="290" y="338" font-family="sans-serif" font-size="12" fill="#8b949e">Secret</text>
+  <text x="520" y="338" font-family="sans-serif" font-size="12" fill="#8b949e">Description</text>
+  <line x1="278" y1="346" x2="860" y2="346" stroke="#30363d"/>
+  <rect x="290" y="354" width="140" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="298" y="368" font-family="monospace" font-size="11" fill="#e6edf3">GH_BACKUP_TOKEN</text>
+  <text x="448" y="368" font-family="sans-serif" font-size="12" fill="#8b949e">GitHub PAT (repo, read:org, read:user)</text>
+  <line x1="278" y1="382" x2="860" y2="382" stroke="#30363d"/>
+  <rect x="290" y="390" width="70" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="298" y="404" font-family="monospace" font-size="11" fill="#e6edf3">GH_USER</text>
+  <text x="448" y="404" font-family="sans-serif" font-size="12" fill="#8b949e">GitHub username or org to back up</text>
+  <line x1="278" y1="418" x2="860" y2="418" stroke="#30363d"/>
+  <rect x="290" y="426" width="120" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="298" y="440" font-family="monospace" font-size="11" fill="#e6edf3">GDRIVE_FOLDER_ID</text>
+  <text x="448" y="440" font-family="sans-serif" font-size="12" fill="#8b949e">Google Drive folder ID</text>
+  <line x1="278" y1="454" x2="860" y2="454" stroke="#30363d"/>
+  <rect x="290" y="462" width="160" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="298" y="476" font-family="monospace" font-size="11" fill="#e6edf3">GOOGLE_CLIENT_SECRET</text>
+  <text x="466" y="476" font-family="sans-serif" font-size="12" fill="#8b949e">Full JSON of google-client-secret.json</text>
+  <line x1="278" y1="490" x2="860" y2="490" stroke="#30363d"/>
+  <rect x="290" y="498" width="120" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
+  <text x="298" y="512" font-family="monospace" font-size="11" fill="#e6edf3">GOOGLE_TOKEN</text>
+  <text x="428" y="512" font-family="sans-serif" font-size="12" fill="#8b949e">Full JSON of google-token.json</text>
+</svg>
