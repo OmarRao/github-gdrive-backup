@@ -580,6 +580,7 @@ function signInWithGoogle() {
       await loadDriveUserInfo();
       updateDriveStatus();
       showDriveConnected();
+      updateBackupDriveBanner();
     },
   });
   tokenClient.requestAccessToken();
@@ -590,7 +591,11 @@ function pasteTokenConnect() {
   if (!t) return;
   driveToken = t;
   localStorage.setItem('drive_token', driveToken);
-  loadDriveUserInfo().then(() => { updateDriveStatus(); showDriveConnected(); });
+  loadDriveUserInfo().then(() => {
+    updateDriveStatus();
+    showDriveConnected();
+    updateBackupDriveBanner();
+  });
 }
 
 async function loadDriveUserInfo() {

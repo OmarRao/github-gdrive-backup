@@ -50,8 +50,8 @@ jobs:
           BACKUP_INCLUDE:            ${{ github.event.inputs.include || 'code,issues,pull_requests,releases,wiki,labels,milestones' }}
           BACKUP_CONCURRENCY:        '3'
           BACKUP_TMP_DIR:            /tmp/gh-backup
+          REPOS:                     ${{ github.event.inputs.repos }}
         run: |
-          REPOS="${{ github.event.inputs.repos }}"
           if [ -n "$REPOS" ]; then
             node -e "
               const { runBackup } = require('./src/backup/index');
@@ -62,8 +62,6 @@ jobs:
           else
             node src/backup/index.js
           fi
-        env:
-          REPOS: ${{ github.event.inputs.repos }}
 
       - name: Upload log artifact
         if: always()
