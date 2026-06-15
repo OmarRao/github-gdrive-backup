@@ -267,8 +267,8 @@
         </div>
         <div class="form-group">
           <div class="form-label">Google Drive Folder ID</div>
-          <input type="text" id="backup-folder-id" class="form-input" placeholder="Paste folder ID or connect Drive in Settings" />
-          <div style="margin-top:6px;font-size:12px;color:var(--muted)">Get from Drive URL: <code>drive.google.com/drive/folders/<strong>FOLDER_ID</strong></code></div>
+          <input type="text" id="backup-folder-id" class="form-input" placeholder="Folder ID or full Drive URL — both work" oninput="this.value=parseFolderID(this.value)" />
+          <div style="margin-top:6px;font-size:12px;color:var(--muted)">Paste the full Drive URL or just the ID — auto-extracted either way</div>
         </div>
         <button class="btn btn-primary btn-full" onclick="triggerBackup()">▶ Trigger Backup Workflow</button>
         <div id="backup-result" class="result-area hidden"></div>
@@ -373,7 +373,7 @@
           <div class="form-group">
             <div class="form-label">Backup Folder ID</div>
             <div style="display:flex;gap:8px">
-              <input type="text" id="s-drive-folder" class="form-input" placeholder="Paste folder ID from Drive URL" />
+              <input type="text" id="s-drive-folder" class="form-input" placeholder="Folder ID or full Drive URL — both work" />
               <button class="btn btn-secondary" onclick="verifyFolder()">Verify</button>
             </div>
             <div style="margin-top:6px;font-size:12px;color:var(--muted)">
@@ -636,24 +636,42 @@ function disconnectDrive() {
   document.getElementById('drive-disconnected-ui').classList.remove('hidden');
 }
 
+function parseFolderID(input) {
+  // Accept full URL or bare ID
+  // https://drive.google.com/drive/folders/FOLDER_ID
+  // https://drive.google.com/drive/u/0/folders/FOLDER_ID
+  const m = input.match(/\/folders\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : input.trim();
+}
+
 async function verifyFolder() {
-  const fid = document.getElementById('s-drive-folder').value.trim();
-  const el  = document.getElementById('folder-verify-result');
-  if (!fid) { showResult('folder-verify-result', 'error', 'Enter a folder ID.'); return; }
+  const raw = document.getElementById('s-drive-folder').value.trim();
+  if (!raw) { showResult('folder-verify-result', 'error', 'Enter a folder ID or paste a Drive URL.'); return; }
+
+  // Auto-extract ID from URL and update input field
+  const fid = parseFolderID(raw);
+  if (fid !== raw) document.getElementById('s-drive-folder').value = fid;
+
+  showResult('folder-verify-result', '', 'Verifying…');
   try {
-    const f = await driveFetch(`/drive/v3/files/${fid}?fields=name,mimeType`);
-    if (f.mimeType !== 'application/vnd.google-apps.folder') throw new Error('That ID is not a folder.');
-    showResult('folder-verify-result', 'success', `✅ Found folder: "${f.name}"`);
+    const f = await driveFetch(`/drive/v3/files/${fid}?fields=name,mimeType&supportsAllDrives=true`);
+    if (f.mimeType !== 'application/vnd.google-apps.folder') throw new Error('That ID is a file, not a folder.');
+    showResult('folder-verify-result', 'success', `✅ Found folder: <strong>${f.name}</strong>`);
   } catch (err) {
-    showResult('folder-verify-result', 'error', `❌ ${err.message}`);
+    let msg = err.message;
+    if (msg === 'Failed to fetch') msg = 'Network error — check that your Drive token has the <code>drive.readonly</code> scope and that pop-ups/CORS are not blocked.';
+    if (msg.includes('404') || msg.includes('File not found')) msg = 'Folder not found — check the ID and that your Google account has access to it.';
+    showResult('folder-verify-result', 'error', `❌ ${msg}`);
   }
 }
 
 function saveDriveSettings() {
-  driveFolderID = document.getElementById('s-drive-folder').value.trim();
+  const raw = document.getElementById('s-drive-folder').value.trim();
+  driveFolderID = parseFolderID(raw);
+  document.getElementById('s-drive-folder').value = driveFolderID;
   localStorage.setItem('drive_folder_id', driveFolderID);
   updateBackupDriveBanner();
-  showResult('folder-verify-result', 'success', '✅ Folder ID saved.');
+  showResult('folder-verify-result', 'success', `✅ Folder ID saved: <code>${driveFolderID}</code>`);
 }
 
 // ── Backup tab Drive banner ────────────────────────────────────────────────
