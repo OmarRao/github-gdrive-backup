@@ -11,7 +11,7 @@ class GoogleDriveClient {
   static async createAuthClient(secretPath, tokenPath) {
     const secret = JSON.parse(fs.readFileSync(secretPath));
     const { client_id, client_secret, redirect_uris } = secret.installed || secret.web;
-    const oAuth2 = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+    const oAuth2 = new google.auth.OAuth2(client_id, client_secret, (redirect_uris || ['http://localhost'])[0]);
 
     if (fs.existsSync(tokenPath)) {
       oAuth2.setCredentials(JSON.parse(fs.readFileSync(tokenPath)));
