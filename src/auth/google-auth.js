@@ -23,7 +23,7 @@ const TOKEN_PATH = process.env.GOOGLE_TOKEN_PATH || './credentials/google-token.
 
   const secret = JSON.parse(fs.readFileSync(SECRET_PATH));
   const { client_id, client_secret, redirect_uris } = secret.installed || secret.web;
-  const oAuth2 = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
+  const oAuth2 = new google.auth.OAuth2(client_id, client_secret, (redirect_uris || ['http://localhost'])[0]);
 
   const authUrl = oAuth2.generateAuthUrl({ access_type: 'offline', scope: SCOPES });
   console.log('\nOpen this URL in your browser and authorise the app:\n');
