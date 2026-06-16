@@ -6,6 +6,7 @@ const logger = require('../logger');
 
 class GitHubClient {
   constructor(token) {
+    this.token = token;
     this.octokit = new Octokit({ auth: token });
   }
 
@@ -32,7 +33,7 @@ class GitHubClient {
   async cloneRepo(repo, destDir) {
     const cloneUrl = repo.clone_url.replace(
       'https://',
-      `https://x-access-token:${this.octokit.auth}@`
+      `https://x-access-token:${this.token}@`
     );
     const repoDir = path.join(destDir, 'git');
     fs.mkdirSync(repoDir, { recursive: true });
@@ -98,7 +99,7 @@ class GitHubClient {
 
   async fetchWiki(owner, repo, destDir) {
     try {
-      const wikiUrl = `https://x-access-token:${this.octokit.auth}@github.com/${owner}/${repo}.wiki.git`;
+      const wikiUrl = `https://x-access-token:${this.token}@github.com/${owner}/${repo}.wiki.git`;
       const wikiDir = path.join(destDir, 'wiki');
       fs.mkdirSync(wikiDir, { recursive: true });
       await simpleGit().clone(wikiUrl, wikiDir, ['--mirror']);
