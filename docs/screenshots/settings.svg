@@ -1,61 +1,99 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="900" height="560" viewBox="0 0 900 560">
-  <rect width="900" height="560" fill="#0d1117"/>
-  <rect width="230" height="560" fill="#161b22" stroke="#30363d" stroke-width="1"/>
-  <text x="20" y="38" font-family="sans-serif" font-size="20" fill="#e6edf3">🗄️</text>
-  <text x="50" y="38" font-family="sans-serif" font-size="16" font-weight="700" fill="#e6edf3">GH Backup</text>
-  <line x1="0" y1="56" x2="230" y2="56" stroke="#30363d"/>
-  <text x="20" y="95" font-family="sans-serif" font-size="14" fill="#8b949e">⊞  Dashboard</text>
-  <text x="20" y="135" font-family="sans-serif" font-size="14" fill="#8b949e">⬇  Backup</text>
-  <text x="20" y="175" font-family="sans-serif" font-size="14" fill="#8b949e">⬆  Restore</text>
-  <text x="20" y="215" font-family="sans-serif" font-size="14" fill="#8b949e">↻  Workflow Runs</text>
-  <rect x="8" y="228" width="214" height="36" rx="8" fill="#1f6feb"/>
-  <text x="42" y="251" font-family="sans-serif" font-size="14" font-weight="600" fill="#fff">Settings</text>
-  <text x="20" y="251" font-family="sans-serif" font-size="14" fill="#fff">⚙</text>
-  <rect x="12" y="528" width="150" height="24" rx="12" fill="#21262d"/>
-  <circle cx="26" cy="540" r="4" fill="#3fb950"/>
-  <text x="36" y="545" font-family="sans-serif" font-size="12" fill="#e6edf3">OmarRao ✓</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 680" width="1100" height="680">
+  <!-- Window background -->
+  <rect width="1100" height="680" fill="#e8eaed" rx="8"/>
 
-  <text x="258" y="52" font-family="sans-serif" font-size="22" font-weight="700" fill="#e6edf3">Settings</text>
+  <!-- Browser chrome -->
+  <rect x="0" y="0" width="1100" height="36" fill="#dee1e6" rx="8"/>
+  <rect x="0" y="26" width="1100" height="10" fill="#dee1e6"/>
+  <circle cx="18" cy="18" r="6" fill="#ff5f56"/>
+  <circle cx="36" cy="18" r="6" fill="#ffbd2e"/>
+  <circle cx="54" cy="18" r="6" fill="#27c93f"/>
+  <rect x="200" y="8" width="700" height="20" fill="#f0f2f5" rx="10"/>
+  <text x="550" y="22" font-family="ui-monospace,monospace" font-size="11" fill="#57606a" text-anchor="middle">omarrao.github.io/github-gdrive-backup/</text>
 
-  <!-- GitHub connection card -->
-  <rect x="258" y="64" width="622" height="200" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
-  <text x="278" y="92" font-family="sans-serif" font-size="15" font-weight="600" fill="#e6edf3">GitHub Connection</text>
-  <text x="278" y="112" font-family="sans-serif" font-size="12" fill="#8b949e">Token stored in browser only (localStorage). Needs scopes: repo, workflow</text>
-  <text x="278" y="136" font-family="sans-serif" font-size="11" font-weight="600" fill="#8b949e">GITHUB PERSONAL ACCESS TOKEN</text>
-  <rect x="278" y="144" width="582" height="32" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
-  <text x="290" y="165" font-family="sans-serif" font-size="13" fill="#8b949e">ghp_… or github_pat_…</text>
-  <text x="278" y="196" font-family="sans-serif" font-size="11" font-weight="600" fill="#8b949e">GITHUB USERNAME</text>
-  <rect x="278" y="204" width="582" height="32" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
-  <text x="290" y="225" font-family="sans-serif" font-size="13" fill="#8b949e">OmarRao</text>
-  <!-- Status row -->
-  <rect x="278" y="244" width="582" height="36" rx="6" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
-  <text x="296" y="266" font-family="sans-serif" font-size="13" font-weight="500" fill="#e6edf3">Status</text>
-  <text x="700" y="266" font-family="sans-serif" font-size="13" fill="#3fb950">✓ Connected as OmarRao</text>
+  <!-- Page background -->
+  <rect x="0" y="36" width="1100" height="644" fill="#f6f8fa"/>
 
-  <!-- Secrets card -->
-  <rect x="258" y="278" width="622" height="260" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1"/>
-  <text x="278" y="306" font-family="sans-serif" font-size="15" font-weight="600" fill="#e6edf3">Repository Secrets Required for Actions</text>
-  <line x1="278" y1="318" x2="860" y2="318" stroke="#30363d"/>
-  <text x="290" y="338" font-family="sans-serif" font-size="12" fill="#8b949e">Secret</text>
-  <text x="520" y="338" font-family="sans-serif" font-size="12" fill="#8b949e">Description</text>
-  <line x1="278" y1="346" x2="860" y2="346" stroke="#30363d"/>
-  <rect x="290" y="354" width="140" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
-  <text x="298" y="368" font-family="monospace" font-size="11" fill="#e6edf3">GH_BACKUP_TOKEN</text>
-  <text x="448" y="368" font-family="sans-serif" font-size="12" fill="#8b949e">GitHub PAT (repo, read:org, read:user)</text>
-  <line x1="278" y1="382" x2="860" y2="382" stroke="#30363d"/>
-  <rect x="290" y="390" width="70" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
-  <text x="298" y="404" font-family="monospace" font-size="11" fill="#e6edf3">GH_USER</text>
-  <text x="448" y="404" font-family="sans-serif" font-size="12" fill="#8b949e">GitHub username or org to back up</text>
-  <line x1="278" y1="418" x2="860" y2="418" stroke="#30363d"/>
-  <rect x="290" y="426" width="120" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
-  <text x="298" y="440" font-family="monospace" font-size="11" fill="#e6edf3">GDRIVE_FOLDER_ID</text>
-  <text x="448" y="440" font-family="sans-serif" font-size="12" fill="#8b949e">Google Drive folder ID</text>
-  <line x1="278" y1="454" x2="860" y2="454" stroke="#30363d"/>
-  <rect x="290" y="462" width="160" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
-  <text x="298" y="476" font-family="monospace" font-size="11" fill="#e6edf3">GOOGLE_CLIENT_SECRET</text>
-  <text x="466" y="476" font-family="sans-serif" font-size="12" fill="#8b949e">Full JSON of google-client-secret.json</text>
-  <line x1="278" y1="490" x2="860" y2="490" stroke="#30363d"/>
-  <rect x="290" y="498" width="120" height="20" rx="4" fill="#21262d" stroke="#30363d" stroke-width="1"/>
-  <text x="298" y="512" font-family="monospace" font-size="11" fill="#e6edf3">GOOGLE_TOKEN</text>
-  <text x="428" y="512" font-family="sans-serif" font-size="12" fill="#8b949e">Full JSON of google-token.json</text>
+  <!-- Sidebar -->
+  <rect x="0" y="36" width="230" height="644" fill="#ffffff" stroke="#d0d7de" stroke-width="1"/>
+  <text x="16" y="72" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" font-weight="700" fill="#24292f">🗄️ GH→Drive Backup</text>
+
+  <!-- Nav -->
+  <text x="18" y="110" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">⊞</text>
+  <text x="36" y="110" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Dashboard</text>
+
+  <text x="18" y="144" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">☁</text>
+  <text x="36" y="144" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Backup</text>
+
+  <text x="18" y="178" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">↺</text>
+  <text x="36" y="178" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Restore</text>
+
+  <text x="18" y="212" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">▶</text>
+  <text x="36" y="212" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Workflow Runs</text>
+
+  <!-- Settings (active) -->
+  <rect x="8" y="222" width="214" height="34" fill="#0969da" rx="6"/>
+  <text x="18" y="244" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#ffffff">⚙</text>
+  <text x="36" y="244" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" font-weight="600" fill="#ffffff">Settings</text>
+
+  <!-- Sidebar footer -->
+  <line x1="0" y1="642" x2="230" y2="642" stroke="#d0d7de" stroke-width="1"/>
+  <text x="14" y="657" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="9" fill="#8b949e">Built by Omar Rao</text>
+  <text x="14" y="670" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="9" fill="#8b949e">Engineer — Data Resilience, Cybersecurity &amp; Privacy</text>
+
+  <!-- Page title -->
+  <text x="258" y="68" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="20" font-weight="700" fill="#24292f">Settings &amp; Setup</text>
+
+  <!-- Tab bar -->
+  <rect x="246" y="76" width="838" height="36" fill="#ffffff" stroke="#d0d7de" stroke-width="1" rx="6"/>
+  <!-- GitHub tab (active) -->
+  <rect x="246" y="76" width="120" height="36" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
+  <rect x="246" y="94" width="120" height="18" fill="#f6f8fa"/>
+  <line x1="246" y1="110" x2="366" y2="110" stroke="#0969da" stroke-width="2"/>
+  <text x="306" y="99" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#0969da" text-anchor="middle">GitHub</text>
+  <!-- Other tabs -->
+  <text x="440" y="99" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#57606a" text-anchor="middle">Google Drive</text>
+  <text x="590" y="99" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#57606a" text-anchor="middle">Actions Secrets</text>
+  <text x="730" y="99" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#57606a" text-anchor="middle">Setup Guide</text>
+
+  <!-- GitHub Connection card -->
+  <rect x="246" y="124" width="838" height="210" fill="#ffffff" stroke="#d0d7de" stroke-width="1" rx="6"/>
+  <text x="266" y="152" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="14" font-weight="600" fill="#24292f">GitHub Connection</text>
+
+  <!-- Token field -->
+  <text x="266" y="180" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#57606a">Personal Access Token</text>
+  <rect x="266" y="188" width="500" height="30" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
+  <text x="282" y="207" font-family="ui-monospace,monospace" font-size="13" fill="#57606a" letter-spacing="2">●●●●●●●●●●●●●●●●●●●●●●●●●●●</text>
+
+  <!-- Username field -->
+  <text x="266" y="242" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#57606a">GitHub Username</text>
+  <rect x="266" y="250" width="300" height="30" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
+  <text x="282" y="269" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#24292f">OmarRao</text>
+
+  <!-- Save button -->
+  <rect x="266" y="296" width="160" height="32" fill="#0969da" rx="6"/>
+  <text x="346" y="316" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">Save &amp; Connect</text>
+
+  <!-- Success notice -->
+  <rect x="442" y="296" width="242" height="32" fill="#dafbe1" stroke="#1a7f37" stroke-width="1" rx="6"/>
+  <text x="563" y="316" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#1a7f37" text-anchor="middle">✅  Connected as OmarRao</text>
+
+  <!-- Google Drive Connection card (disconnected) -->
+  <rect x="246" y="350" width="838" height="200" fill="#ffffff" stroke="#d0d7de" stroke-width="1" rx="6"/>
+  <text x="266" y="378" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="14" font-weight="600" fill="#24292f">Google Drive Connection</text>
+
+  <!-- Disconnected notice -->
+  <rect x="266" y="388" width="420" height="28" fill="#fff8c5" stroke="#d4a72c" stroke-width="1" rx="6"/>
+  <text x="476" y="406" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#7d4e00" text-anchor="middle">⚠  Not connected. Sign in to browse backup sessions live.</text>
+
+  <!-- Client ID field -->
+  <text x="266" y="436" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#57606a">Google OAuth Client ID</text>
+  <rect x="266" y="444" width="500" height="30" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
+  <text x="282" y="463" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#8b949e">123456789-abc.apps.googleusercontent.com</text>
+
+  <!-- Google sign in button -->
+  <rect x="266" y="490" width="200" height="34" fill="#ffffff" stroke="#d0d7de" stroke-width="1.5" rx="6"/>
+  <text x="366" y="511" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#24292f" text-anchor="middle">🔑  Sign in with Google</text>
+
+  <text x="482" y="511" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">Token stored in localStorage only — never sent to a third party.</text>
 </svg>
