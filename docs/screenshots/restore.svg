@@ -1,116 +1,152 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 680" width="1100" height="680">
-  <!-- Window background -->
-  <rect width="1100" height="680" fill="#e8eaed" rx="8"/>
-
-  <!-- Browser chrome -->
-  <rect x="0" y="0" width="1100" height="36" fill="#dee1e6" rx="8"/>
-  <rect x="0" y="26" width="1100" height="10" fill="#dee1e6"/>
-  <circle cx="18" cy="18" r="6" fill="#ff5f56"/>
-  <circle cx="36" cy="18" r="6" fill="#ffbd2e"/>
-  <circle cx="54" cy="18" r="6" fill="#27c93f"/>
-  <rect x="200" y="8" width="700" height="20" fill="#f0f2f5" rx="10"/>
-  <text x="550" y="22" font-family="ui-monospace,monospace" font-size="11" fill="#57606a" text-anchor="middle">omarrao.github.io/github-gdrive-backup/</text>
+<svg width="1100" height="680" viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="brandGrad3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a7f37"/>
+      <stop offset="100%" stop-color="#0d5c27"/>
+    </linearGradient>
+  </defs>
 
   <!-- Page background -->
-  <rect x="0" y="36" width="1100" height="644" fill="#f6f8fa"/>
+  <rect width="1100" height="680" fill="#f5f7fa"/>
 
-  <!-- Sidebar -->
-  <rect x="0" y="36" width="230" height="644" fill="#ffffff" stroke="#d0d7de" stroke-width="1"/>
-  <text x="16" y="72" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" font-weight="700" fill="#24292f">🗄️ GH→Drive Backup</text>
+  <!-- ── SIDEBAR ── -->
+  <rect x="0" y="0" width="240" height="680" fill="white" stroke="#e2e6ea" stroke-width="1"/>
 
-  <!-- Nav: Dashboard -->
-  <text x="18" y="110" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">⊞</text>
-  <text x="36" y="110" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Dashboard</text>
+  <!-- Brand -->
+  <rect x="16" y="18" width="36" height="36" rx="8" fill="url(#brandGrad3)"/>
+  <text x="34" y="40" text-anchor="middle" font-size="15" font-weight="800" fill="white">G</text>
+  <text x="60" y="33" font-size="14" font-weight="700" fill="#111827">GH Backup</text>
+  <text x="60" y="47" font-size="10" fill="#6b7280">Resilience Tool</text>
+
+  <line x1="16" y1="66" x2="224" y2="66" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="16" y="86" font-size="10" font-weight="600" fill="#9ca3af" letter-spacing="1">NAVIGATION</text>
+
+  <!-- Dashboard -->
+  <rect x="18" y="94" width="20" height="20" rx="4" fill="#f3f4f6"/>
+  <text x="28" y="108" text-anchor="middle" font-size="10" fill="#9ca3af">D</text>
+  <text x="48" y="108" font-size="13" fill="#374151">Dashboard</text>
 
   <!-- Backup -->
-  <text x="18" y="144" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">☁</text>
-  <text x="36" y="144" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Backup</text>
+  <rect x="18" y="120" width="20" height="20" rx="4" fill="#f3f4f6"/>
+  <text x="28" y="134" text-anchor="middle" font-size="10" fill="#9ca3af">B</text>
+  <text x="48" y="134" font-size="13" fill="#374151">Backup</text>
 
   <!-- Restore (active) -->
-  <rect x="8" y="154" width="214" height="34" fill="#0969da" rx="6"/>
-  <text x="18" y="176" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#ffffff">↺</text>
-  <text x="36" y="176" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" font-weight="600" fill="#ffffff">Restore</text>
+  <rect x="8" y="146" width="224" height="36" rx="6" fill="#eff6ff"/>
+  <rect x="18" y="154" width="20" height="20" rx="4" fill="#2563eb"/>
+  <text x="28" y="168" text-anchor="middle" font-size="10" font-weight="700" fill="white">R</text>
+  <text x="48" y="168" font-size="13" font-weight="600" fill="#2563eb">Restore</text>
 
   <!-- Workflow Runs -->
-  <text x="18" y="216" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">▶</text>
-  <text x="36" y="216" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Workflow Runs</text>
+  <rect x="18" y="190" width="20" height="20" rx="4" fill="#f3f4f6"/>
+  <text x="28" y="204" text-anchor="middle" font-size="10" fill="#9ca3af">W</text>
+  <text x="48" y="204" font-size="13" fill="#374151">Workflow Runs</text>
 
   <!-- Settings -->
-  <text x="18" y="250" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">⚙</text>
-  <text x="36" y="250" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Settings</text>
+  <rect x="18" y="222" width="20" height="20" rx="4" fill="#f3f4f6"/>
+  <text x="28" y="236" text-anchor="middle" font-size="10" fill="#9ca3af">S</text>
+  <text x="48" y="236" font-size="13" fill="#374151">Settings</text>
 
-  <!-- Sidebar footer -->
-  <line x1="0" y1="642" x2="230" y2="642" stroke="#d0d7de" stroke-width="1"/>
-  <text x="14" y="657" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="9" fill="#8b949e">Built by Omar Rao</text>
-  <text x="14" y="670" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="9" fill="#8b949e">Engineer — Data Resilience, Cybersecurity &amp; Privacy</text>
+  <!-- Status pills -->
+  <line x1="16" y1="558" x2="224" y2="558" stroke="#e2e6ea" stroke-width="1"/>
+  <rect x="16" y="568" width="138" height="22" rx="11" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <circle cx="30" cy="579" r="4" fill="#16a34a"/>
+  <text x="40" y="583" font-size="11" fill="#15803d">GitHub: OmarRao</text>
+  <rect x="16" y="596" width="128" height="22" rx="11" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <circle cx="30" cy="607" r="4" fill="#16a34a"/>
+  <text x="40" y="611" font-size="11" fill="#15803d">Drive: connected</text>
 
-  <!-- Page title -->
-  <text x="258" y="68" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="20" font-weight="700" fill="#24292f">Restore Drive → GitHub</text>
+  <!-- Author -->
+  <line x1="16" y1="628" x2="224" y2="628" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="16" y="644" font-size="12" font-weight="600" fill="#111827">Omar Rao</text>
+  <text x="16" y="657" font-size="10" fill="#6b7280">Engineer - Data Resilience</text>
+  <rect x="16" y="662" width="54" height="14" rx="3" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="43" y="672" text-anchor="middle" font-size="9" fill="#2563eb">LinkedIn</text>
+  <rect x="76" y="662" width="52" height="14" rx="3" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <text x="102" y="672" text-anchor="middle" font-size="9" fill="#15803d">Substack</text>
+
+  <!-- ── MAIN CONTENT ── -->
+  <text x="276" y="40" font-size="20" font-weight="700" fill="#111827">Restore Drive to GitHub</text>
+  <text x="276" y="58" font-size="13" fill="#6b7280">Browse backup sessions from Google Drive and restore them to new GitHub repositories.</text>
 
   <!-- Left card: Backup Sessions -->
-  <rect x="246" y="84" width="438" height="532" fill="#ffffff" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="266" y="112" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="14" font-weight="600" fill="#24292f">Backup Sessions — from Google Drive</text>
-  <text x="266" y="130" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">Click a session to select it for restore</text>
+  <rect x="276" y="76" width="390" height="580" rx="10" fill="white" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="296" y="104" font-size="14" font-weight="700" fill="#111827">Backup Sessions</text>
+  <text x="296" y="120" font-size="11" fill="#6b7280">Google Drive</text>
+  <line x1="276" y1="130" x2="666" y2="130" stroke="#e2e6ea" stroke-width="1"/>
 
-  <!-- Session 1 (selected / highlighted) -->
-  <rect x="258" y="140" width="414" height="62" fill="#ddf4ff" stroke="#0969da" stroke-width="1.5" rx="6"/>
-  <text x="274" y="163" font-family="ui-monospace,monospace" font-size="11" font-weight="600" fill="#0969da">backup-2026-06-15T02-00-00-000Z</text>
-  <rect x="274" y="170" width="50" height="16" fill="#dafbe1" rx="8"/>
-  <text x="299" y="181" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="9" font-weight="600" fill="#1a7f37" text-anchor="middle">● latest</text>
-  <text x="336" y="181" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">Today · 12 repos · 284 MB</text>
+  <!-- Session 1 (selected) -->
+  <rect x="276" y="130" width="4" height="66" fill="#2563eb"/>
+  <rect x="280" y="130" width="386" height="66" fill="#eff6ff"/>
+  <!-- folder icon -->
+  <rect x="296" y="144" width="22" height="18" rx="3" fill="#2563eb" opacity="0.2"/>
+  <rect x="296" y="140" width="12" height="6" rx="2" fill="#2563eb" opacity="0.4"/>
+  <rect x="296" y="144" width="22" height="18" rx="2" fill="none" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="328" y="155" font-size="11" font-weight="600" fill="#1d4ed8">backup-2026-06-16T02-00-00-000Z</text>
+  <text x="328" y="170" font-size="10" fill="#6b7280">2026-06-16 02:00 UTC  -  12 repos  -  847 MB</text>
+  <line x1="276" y1="196" x2="666" y2="196" stroke="#e2e6ea" stroke-width="1"/>
 
   <!-- Session 2 -->
-  <rect x="258" y="212" width="414" height="62" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="274" y="235" font-family="ui-monospace,monospace" font-size="11" fill="#24292f">backup-2026-06-14T02-00-00-000Z</text>
-  <text x="274" y="255" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">1 day ago · 12 repos · 281 MB</text>
+  <rect x="296" y="208" width="22" height="18" rx="2" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
+  <text x="328" y="219" font-size="11" font-weight="500" fill="#111827">backup-2026-06-15T02-00-00-000Z</text>
+  <text x="328" y="234" font-size="10" fill="#6b7280">2026-06-15 02:00 UTC  -  12 repos  -  831 MB</text>
+  <line x1="276" y1="248" x2="666" y2="248" stroke="#f3f4f6" stroke-width="1"/>
 
   <!-- Session 3 -->
-  <rect x="258" y="284" width="414" height="62" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="274" y="307" font-family="ui-monospace,monospace" font-size="11" fill="#24292f">backup-2026-06-13T02-00-00-000Z</text>
-  <text x="274" y="327" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">2 days ago · 11 repos · 270 MB</text>
+  <rect x="296" y="260" width="22" height="18" rx="2" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
+  <text x="328" y="271" font-size="11" font-weight="500" fill="#111827">backup-2026-06-14T02-00-00-000Z</text>
+  <text x="328" y="286" font-size="10" fill="#6b7280">2026-06-14 02:00 UTC  -  12 repos  -  829 MB</text>
+  <line x1="276" y1="300" x2="666" y2="300" stroke="#f3f4f6" stroke-width="1"/>
 
   <!-- Session 4 -->
-  <rect x="258" y="356" width="414" height="62" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="274" y="379" font-family="ui-monospace,monospace" font-size="11" fill="#24292f">backup-2026-06-12T02-00-00-000Z</text>
-  <text x="274" y="399" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">3 days ago · 12 repos · 280 MB</text>
+  <rect x="296" y="312" width="22" height="18" rx="2" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
+  <text x="328" y="323" font-size="11" font-weight="500" fill="#111827">backup-2026-06-13T02-00-00-000Z</text>
+  <text x="328" y="338" font-size="10" fill="#6b7280">2026-06-13 02:00 UTC  -  11 repos  -  802 MB</text>
+  <line x1="276" y1="352" x2="666" y2="352" stroke="#f3f4f6" stroke-width="1"/>
 
   <!-- Session 5 -->
-  <rect x="258" y="428" width="414" height="62" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="274" y="451" font-family="ui-monospace,monospace" font-size="11" fill="#24292f">backup-2026-06-11T02-00-00-000Z</text>
-  <text x="274" y="471" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">4 days ago · 12 repos · 278 MB</text>
+  <rect x="296" y="364" width="22" height="18" rx="2" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
+  <text x="328" y="375" font-size="11" font-weight="500" fill="#111827">backup-2026-06-12T02-00-00-000Z</text>
+  <text x="328" y="390" font-size="10" fill="#6b7280">2026-06-12 02:00 UTC  -  11 repos  -  798 MB</text>
 
   <!-- Right card: Restore Options -->
-  <rect x="698" y="84" width="386" height="532" fill="#ffffff" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="718" y="112" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="14" font-weight="600" fill="#24292f">Restore Options</text>
+  <rect x="682" y="76" width="402" height="580" rx="10" fill="white" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="702" y="104" font-size="14" font-weight="700" fill="#111827">Restore Options</text>
+  <text x="702" y="120" font-size="11" fill="#6b7280">Configure the restore destination and settings</text>
+  <line x1="682" y1="130" x2="1084" y2="130" stroke="#e2e6ea" stroke-width="1"/>
 
-  <!-- Selected session badge -->
-  <rect x="718" y="120" width="346" height="36" fill="#ddf4ff" stroke="#0969da" stroke-width="1" rx="6"/>
-  <text x="728" y="133" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="10" fill="#57606a">Selected session:</text>
-  <text x="728" y="148" font-family="ui-monospace,monospace" font-size="10" font-weight="600" fill="#0969da">backup-2026-06-15T02-00-00-000Z</text>
+  <!-- Selected session notice -->
+  <rect x="702" y="144" width="362" height="40" rx="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="714" y="159" font-size="11" font-weight="600" fill="#1d4ed8">Selected Session</text>
+  <text x="714" y="174" font-size="11" fill="#2563eb">backup-2026-06-16T02-00-00-000Z</text>
 
-  <!-- Repos input -->
-  <text x="718" y="182" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#57606a">Repositories to restore</text>
-  <text x="718" y="198" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#8b949e">Leave blank to restore all repos</text>
-  <rect x="718" y="206" width="346" height="30" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="732" y="225" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#8b949e">e.g. repo1,repo2  (blank = all)</text>
+  <!-- Repos to restore -->
+  <text x="702" y="210" font-size="12" font-weight="600" fill="#374151">Repositories to Restore</text>
+  <text x="702" y="226" font-size="11" fill="#6b7280">Leave blank to restore all repositories</text>
+  <rect x="702" y="234" width="362" height="34" rx="6" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="718" y="255" font-size="12" fill="#9ca3af">e.g. analyzer, r3vp</text>
 
-  <!-- Target owner input -->
-  <text x="718" y="258" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#57606a">Target GitHub owner</text>
-  <rect x="718" y="266" width="346" height="30" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="732" y="285" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#24292f">OmarRao</text>
+  <!-- Target owner -->
+  <text x="702" y="290" font-size="12" font-weight="600" fill="#374151">Target Owner</text>
+  <text x="702" y="306" font-size="11" fill="#6b7280">GitHub username or org to restore repos under</text>
+  <rect x="702" y="314" width="362" height="34" rx="6" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="718" y="335" font-size="12" fill="#374151">OmarRao</text>
 
   <!-- Private checkbox -->
-  <rect x="718" y="314" width="12" height="12" fill="#0969da" rx="2"/>
-  <text x="736" y="325" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#24292f">Restore as private repositories</text>
-  <text x="736" y="342" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">Repos will be created private by default</text>
+  <rect x="702" y="362" width="14" height="14" rx="3" fill="#2563eb"/>
+  <line x1="705" y1="369" x2="709" y2="373" stroke="white" stroke-width="1.5"/>
+  <line x1="709" y1="373" x2="715" y2="366" stroke="white" stroke-width="1.5"/>
+  <text x="724" y="373" font-size="12" fill="#111827">Restore as private repositories</text>
 
-  <!-- Divider -->
-  <line x1="698" y1="362" x2="1084" y2="362" stroke="#d0d7de" stroke-width="1"/>
+  <line x1="702" y1="392" x2="1064" y2="392" stroke="#e2e6ea" stroke-width="1"/>
 
-  <!-- Restore button (orange) -->
-  <rect x="718" y="378" width="346" height="42" fill="#bf4700" rx="6"/>
-  <text x="891" y="404" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">↺  Trigger Restore Workflow</text>
+  <!-- Warning notice -->
+  <rect x="702" y="404" width="362" height="48" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1"/>
+  <text x="714" y="422" font-size="11" font-weight="600" fill="#92400e">Caution</text>
+  <text x="714" y="438" font-size="11" fill="#92400e">Restoring will create new repos. Existing repos</text>
+  <text x="714" y="450" font-size="11" fill="#92400e">with the same name will not be overwritten.</text>
 
-  <text x="718" y="440" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">Fires restore.yml via GitHub Actions API.</text>
-  <text x="718" y="456" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">Repos are created if they do not exist.</text>
+  <!-- Restore button -->
+  <rect x="702" y="468" width="362" height="40" rx="8" fill="#ea580c"/>
+  <text x="883" y="492" text-anchor="middle" font-size="13" font-weight="600" fill="white">Trigger Restore Workflow</text>
 </svg>

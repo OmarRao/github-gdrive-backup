@@ -2,159 +2,106 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>GitHub → Google Drive Backup — UI Preview</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UI Preview — GH Backup Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
-    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; }
-    .preview-header { background: #161b22; border-bottom: 1px solid #30363d; padding: 20px 32px; }
-    .preview-header h1 { font-size: 20px; margin: 0 0 4px; }
-    .preview-header p  { color: #8b949e; margin: 0; font-size: 14px; }
-    .screen-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 32px; }
-    .screen-card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; overflow: hidden; }
-    .screen-label { padding: 12px 16px; font-weight: 600; font-size: 13px; border-bottom: 1px solid #30363d; background: #21262d; }
-    iframe { width: 100%; height: 480px; border: none; transform-origin: top left; }
-    .caption { padding: 10px 16px; font-size: 12px; color: #8b949e; border-top: 1px solid #30363d; }
-    @media (max-width: 900px) { .screen-grid { grid-template-columns: 1fr; } }
+    body {
+      margin: 0; padding: 40px 24px;
+      background: #0f172a;
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+    }
+    h1 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+    p  { color: #94a3b8; margin-bottom: 40px; font-size: 15px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(480px, 1fr));
+      gap: 32px;
+    }
+    .screen {
+      background: #1e293b; border-radius: 14px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,.08);
+    }
+    .screen-bar {
+      background: #0f172a; padding: 10px 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .dot-r { background: #ef4444; }
+    .dot-y { background: #f59e0b; }
+    .dot-g { background: #22c55e; }
+    .screen-bar .url {
+      flex: 1; background: rgba(255,255,255,.05); border-radius: 6px;
+      padding: 4px 10px; font-size: 11px; color: #64748b; margin-left: 8px;
+    }
+    .screen img { width: 100%; display: block; }
+    .screen-label {
+      padding: 14px 16px 16px; color: #94a3b8; font-size: 13px; line-height: 1.5;
+    }
+    .screen-label strong { color: #e2e8f0; display: block; margin-bottom: 3px; }
   </style>
 </head>
 <body>
-  <div class="preview-header">
-    <h1>🗄️ GitHub → Google Drive Backup — UI Preview</h1>
-    <p>Static HTML documentation of the web dashboard screens. Run <code>npm start</code> for the live version.</p>
-  </div>
+  <h1>GH Backup — Dashboard UI</h1>
+  <p>Live preview of all dashboard screens. Visit the <a href="index.html" style="color:#60a5fa">live dashboard</a> to interact.</p>
 
-  <!-- Inline screenshots as self-contained HTML mockups -->
-  <div class="screen-grid">
-
-    <!-- Dashboard -->
-    <div class="screen-card">
-      <div class="screen-label">📊 Dashboard</div>
-      <div style="padding:20px; background:#0d1117;">
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;">
-          <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px">
-            <span style="font-size:24px">📦</span>
-            <div><div style="font-size:22px;font-weight:700">42</div><div style="font-size:11px;color:#8b949e">Repositories</div></div>
-          </div>
-          <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px">
-            <span style="font-size:24px">💾</span>
-            <div><div style="font-size:22px;font-weight:700">7</div><div style="font-size:11px;color:#8b949e">Backup Sessions</div></div>
-          </div>
-          <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px">
-            <span style="font-size:24px">✅</span>
-            <div><div style="font-size:22px;font-weight:700">2h ago</div><div style="font-size:11px;color:#8b949e">Last Backup</div></div>
-          </div>
-          <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;display:flex;align-items:center;gap:12px">
-            <span style="font-size:24px">⏳</span>
-            <div><div style="font-size:22px;font-weight:700">0</div><div style="font-size:11px;color:#8b949e">Active Jobs</div></div>
-          </div>
-        </div>
-        <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px">
-          <div style="font-weight:600;margin-bottom:12px">Recent Jobs</div>
-          <div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid #30363d">
-            <span style="background:rgba(35,134,54,.2);color:#3fb950;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px">done</span>
-            <span style="font-weight:600;min-width:60px">backup</span>
-            <span style="font-size:12px;color:#8b949e">42/42 repos backed up</span>
-            <span style="font-size:12px;color:#8b949e;margin-left:auto">2h ago</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:10px;padding:10px 0">
-            <span style="background:rgba(35,134,54,.2);color:#3fb950;font-size:11px;font-weight:700;padding:3px 8px;border-radius:20px">done</span>
-            <span style="font-weight:600;min-width:60px">restore</span>
-            <span style="font-size:12px;color:#8b949e">5 repositories restored</span>
-            <span style="font-size:12px;color:#8b949e;margin-left:auto">1d ago</span>
-          </div>
-        </div>
+  <div class="grid">
+    <div class="screen">
+      <div class="screen-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <div class="url">omarrao.github.io/github-gdrive-backup/</div>
       </div>
-      <div class="caption">Live stats, recent job history, and connection status.</div>
+      <img src="screenshots/dashboard.svg" alt="Dashboard" />
+      <div class="screen-label">
+        <strong>Dashboard</strong>
+        Overview of all repositories, backup sessions, last backup time, and active runs — plus a live workflow run history table.
+      </div>
     </div>
 
-    <!-- Backup -->
-    <div class="screen-card">
-      <div class="screen-label">📥 Backup</div>
-      <div style="padding:20px;background:#0d1117;display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px">
-          <div style="font-weight:600;margin-bottom:12px">Select Repositories</div>
-          <input style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:7px 10px;font-size:13px;margin-bottom:10px" placeholder="Filter repositories…" />
-          <div style="border:1px solid #30363d;border-radius:6px;background:#0d1117;max-height:200px;overflow:hidden">
-            <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #30363d"><input type="checkbox" checked style="accent-color:#1f6feb"><span style="flex:1;font-weight:500">api-service</span><span style="font-size:11px;padding:2px 6px;border:1px solid #9e6a03;color:#9e6a03;border-radius:10px">🔒 private</span></div>
-            <div style="display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid #30363d"><input type="checkbox" checked style="accent-color:#1f6feb"><span style="flex:1;font-weight:500">frontend-app</span><span style="font-size:11px;padding:2px 6px;border:1px solid #30363d;color:#8b949e;border-radius:10px">public</span></div>
-            <div style="display:flex;align-items:center;gap:8px;padding:9px 12px"><input type="checkbox" style="accent-color:#1f6feb"><span style="flex:1;font-weight:500">infra-configs</span><span style="font-size:11px;padding:2px 6px;border:1px solid #9e6a03;color:#9e6a03;border-radius:10px">🔒 private</span></div>
-          </div>
-        </div>
-        <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px">
-          <div style="font-weight:600;margin-bottom:12px">Backup Options</div>
-          <div style="font-size:12px;color:#8b949e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Include</div>
-          <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#1f6feb"> Source code &amp; branches</label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#1f6feb"> Issues &amp; comments</label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#1f6feb"> Pull requests</label>
-            <label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" checked style="accent-color:#1f6feb"> Releases &amp; assets</label>
-          </div>
-          <button style="width:100%;background:#238636;color:#fff;border:none;border-radius:6px;padding:9px;font-weight:600;font-size:14px;cursor:pointer">▶ Start Backup</button>
-        </div>
+    <div class="screen">
+      <div class="screen-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <div class="url">omarrao.github.io/github-gdrive-backup/#backup</div>
       </div>
-      <div class="caption">Select individual repos or all, choose what to include, then start.</div>
+      <img src="screenshots/backup.svg" alt="Backup" />
+      <div class="screen-label">
+        <strong>Backup</strong>
+        Select individual repos or all at once. Choose exactly what to include — code, issues, PRs, releases, wiki, labels, milestones — and trigger the workflow with one click.
+      </div>
     </div>
 
-    <!-- Restore -->
-    <div class="screen-card">
-      <div class="screen-label">♻️ Restore</div>
-      <div style="padding:20px;background:#0d1117;display:grid;grid-template-columns:1fr 1fr;gap:16px">
-        <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px">
-          <div style="font-weight:600;margin-bottom:12px">Backup Sessions</div>
-          <div style="border:1px solid #30363d;border-radius:6px;background:#0d1117">
-            <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #30363d;border-left:3px solid #1f6feb;background:rgba(31,111,235,.1)">
-              <span style="flex:1;font-weight:500">backup-2026-06-15</span><span style="font-size:12px;color:#8b949e">2h ago</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid #30363d">
-              <span style="flex:1;font-weight:500">backup-2026-06-14</span><span style="font-size:12px;color:#8b949e">1d ago</span>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:11px 14px">
-              <span style="flex:1;font-weight:500">backup-2026-06-13</span><span style="font-size:12px;color:#8b949e">2d ago</span>
-            </div>
-          </div>
-        </div>
-        <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px">
-          <div style="font-weight:600;margin-bottom:12px">Restore Options</div>
-          <select style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:8px;margin-bottom:12px">
-            <option>backup-2026-06-15</option>
-          </select>
-          <input style="width:100%;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#e6edf3;padding:7px 10px;font-size:13px;margin-bottom:12px" placeholder="Target owner (optional)" />
-          <label style="display:flex;align-items:center;gap:8px;margin-bottom:14px"><input type="checkbox" checked style="accent-color:#1f6feb"> Restore as private repos</label>
-          <button style="width:100%;background:#9e6a03;color:#fff;border:none;border-radius:6px;padding:9px;font-weight:600;font-size:14px;cursor:pointer">↺ Start Restore</button>
-        </div>
+    <div class="screen">
+      <div class="screen-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <div class="url">omarrao.github.io/github-gdrive-backup/#restore</div>
       </div>
-      <div class="caption">Pick a session, choose repos and target owner, then restore.</div>
+      <img src="screenshots/restore.svg" alt="Restore" />
+      <div class="screen-label">
+        <strong>Restore</strong>
+        Browse timestamped backup sessions live from Google Drive. Select a session, specify target repos and owner, then trigger the restore workflow directly from the dashboard.
+      </div>
     </div>
 
-    <!-- Settings -->
-    <div class="screen-card">
-      <div class="screen-label">⚙️ Settings</div>
-      <div style="padding:20px;background:#0d1117">
-        <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px;margin-bottom:14px">
-          <div style="font-weight:600;margin-bottom:12px">Connection Status</div>
-          <div style="display:flex;flex-direction:column;gap:8px">
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0d1117;border:1px solid #30363d;border-radius:6px">
-              <span style="flex:1;font-weight:500">GitHub</span>
-              <span style="color:#3fb950">✓ Connected as <strong>your-username</strong></span>
-            </div>
-            <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:#0d1117;border:1px solid #30363d;border-radius:6px">
-              <span style="flex:1;font-weight:500">Google Drive</span>
-              <span style="color:#3fb950">✓ Token found</span>
-            </div>
-          </div>
-        </div>
-        <div style="background:#161b22;border:1px solid #30363d;border-radius:8px;padding:16px">
-          <div style="font-weight:600;margin-bottom:8px">Quick Setup Guide</div>
-          <ol style="padding-left:18px;color:#8b949e;display:flex;flex-direction:column;gap:6px;font-size:13px">
-            <li>Copy <code style="background:#21262d;padding:1px 5px;border-radius:4px;font-family:monospace">.env.example</code> → <code style="background:#21262d;padding:1px 5px;border-radius:4px;font-family:monospace">.env</code></li>
-            <li>Add Google OAuth credentials to <code style="background:#21262d;padding:1px 5px;border-radius:4px;font-family:monospace">credentials/</code></li>
-            <li>Run <code style="background:#21262d;padding:1px 5px;border-radius:4px;font-family:monospace">node src/auth/google-auth.js</code></li>
-            <li>Set your Drive folder ID</li>
-          </ol>
-        </div>
+    <div class="screen">
+      <div class="screen-bar">
+        <div class="dot dot-r"></div>
+        <div class="dot dot-y"></div>
+        <div class="dot dot-g"></div>
+        <div class="url">omarrao.github.io/github-gdrive-backup/#settings</div>
       </div>
-      <div class="caption">Token testing, connection status, and guided setup steps.</div>
+      <img src="screenshots/settings.svg" alt="Settings" />
+      <div class="screen-label">
+        <strong>Settings</strong>
+        Configure GitHub token, connect Google Drive via OAuth, verify your backup folder, and find all required Actions secrets. All tokens stay in localStorage — never sent to a third party.
+      </div>
     </div>
-
   </div>
 </body>
 </html>

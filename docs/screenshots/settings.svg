@@ -1,99 +1,141 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 680" width="1100" height="680">
-  <!-- Window background -->
-  <rect width="1100" height="680" fill="#e8eaed" rx="8"/>
-
-  <!-- Browser chrome -->
-  <rect x="0" y="0" width="1100" height="36" fill="#dee1e6" rx="8"/>
-  <rect x="0" y="26" width="1100" height="10" fill="#dee1e6"/>
-  <circle cx="18" cy="18" r="6" fill="#ff5f56"/>
-  <circle cx="36" cy="18" r="6" fill="#ffbd2e"/>
-  <circle cx="54" cy="18" r="6" fill="#27c93f"/>
-  <rect x="200" y="8" width="700" height="20" fill="#f0f2f5" rx="10"/>
-  <text x="550" y="22" font-family="ui-monospace,monospace" font-size="11" fill="#57606a" text-anchor="middle">omarrao.github.io/github-gdrive-backup/</text>
+<svg width="1100" height="680" viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="brandGrad4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a7f37"/>
+      <stop offset="100%" stop-color="#0d5c27"/>
+    </linearGradient>
+  </defs>
 
   <!-- Page background -->
-  <rect x="0" y="36" width="1100" height="644" fill="#f6f8fa"/>
+  <rect width="1100" height="680" fill="#f5f7fa"/>
 
-  <!-- Sidebar -->
-  <rect x="0" y="36" width="230" height="644" fill="#ffffff" stroke="#d0d7de" stroke-width="1"/>
-  <text x="16" y="72" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" font-weight="700" fill="#24292f">🗄️ GH→Drive Backup</text>
+  <!-- ── SIDEBAR ── -->
+  <rect x="0" y="0" width="240" height="680" fill="white" stroke="#e2e6ea" stroke-width="1"/>
 
-  <!-- Nav -->
-  <text x="18" y="110" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">⊞</text>
-  <text x="36" y="110" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Dashboard</text>
+  <!-- Brand -->
+  <rect x="16" y="18" width="36" height="36" rx="8" fill="url(#brandGrad4)"/>
+  <text x="34" y="40" text-anchor="middle" font-size="15" font-weight="800" fill="white">G</text>
+  <text x="60" y="33" font-size="14" font-weight="700" fill="#111827">GH Backup</text>
+  <text x="60" y="47" font-size="10" fill="#6b7280">Resilience Tool</text>
 
-  <text x="18" y="144" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">☁</text>
-  <text x="36" y="144" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Backup</text>
+  <line x1="16" y1="66" x2="224" y2="66" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="16" y="86" font-size="10" font-weight="600" fill="#9ca3af" letter-spacing="1">NAVIGATION</text>
 
-  <text x="18" y="178" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">↺</text>
-  <text x="36" y="178" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Restore</text>
+  <!-- Dashboard -->
+  <rect x="18" y="94" width="20" height="20" rx="4" fill="#f3f4f6"/>
+  <text x="28" y="108" text-anchor="middle" font-size="10" fill="#9ca3af">D</text>
+  <text x="48" y="108" font-size="13" fill="#374151">Dashboard</text>
 
-  <text x="18" y="212" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">▶</text>
-  <text x="36" y="212" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#57606a">Workflow Runs</text>
+  <!-- Backup -->
+  <rect x="18" y="120" width="20" height="20" rx="4" fill="#f3f4f6"/>
+  <text x="28" y="134" text-anchor="middle" font-size="10" fill="#9ca3af">B</text>
+  <text x="48" y="134" font-size="13" fill="#374151">Backup</text>
+
+  <!-- Restore -->
+  <rect x="18" y="152" width="20" height="20" rx="4" fill="#f3f4f6"/>
+  <text x="28" y="166" text-anchor="middle" font-size="10" fill="#9ca3af">R</text>
+  <text x="48" y="166" font-size="13" fill="#374151">Restore</text>
+
+  <!-- Workflow Runs -->
+  <rect x="18" y="184" width="20" height="20" rx="4" fill="#f3f4f6"/>
+  <text x="28" y="198" text-anchor="middle" font-size="10" fill="#9ca3af">W</text>
+  <text x="48" y="198" font-size="13" fill="#374151">Workflow Runs</text>
 
   <!-- Settings (active) -->
-  <rect x="8" y="222" width="214" height="34" fill="#0969da" rx="6"/>
-  <text x="18" y="244" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" fill="#ffffff">⚙</text>
-  <text x="36" y="244" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="13" font-weight="600" fill="#ffffff">Settings</text>
+  <rect x="8" y="210" width="224" height="36" rx="6" fill="#eff6ff"/>
+  <rect x="18" y="218" width="20" height="20" rx="4" fill="#2563eb"/>
+  <text x="28" y="232" text-anchor="middle" font-size="10" font-weight="700" fill="white">S</text>
+  <text x="48" y="232" font-size="13" font-weight="600" fill="#2563eb">Settings</text>
 
-  <!-- Sidebar footer -->
-  <line x1="0" y1="642" x2="230" y2="642" stroke="#d0d7de" stroke-width="1"/>
-  <text x="14" y="657" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="9" fill="#8b949e">Built by Omar Rao</text>
-  <text x="14" y="670" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="9" fill="#8b949e">Engineer — Data Resilience, Cybersecurity &amp; Privacy</text>
+  <!-- Status pills -->
+  <line x1="16" y1="558" x2="224" y2="558" stroke="#e2e6ea" stroke-width="1"/>
+  <rect x="16" y="568" width="138" height="22" rx="11" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <circle cx="30" cy="579" r="4" fill="#16a34a"/>
+  <text x="40" y="583" font-size="11" fill="#15803d">GitHub: OmarRao</text>
+  <rect x="16" y="596" width="128" height="22" rx="11" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <circle cx="30" cy="607" r="4" fill="#16a34a"/>
+  <text x="40" y="611" font-size="11" fill="#15803d">Drive: connected</text>
 
-  <!-- Page title -->
-  <text x="258" y="68" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="20" font-weight="700" fill="#24292f">Settings &amp; Setup</text>
+  <!-- Author -->
+  <line x1="16" y1="628" x2="224" y2="628" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="16" y="644" font-size="12" font-weight="600" fill="#111827">Omar Rao</text>
+  <text x="16" y="657" font-size="10" fill="#6b7280">Engineer - Data Resilience</text>
+  <rect x="16" y="662" width="54" height="14" rx="3" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="43" y="672" text-anchor="middle" font-size="9" fill="#2563eb">LinkedIn</text>
+  <rect x="76" y="662" width="52" height="14" rx="3" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <text x="102" y="672" text-anchor="middle" font-size="9" fill="#15803d">Substack</text>
+
+  <!-- ── MAIN CONTENT ── -->
+  <text x="276" y="40" font-size="20" font-weight="700" fill="#111827">Settings &amp; Setup</text>
+  <text x="276" y="58" font-size="13" fill="#6b7280">Configure your GitHub and Google Drive connections to enable automated backups.</text>
 
   <!-- Tab bar -->
-  <rect x="246" y="76" width="838" height="36" fill="#ffffff" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <!-- GitHub tab (active) -->
-  <rect x="246" y="76" width="120" height="36" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <rect x="246" y="94" width="120" height="18" fill="#f6f8fa"/>
-  <line x1="246" y1="110" x2="366" y2="110" stroke="#0969da" stroke-width="2"/>
-  <text x="306" y="99" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#0969da" text-anchor="middle">GitHub</text>
+  <rect x="276" y="72" width="808" height="42" rx="8" fill="white" stroke="#e2e6ea" stroke-width="1"/>
+  <!-- Active tab: GitHub -->
+  <rect x="277" y="73" width="130" height="40" rx="7" fill="white"/>
+  <line x1="277" y1="110" x2="407" y2="110" stroke="#2563eb" stroke-width="2"/>
+  <text x="342" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#2563eb">GitHub</text>
   <!-- Other tabs -->
-  <text x="440" y="99" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#57606a" text-anchor="middle">Google Drive</text>
-  <text x="590" y="99" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#57606a" text-anchor="middle">Actions Secrets</text>
-  <text x="730" y="99" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#57606a" text-anchor="middle">Setup Guide</text>
+  <text x="480" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Google Drive</text>
+  <text x="620" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Actions Secrets</text>
+  <text x="766" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Setup Guide</text>
 
-  <!-- GitHub Connection card -->
-  <rect x="246" y="124" width="838" height="210" fill="#ffffff" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="266" y="152" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="14" font-weight="600" fill="#24292f">GitHub Connection</text>
+  <!-- Main settings card -->
+  <rect x="276" y="126" width="808" height="360" rx="10" fill="white" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="296" y="158" font-size="15" font-weight="700" fill="#111827">GitHub Connection</text>
+  <text x="296" y="174" font-size="12" fill="#6b7280">Token stored in localStorage. Never sent to any server - all operations run client-side.</text>
+  <line x1="276" y1="186" x2="1084" y2="186" stroke="#e2e6ea" stroke-width="1"/>
 
-  <!-- Token field -->
-  <text x="266" y="180" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#57606a">Personal Access Token</text>
-  <rect x="266" y="188" width="500" height="30" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="282" y="207" font-family="ui-monospace,monospace" font-size="13" fill="#57606a" letter-spacing="2">●●●●●●●●●●●●●●●●●●●●●●●●●●●</text>
+  <!-- PAT field -->
+  <text x="296" y="214" font-size="12" font-weight="600" fill="#374151">Personal Access Token (PAT)</text>
+  <text x="296" y="230" font-size="11" fill="#6b7280">Requires scopes: repo, read:org, workflow</text>
+  <rect x="296" y="238" width="544" height="36" rx="6" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
+  <!-- Masked dots -->
+  <circle cx="316" cy="256" r="4" fill="#374151"/>
+  <circle cx="330" cy="256" r="4" fill="#374151"/>
+  <circle cx="344" cy="256" r="4" fill="#374151"/>
+  <circle cx="358" cy="256" r="4" fill="#374151"/>
+  <circle cx="372" cy="256" r="4" fill="#374151"/>
+  <circle cx="386" cy="256" r="4" fill="#374151"/>
+  <circle cx="400" cy="256" r="4" fill="#374151"/>
+  <circle cx="414" cy="256" r="4" fill="#374151"/>
+  <circle cx="428" cy="256" r="4" fill="#374151"/>
+  <circle cx="442" cy="256" r="4" fill="#374151"/>
+  <circle cx="456" cy="256" r="4" fill="#374151"/>
+  <circle cx="470" cy="256" r="4" fill="#374151"/>
+  <circle cx="484" cy="256" r="4" fill="#374151"/>
+  <circle cx="498" cy="256" r="4" fill="#374151"/>
+  <circle cx="512" cy="256" r="4" fill="#374151"/>
+  <circle cx="526" cy="256" r="4" fill="#374151"/>
+  <circle cx="540" cy="256" r="4" fill="#374151"/>
+  <circle cx="554" cy="256" r="4" fill="#374151"/>
+  <circle cx="568" cy="256" r="4" fill="#374151"/>
+  <!-- Show/hide icon area -->
+  <text x="828" y="260" text-anchor="middle" font-size="11" fill="#6b7280">show</text>
 
   <!-- Username field -->
-  <text x="266" y="242" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#57606a">GitHub Username</text>
-  <rect x="266" y="250" width="300" height="30" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="282" y="269" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#24292f">OmarRao</text>
+  <text x="296" y="298" font-size="12" font-weight="600" fill="#374151">GitHub Username</text>
+  <rect x="296" y="306" width="544" height="36" rx="6" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="314" y="328" font-size="12" fill="#111827">OmarRao</text>
 
-  <!-- Save button -->
-  <rect x="266" y="296" width="160" height="32" fill="#0969da" rx="6"/>
-  <text x="346" y="316" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#ffffff" text-anchor="middle">Save &amp; Connect</text>
+  <!-- Buttons -->
+  <rect x="296" y="360" width="168" height="38" rx="7" fill="#2563eb"/>
+  <text x="380" y="382" text-anchor="middle" font-size="13" font-weight="600" fill="white">Save &amp; Connect</text>
+  <rect x="474" y="360" width="80" height="38" rx="7" fill="white" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="514" y="382" text-anchor="middle" font-size="13" fill="#374151">Clear</text>
 
   <!-- Success notice -->
-  <rect x="442" y="296" width="242" height="32" fill="#dafbe1" stroke="#1a7f37" stroke-width="1" rx="6"/>
-  <text x="563" y="316" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#1a7f37" text-anchor="middle">✅  Connected as OmarRao</text>
+  <rect x="276" y="502" width="808" height="44" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+  <circle cx="300" cy="524" r="8" fill="#16a34a"/>
+  <line x1="296" y1="524" x2="300" y2="528" stroke="white" stroke-width="2"/>
+  <line x1="300" y1="528" x2="308" y2="520" stroke="white" stroke-width="2"/>
+  <text x="320" y="521" font-size="13" font-weight="600" fill="#15803d">Connected as OmarRao</text>
+  <text x="320" y="537" font-size="11" fill="#16a34a">Token validated - 12 repositories accessible, workflows enabled</text>
 
-  <!-- Google Drive Connection card (disconnected) -->
-  <rect x="246" y="350" width="838" height="200" fill="#ffffff" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="266" y="378" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="14" font-weight="600" fill="#24292f">Google Drive Connection</text>
-
-  <!-- Disconnected notice -->
-  <rect x="266" y="388" width="420" height="28" fill="#fff8c5" stroke="#d4a72c" stroke-width="1" rx="6"/>
-  <text x="476" y="406" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#7d4e00" text-anchor="middle">⚠  Not connected. Sign in to browse backup sessions live.</text>
-
-  <!-- Client ID field -->
-  <text x="266" y="436" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#57606a">Google OAuth Client ID</text>
-  <rect x="266" y="444" width="500" height="30" fill="#f6f8fa" stroke="#d0d7de" stroke-width="1" rx="6"/>
-  <text x="282" y="463" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" fill="#8b949e">123456789-abc.apps.googleusercontent.com</text>
-
-  <!-- Google sign in button -->
-  <rect x="266" y="490" width="200" height="34" fill="#ffffff" stroke="#d0d7de" stroke-width="1.5" rx="6"/>
-  <text x="366" y="511" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="12" font-weight="600" fill="#24292f" text-anchor="middle">🔑  Sign in with Google</text>
-
-  <text x="482" y="511" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-size="11" fill="#57606a">Token stored in localStorage only — never sent to a third party.</text>
+  <!-- Info card below -->
+  <rect x="276" y="560" width="808" height="96" rx="10" fill="white" stroke="#e2e6ea" stroke-width="1"/>
+  <text x="296" y="584" font-size="13" font-weight="700" fill="#111827">How to create a GitHub PAT</text>
+  <text x="296" y="602" font-size="12" fill="#6b7280">1. Go to GitHub Settings - Developer settings - Personal access tokens - Tokens (classic)</text>
+  <text x="296" y="618" font-size="12" fill="#6b7280">2. Click Generate new token and select scopes: repo, read:org, workflow</text>
+  <text x="296" y="634" font-size="12" fill="#6b7280">3. Copy the generated token and paste it into the field above, then click Save &amp; Connect</text>
 </svg>
