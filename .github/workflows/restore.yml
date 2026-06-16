@@ -33,7 +33,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       - name: Install dependencies
         run: npm install
@@ -46,6 +46,14 @@ jobs:
           mkdir -p credentials
           printf '%s' "$GOOGLE_CLIENT_SECRET_JSON" > credentials/google-client-secret.json
           printf '%s' "$GOOGLE_TOKEN_JSON"         > credentials/google-token.json
+          node -e "
+            ['credentials/google-client-secret.json','credentials/google-token.json'].forEach(f=>{
+              const raw=require('fs').readFileSync(f,'utf8');
+              const obj=JSON.parse(raw.trim().match(/^\{[\s\S]*\}/)[0]);
+              require('fs').writeFileSync(f,JSON.stringify(obj));
+            });
+            console.log('Credentials sanitized');
+          "
 
       - name: Run restore
         env:
