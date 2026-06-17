@@ -1,0 +1,269 @@
+<svg viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, sans-serif">
+  <!-- Background -->
+  <rect width="1100" height="680" fill="#f5f7fa"/>
+
+  <!-- Sidebar -->
+  <rect width="256" height="680" fill="#ffffff" rx="0"/>
+  <rect x="256" width="1" height="680" fill="#e5e7eb"/>
+
+  <!-- Brand -->
+  <rect x="20" y="18" width="34" height="34" rx="8" fill="url(#brandGrad)"/>
+  <path d="M28 35 Q37 27 44 35 M32 40 L32 31 M37 40 L37 31" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <text x="63" y="32" font-size="14" font-weight="700" fill="#111827">GH Backup</text>
+  <text x="63" y="46" font-size="11" fill="#6b7280">Dashboard</text>
+
+  <!-- Nav items -->
+  <!-- Dashboard -->
+  <rect x="12" y="76" width="232" height="40" rx="8" fill="transparent"/>
+  <text x="52" y="101" font-size="13" fill="#6b7280">Dashboard</text>
+  <rect x="20" y="88" width="20" height="20" rx="4" fill="transparent"/>
+  <path d="M22 98 h6 v-6 h6 v6 h6" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Backup -->
+  <rect x="12" y="120" width="232" height="40" rx="8" fill="transparent"/>
+  <text x="52" y="145" font-size="13" fill="#6b7280">Backup</text>
+  <path d="M22 134 q7-7 14 0 M29 127 v12 M25 139 h8" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Restore -->
+  <rect x="12" y="164" width="232" height="40" rx="8" fill="transparent"/>
+  <text x="52" y="189" font-size="13" fill="#6b7280">Restore</text>
+  <path d="M22 178 a7 7 0 1 1 5 12 M22 178 l-3 4 4 1" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Workflow Runs -->
+  <rect x="12" y="208" width="232" height="40" rx="8" fill="transparent"/>
+  <text x="52" y="233" font-size="13" fill="#6b7280">Workflow Runs</text>
+  <path d="M22 222 h16 M22 226 h10 M22 230 h13" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+  <!-- Reports — active -->
+  <rect x="12" y="252" width="232" height="40" rx="8" fill="#eff6ff"/>
+  <rect x="12" y="252" width="3" height="40" rx="1.5" fill="#2563eb"/>
+  <text x="52" y="277" font-size="13" font-weight="600" fill="#2563eb">Reports</text>
+  <path d="M22 261 h4 v16 h-4z M28 265 h4 v12 h-4z M34 268 h4 v9 h-4z" stroke="#2563eb" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <!-- Settings -->
+  <rect x="12" y="296" width="232" height="40" rx="8" fill="transparent"/>
+  <text x="52" y="321" font-size="13" fill="#6b7280">Settings</text>
+  <circle cx="29" cy="316" r="4" stroke="#9ca3af" stroke-width="1.5" fill="none"/>
+  <circle cx="29" cy="316" r="6.5" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-dasharray="3 2"/>
+
+  <!-- Connection status -->
+  <rect x="12" y="600" width="232" height="66" rx="8" fill="#f9fafb"/>
+  <circle cx="26" cy="616" r="5" fill="#1a7f37"/>
+  <text x="36" y="620" font-size="11" font-weight="600" fill="#374151">GitHub</text>
+  <text x="36" y="633" font-size="10" fill="#6b7280">omarrao · 42 repos</text>
+  <circle cx="26" cy="651" r="5" fill="#1a7f37"/>
+  <text x="36" y="655" font-size="11" font-weight="600" fill="#374151">Google Drive</text>
+  <text x="36" y="668" font-size="10" fill="#6b7280">Connected</text>
+
+  <!-- Main content area -->
+  <!-- Page header -->
+  <text x="284" y="46" font-size="22" font-weight="700" fill="#111827">Reports</text>
+  <text x="284" y="64" font-size="13" fill="#6b7280">Backup and restore history, success rates, and run details</text>
+
+  <!-- Export button -->
+  <rect x="984" y="28" width="100" height="36" rx="8" fill="#f3f4f6" stroke="#e5e7eb"/>
+  <text x="1034" y="51" font-size="12" font-weight="500" fill="#374151" text-anchor="middle">Export CSV</text>
+
+  <!-- Stat cards row -->
+  <!-- Total Backups -->
+  <rect x="284" y="82" width="184" height="96" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="296" y="94" width="38" height="38" rx="9" fill="#eff6ff"/>
+  <path d="M306 113 q9-9 18 0 M315 106 v14 M311 118 h8" stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <text x="344" y="110" font-size="11" fill="#6b7280">Total Backups</text>
+  <text x="344" y="132" font-size="28" font-weight="700" fill="#111827">147</text>
+  <text x="344" y="148" font-size="11" fill="#1a7f37">+12 this month</text>
+
+  <!-- Success Rate -->
+  <rect x="484" y="82" width="184" height="96" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="496" y="94" width="38" height="38" rx="9" fill="#dcfce7"/>
+  <path d="M506 113 l5 5 10-10" stroke="#1a7f37" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="544" y="110" font-size="11" fill="#6b7280">Success Rate</text>
+  <text x="544" y="132" font-size="28" font-weight="700" fill="#111827">97.3%</text>
+  <text x="544" y="148" font-size="11" fill="#1a7f37">4 failures total</text>
+
+  <!-- Current Streak -->
+  <rect x="684" y="82" width="184" height="96" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="696" y="94" width="38" height="38" rx="9" fill="#fef3c7"/>
+  <path d="M710 107 q2-5 5 0 q2 5 5 0 q-2 10-5 14 q-3-4-5-14z" stroke="#d97706" stroke-width="1.5" fill="#fbbf24" fill-opacity=".4"/>
+  <text x="744" y="110" font-size="11" fill="#6b7280">Current Streak</text>
+  <text x="744" y="132" font-size="28" font-weight="700" fill="#111827">23 days</text>
+  <text x="744" y="148" font-size="11" fill="#d97706">Personal best: 41</text>
+
+  <!-- Failed Runs -->
+  <rect x="884" y="82" width="184" height="96" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
+  <rect x="896" y="94" width="38" height="38" rx="9" fill="#fef2f2"/>
+  <path d="M911 105 l4 4 m0-4 l-4 4 M915 118 l-4 4 m0-4 l4 4" stroke="#dc2626" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <text x="944" y="110" font-size="11" fill="#6b7280">Failed Runs</text>
+  <text x="944" y="132" font-size="28" font-weight="700" fill="#111827">4</text>
+  <text x="944" y="148" font-size="11" fill="#6b7280">All resolved</text>
+
+  <!-- Two-column layout: Backup History | Restore History -->
+  <!-- Backup History card -->
+  <rect x="284" y="196" width="388" height="206" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="302" y="220" font-size="14" font-weight="600" fill="#111827">Backup History</text>
+  <text x="302" y="236" font-size="11" fill="#6b7280">Last 30 runs</text>
+
+  <!-- Table header -->
+  <rect x="284" y="244" width="388" height="28" fill="#f9fafb"/>
+  <text x="302" y="263" font-size="11" font-weight="600" fill="#6b7280">DATE</text>
+  <text x="430" y="263" font-size="11" font-weight="600" fill="#6b7280">REPOS</text>
+  <text x="510" y="263" font-size="11" font-weight="600" fill="#6b7280">DURATION</text>
+  <text x="600" y="263" font-size="11" font-weight="600" fill="#6b7280">STATUS</text>
+
+  <!-- Rows -->
+  <line x1="284" y1="272" x2="672" y2="272" stroke="#f3f4f6"/>
+  <text x="302" y="288" font-size="11" fill="#374151">Jun 17, 02:00</text>
+  <text x="430" y="288" font-size="11" fill="#374151">42</text>
+  <text x="510" y="288" font-size="11" fill="#374151">4m 12s</text>
+  <rect x="600" y="279" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="626" y="292" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+
+  <line x1="284" y1="300" x2="672" y2="300" stroke="#f3f4f6"/>
+  <text x="302" y="316" font-size="11" fill="#374151">Jun 16, 02:00</text>
+  <text x="430" y="316" font-size="11" fill="#374151">42</text>
+  <text x="510" y="316" font-size="11" fill="#374151">3m 58s</text>
+  <rect x="600" y="307" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="626" y="320" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+
+  <line x1="284" y1="328" x2="672" y2="328" stroke="#f3f4f6"/>
+  <text x="302" y="344" font-size="11" fill="#374151">Jun 15, 02:00</text>
+  <text x="430" y="344" font-size="11" fill="#374151">42</text>
+  <text x="510" y="344" font-size="11" fill="#374151">4m 31s</text>
+  <rect x="600" y="335" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="626" y="348" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+
+  <line x1="284" y1="356" x2="672" y2="356" stroke="#f3f4f6"/>
+  <text x="302" y="372" font-size="11" fill="#374151">Jun 14, 02:00</text>
+  <text x="430" y="372" font-size="11" fill="#374151">41</text>
+  <text x="510" y="372" font-size="11" fill="#374151">—</text>
+  <rect x="600" y="363" width="52" height="18" rx="9" fill="#fef2f2"/>
+  <text x="626" y="376" font-size="10" font-weight="600" fill="#991b1b" text-anchor="middle">failed</text>
+
+  <line x1="284" y1="384" x2="672" y2="384" stroke="#f3f4f6"/>
+  <text x="302" y="400" font-size="11" fill="#374151">Jun 13, 02:00</text>
+  <text x="430" y="400" font-size="11" fill="#374151">41</text>
+  <text x="510" y="400" font-size="11" fill="#374151">4m 03s</text>
+  <rect x="600" y="391" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="626" y="404" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+
+  <!-- Restore History card -->
+  <rect x="688" y="196" width="380" height="206" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="706" y="220" font-size="14" font-weight="600" fill="#111827">Restore History</text>
+  <text x="706" y="236" font-size="11" fill="#6b7280">Last 10 runs</text>
+
+  <rect x="688" y="244" width="380" height="28" fill="#f9fafb"/>
+  <text x="706" y="263" font-size="11" font-weight="600" fill="#6b7280">DATE</text>
+  <text x="828" y="263" font-size="11" font-weight="600" fill="#6b7280">SESSION</text>
+  <text x="940" y="263" font-size="11" font-weight="600" fill="#6b7280">STATUS</text>
+
+  <line x1="688" y1="272" x2="1068" y2="272" stroke="#f3f4f6"/>
+  <text x="706" y="288" font-size="11" fill="#374151">Jun 10, 14:32</text>
+  <text x="828" y="288" font-size="11" fill="#374151">Jun 10 02:00</text>
+  <rect x="940" y="279" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="966" y="292" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+
+  <line x1="688" y1="300" x2="1068" y2="300" stroke="#f3f4f6"/>
+  <text x="706" y="316" font-size="11" fill="#374151">May 28, 09:15</text>
+  <text x="828" y="316" font-size="11" fill="#374151">May 28 02:00</text>
+  <rect x="940" y="307" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="966" y="320" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+
+  <line x1="688" y1="328" x2="1068" y2="328" stroke="#f3f4f6"/>
+  <text x="706" y="344" font-size="11" fill="#374151">May 15, 11:47</text>
+  <text x="828" y="344" font-size="11" fill="#374151">May 15 02:00</text>
+  <rect x="940" y="335" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="966" y="348" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+
+  <line x1="688" y1="356" x2="1068" y2="356" stroke="#f3f4f6"/>
+  <text x="706" y="372" font-size="11" fill="#374151">Apr 22, 16:05</text>
+  <text x="828" y="372" font-size="11" fill="#374151">Apr 21 02:00</text>
+  <rect x="940" y="363" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="966" y="376" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+
+  <line x1="688" y1="384" x2="1068" y2="384" stroke="#f3f4f6"/>
+  <text x="706" y="400" font-size="11" fill="#374151">Mar 31, 08:22</text>
+  <text x="828" y="400" font-size="11" fill="#374151">Mar 31 02:00</text>
+  <rect x="940" y="391" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="966" y="404" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+
+  <!-- Run Details full-width table -->
+  <rect x="284" y="420" width="784" height="240" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
+  <text x="302" y="444" font-size="14" font-weight="600" fill="#111827">Run Details</text>
+
+  <rect x="284" y="452" width="784" height="28" fill="#f9fafb"/>
+  <text x="302" y="471" font-size="11" font-weight="600" fill="#6b7280">RUN</text>
+  <text x="390" y="471" font-size="11" font-weight="600" fill="#6b7280">TYPE</text>
+  <text x="460" y="471" font-size="11" font-weight="600" fill="#6b7280">TRIGGER</text>
+  <text x="560" y="471" font-size="11" font-weight="600" fill="#6b7280">STARTED</text>
+  <text x="680" y="471" font-size="11" font-weight="600" fill="#6b7280">DURATION</text>
+  <text x="780" y="471" font-size="11" font-weight="600" fill="#6b7280">REPOS</text>
+  <text x="856" y="471" font-size="11" font-weight="600" fill="#6b7280">STATUS</text>
+  <text x="960" y="471" font-size="11" font-weight="600" fill="#6b7280">LINK</text>
+
+  <!-- Row 1 -->
+  <line x1="284" y1="480" x2="1068" y2="480" stroke="#f3f4f6"/>
+  <text x="302" y="496" font-size="11" fill="#374151">#7892</text>
+  <text x="390" y="496" font-size="11" fill="#374151">backup</text>
+  <text x="460" y="496" font-size="11" fill="#374151">schedule</text>
+  <text x="560" y="496" font-size="11" fill="#374151">Jun 17, 02:00</text>
+  <text x="680" y="496" font-size="11" fill="#374151">4m 12s</text>
+  <text x="780" y="496" font-size="11" fill="#374151">42</text>
+  <rect x="856" y="487" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="882" y="500" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+  <text x="960" y="496" font-size="11" fill="#2563eb" text-decoration="underline">#7892</text>
+
+  <!-- Row 2 -->
+  <line x1="284" y1="508" x2="1068" y2="508" stroke="#f3f4f6"/>
+  <text x="302" y="524" font-size="11" fill="#374151">#7891</text>
+  <text x="390" y="524" font-size="11" fill="#374151">backup</text>
+  <text x="460" y="524" font-size="11" fill="#374151">schedule</text>
+  <text x="560" y="524" font-size="11" fill="#374151">Jun 16, 02:00</text>
+  <text x="680" y="524" font-size="11" fill="#374151">3m 58s</text>
+  <text x="780" y="524" font-size="11" fill="#374151">42</text>
+  <rect x="856" y="515" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="882" y="528" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+  <text x="960" y="524" font-size="11" fill="#2563eb" text-decoration="underline">#7891</text>
+
+  <!-- Row 3 -->
+  <line x1="284" y1="536" x2="1068" y2="536" stroke="#f3f4f6"/>
+  <text x="302" y="552" font-size="11" fill="#374151">#7890</text>
+  <text x="390" y="552" font-size="11" fill="#374151">restore</text>
+  <text x="460" y="552" font-size="11" fill="#374151">manual</text>
+  <text x="560" y="552" font-size="11" fill="#374151">Jun 10, 14:32</text>
+  <text x="680" y="552" font-size="11" fill="#374151">2m 44s</text>
+  <text x="780" y="552" font-size="11" fill="#374151">12</text>
+  <rect x="856" y="543" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="882" y="556" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+  <text x="960" y="552" font-size="11" fill="#2563eb" text-decoration="underline">#7890</text>
+
+  <!-- Row 4 -->
+  <line x1="284" y1="564" x2="1068" y2="564" stroke="#f3f4f6"/>
+  <text x="302" y="580" font-size="11" fill="#374151">#7879</text>
+  <text x="390" y="580" font-size="11" fill="#374151">backup</text>
+  <text x="460" y="580" font-size="11" fill="#374151">schedule</text>
+  <text x="560" y="580" font-size="11" fill="#374151">Jun 14, 02:00</text>
+  <text x="680" y="580" font-size="11" fill="#374151">—</text>
+  <text x="780" y="580" font-size="11" fill="#374151">41</text>
+  <rect x="856" y="571" width="52" height="18" rx="9" fill="#fef2f2"/>
+  <text x="882" y="584" font-size="10" font-weight="600" fill="#991b1b" text-anchor="middle">failed</text>
+  <text x="960" y="580" font-size="11" fill="#2563eb" text-decoration="underline">#7879</text>
+
+  <!-- Row 5 -->
+  <line x1="284" y1="592" x2="1068" y2="592" stroke="#f3f4f6"/>
+  <text x="302" y="608" font-size="11" fill="#374151">#7878</text>
+  <text x="390" y="608" font-size="11" fill="#374151">backup</text>
+  <text x="460" y="608" font-size="11" fill="#374151">manual</text>
+  <text x="560" y="608" font-size="11" fill="#374151">Jun 13, 09:17</text>
+  <text x="680" y="608" font-size="11" fill="#374151">4m 03s</text>
+  <text x="780" y="608" font-size="11" fill="#374151">42</text>
+  <rect x="856" y="599" width="52" height="18" rx="9" fill="#dcfce7"/>
+  <text x="882" y="612" font-size="10" font-weight="600" fill="#166534" text-anchor="middle">success</text>
+  <text x="960" y="608" font-size="11" fill="#2563eb" text-decoration="underline">#7878</text>
+
+  <defs>
+    <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1a7f37"/>
+      <stop offset="100%" stop-color="#0d5e27"/>
+    </linearGradient>
+  </defs>
+</svg>

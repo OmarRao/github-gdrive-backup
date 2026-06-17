@@ -672,6 +672,14 @@
       </a>
     </li>
     <li>
+      <a class="nav-link" data-page="reports">
+        <span class="nav-icon">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        </span>
+        Reports
+      </a>
+    </li>
+    <li>
       <a class="nav-link" data-page="settings">
         <span class="nav-icon">
           <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
@@ -1177,6 +1185,114 @@
     </div>
   </section>
 
+
+  <!-- Reports page -->
+  <section id="page-reports" class="page">
+    <div class="page-header">
+      <div>
+        <h1>Reports</h1>
+        <div class="page-subtitle">Backup history, success rates, and per-repository status</div>
+      </div>
+      <div class="flex-row">
+        <button class="btn btn-secondary" onclick="loadReports()">
+          <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+          Refresh
+        </button>
+        <button class="btn btn-secondary" onclick="exportReportCSV()">
+          <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
+          Export CSV
+        </button>
+      </div>
+    </div>
+
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(180px,1fr)); margin-bottom:24px">
+      <div class="stat-card">
+        <div class="stat-icon-wrap green">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        </div>
+        <div>
+          <div class="stat-value" id="rpt-total">—</div>
+          <div class="stat-label">Total Backups</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrap blue">
+          <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+        </div>
+        <div>
+          <div class="stat-value" id="rpt-rate">—</div>
+          <div class="stat-label">Success Rate</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrap amber">
+          <svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+        </div>
+        <div>
+          <div class="stat-value" id="rpt-failures">—</div>
+          <div class="stat-label">Failed Runs</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon-wrap purple">
+          <svg viewBox="0 0 24 24"><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10 10-4.5 10-10S17.5 2 12 2zm4.2 14.2L11 13V7h1.5v5.2l4.5 2.7-.8 1.3z"/></svg>
+        </div>
+        <div>
+          <div class="stat-value" id="rpt-streak">—</div>
+          <div class="stat-label">Current Streak</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="two-col" style="align-items:start">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Backup History</div>
+            <div class="card-subtitle">Last 30 backup workflow runs</div>
+          </div>
+        </div>
+        <div id="rpt-history" class="run-list"><p class="muted">Loading…</p></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Restore History</div>
+            <div class="card-subtitle">Last 10 restore workflow runs</div>
+          </div>
+        </div>
+        <div id="rpt-restores" class="run-list"><p class="muted">Loading…</p></div>
+      </div>
+    </div>
+
+    <div class="card mt-4">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Run Details</div>
+          <div class="card-subtitle">Duration, trigger, and conclusion for each backup run</div>
+        </div>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="data-table" id="rpt-table">
+          <thead>
+            <tr>
+              <th>Run</th>
+              <th>Status</th>
+              <th>Trigger</th>
+              <th>Started</th>
+              <th>Duration</th>
+              <th>Link</th>
+            </tr>
+          </thead>
+          <tbody id="rpt-table-body">
+            <tr><td colspan="6" style="color:var(--muted)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
 </main>
 
 <script>
@@ -1225,6 +1341,7 @@ function navTo(page) {
   if (page === 'restore')   loadSessions();
   if (page === 'runs')      loadRuns();
   if (page === 'settings')  initSettings();
+  if (page === 'reports')   loadReports();
 }
 
 function switchTab(btn, id) {
@@ -1607,6 +1724,77 @@ function showResult(id, type, msg) {
   const el = document.getElementById(id);
   el.className = `result-area ${type}`; el.classList.remove('hidden');
   el.innerHTML = msg;
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+let reportRuns = [];
+
+async function loadReports() {
+  try {
+    const [backupData, restoreData] = await Promise.all([
+      ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/backup.yml/runs?per_page=30`).catch(() => ({ workflow_runs: [] })),
+      ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/restore.yml/runs?per_page=10`).catch(() => ({ workflow_runs: [] })),
+    ]);
+
+    const backups  = backupData.workflow_runs  || [];
+    const restores = restoreData.workflow_runs || [];
+    reportRuns = backups;
+
+    const done     = backups.filter(r => r.conclusion);
+    const success  = done.filter(r => r.conclusion === 'success');
+    const failures = done.filter(r => r.conclusion === 'failure');
+    const rate     = done.length ? Math.round(success.length / done.length * 100) : 0;
+
+    let streak = 0;
+    for (const r of backups) {
+      if (r.conclusion === 'success') streak++;
+      else break;
+    }
+
+    document.getElementById('rpt-total').textContent    = done.length || '—';
+    document.getElementById('rpt-rate').textContent     = done.length ? `${rate}%` : '—';
+    document.getElementById('rpt-failures').textContent = failures.length;
+    document.getElementById('rpt-streak').textContent   = `${streak} days`;
+
+    renderRuns(backups.slice(0, 8),  document.getElementById('rpt-history'));
+    renderRuns(restores.slice(0, 8), document.getElementById('rpt-restores'));
+
+    const tbody = document.getElementById('rpt-table-body');
+    if (!backups.length) { tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted)">No runs yet.</td></tr>'; return; }
+    tbody.innerHTML = backups.map(r => {
+      const dur = r.updated_at && r.created_at
+        ? (() => { const s = Math.round((new Date(r.updated_at) - new Date(r.created_at)) / 1000); return s > 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`; })()
+        : '—';
+      const key = r.conclusion || r.status;
+      const cls = { success:'badge-success', failure:'badge-failure', in_progress:'badge-in_progress', cancelled:'badge-cancelled' }[key] || 'badge-queued';
+      return `<tr>
+        <td style="font-weight:600">#${r.run_number}</td>
+        <td><span class="run-badge ${cls}">${key}</span></td>
+        <td style="color:var(--muted);font-size:12px">${r.event || '—'}</td>
+        <td style="color:var(--muted);font-size:12px">${relTime(r.created_at)}</td>
+        <td style="color:var(--muted);font-size:12px">${dur}</td>
+        <td><a class="run-link" href="${r.html_url}" target="_blank">View →</a></td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    document.getElementById('rpt-history').innerHTML = `<p style="color:var(--danger)">Error: ${err.message}</p>`;
+  }
+}
+
+function exportReportCSV() {
+  if (!reportRuns.length) { alert('No data to export — load reports first.'); return; }
+  const rows = [['Run','Status','Trigger','Started','Duration','URL']];
+  reportRuns.forEach(r => {
+    const dur = r.updated_at && r.created_at
+      ? (() => { const s = Math.round((new Date(r.updated_at) - new Date(r.created_at)) / 1000); return s > 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`; })()
+      : '';
+    rows.push([`#${r.run_number}`, r.conclusion || r.status, r.event || '', new Date(r.created_at).toISOString(), dur, r.html_url]);
+  });
+  const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' }));
+  a.download = `gh-backup-report-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
