@@ -23,28 +23,44 @@
 
   <!-- Dashboard -->
   <rect x="18" y="94" width="20" height="20" rx="4" fill="#f3f4f6"/>
-  <text x="28" y="108" text-anchor="middle" font-size="10" fill="#9ca3af">D</text>
+  <g transform="translate(19,95)" stroke="#9ca3af" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="0" y="0" width="7.5" height="7.5" rx="1.5"/>
+    <rect x="10" y="0" width="7.5" height="7.5" rx="1.5"/>
+    <rect x="0" y="10" width="7.5" height="7.5" rx="1.5"/>
+    <rect x="10" y="10" width="7.5" height="7.5" rx="1.5"/>
+  </g>
   <text x="48" y="108" font-size="13" fill="#374151">Dashboard</text>
 
   <!-- Backup -->
   <rect x="18" y="120" width="20" height="20" rx="4" fill="#f3f4f6"/>
-  <text x="28" y="134" text-anchor="middle" font-size="10" fill="#9ca3af">B</text>
+  <g transform="translate(19,121)" stroke="#9ca3af" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 14V6m-3.5 3.5L9 13l3.5-3.5"/>
+    <path d="M3.5 13A4 4 0 014 5.5a5.5 5.5 0 018.5 0A4 4 0 0113.5 13z"/>
+  </g>
   <text x="48" y="134" font-size="13" fill="#374151">Backup</text>
 
   <!-- Restore (active) -->
   <rect x="8" y="146" width="224" height="36" rx="6" fill="#eff6ff"/>
   <rect x="18" y="154" width="20" height="20" rx="4" fill="#2563eb"/>
-  <text x="28" y="168" text-anchor="middle" font-size="10" font-weight="700" fill="white">R</text>
+  <g transform="translate(19,155)" stroke="#2563eb" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M9 4v8m3.5-3.5L9 5 5.5 8.5"/>
+    <path d="M3.5 13A4 4 0 014 5.5a5.5 5.5 0 018.5 0A4 4 0 0113.5 13z"/>
+  </g>
   <text x="48" y="168" font-size="13" font-weight="600" fill="#2563eb">Restore</text>
 
   <!-- Workflow Runs -->
   <rect x="18" y="190" width="20" height="20" rx="4" fill="#f3f4f6"/>
-  <text x="28" y="204" text-anchor="middle" font-size="10" fill="#9ca3af">W</text>
+  <g transform="translate(19,191)" stroke="#9ca3af" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="9" cy="9" r="8"/>
+    <path d="M9 5v4l2.5 2.5"/>
+  </g>
   <text x="48" y="204" font-size="13" fill="#374151">Workflow Runs</text>
 
   <!-- Settings -->
   <rect x="18" y="222" width="20" height="20" rx="4" fill="#f3f4f6"/>
-  <text x="28" y="236" text-anchor="middle" font-size="10" fill="#9ca3af">S</text>
+  <g transform="translate(19,223)" stroke="#9ca3af" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M1 17V8h3v9M6.5 17V3h3v14M12 17v-5h3v5"/>
+  </g>
   <text x="48" y="236" font-size="13" fill="#374151">Settings</text>
 
   <!-- Status pills -->
