@@ -22,47 +22,41 @@
   <text x="16" y="86" font-size="10" font-weight="600" fill="#9ca3af" letter-spacing="1">NAVIGATION</text>
 
   <!-- Dashboard -->
-  <rect x="18" y="94" width="20" height="20" rx="4" fill="#f3f4f6"/>
-  <g transform="translate(19,95)" stroke="#9ca3af" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="0" y="0" width="7.5" height="7.5" rx="1.5"/>
-    <rect x="10" y="0" width="7.5" height="7.5" rx="1.5"/>
-    <rect x="0" y="10" width="7.5" height="7.5" rx="1.5"/>
-    <rect x="10" y="10" width="7.5" height="7.5" rx="1.5"/>
+  <g transform="translate(16, 103) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>
   </g>
-  <text x="48" y="108" font-size="13" fill="#374151">Dashboard</text>
+  <text x="48" y="116" font-size="13" fill="#374151">Dashboard</text>
 
   <!-- Backup -->
-  <rect x="18" y="120" width="20" height="20" rx="4" fill="#f3f4f6"/>
-  <g transform="translate(19,121)" stroke="#9ca3af" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M9 14V6m-3.5 3.5L9 13l3.5-3.5"/>
-    <path d="M3.5 13A4 4 0 014 5.5a5.5 5.5 0 018.5 0A4 4 0 0113.5 13z"/>
+  <g transform="translate(16, 139) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
   </g>
-  <text x="48" y="134" font-size="13" fill="#374151">Backup</text>
+  <text x="48" y="152" font-size="13" fill="#374151">Backup</text>
 
   <!-- Restore -->
-  <rect x="18" y="152" width="20" height="20" rx="4" fill="#f3f4f6"/>
-  <g transform="translate(19,153)" stroke="#9ca3af" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M9 4v8m3.5-3.5L9 5 5.5 8.5"/>
-    <path d="M3.5 13A4 4 0 014 5.5a5.5 5.5 0 018.5 0A4 4 0 0113.5 13z"/>
+  <g transform="translate(16, 175) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
   </g>
-  <text x="48" y="166" font-size="13" fill="#374151">Restore</text>
+  <text x="48" y="188" font-size="13" fill="#374151">Restore</text>
 
   <!-- Workflow Runs -->
-  <rect x="18" y="184" width="20" height="20" rx="4" fill="#f3f4f6"/>
-  <g transform="translate(19,185)" stroke="#9ca3af" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="9" cy="9" r="8"/>
-    <path d="M9 5v4l2.5 2.5"/>
+  <g transform="translate(16, 211) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
   </g>
-  <text x="48" y="198" font-size="13" fill="#374151">Workflow Runs</text>
+  <text x="48" y="224" font-size="13" fill="#374151">Workflow Runs</text>
+
+  <!-- Reports -->
+  <g transform="translate(16, 247) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M3 20V8h4v12M10 20V4h4v16M17 20v-6h4v6"/>
+  </g>
+  <text x="48" y="260" font-size="13" fill="#374151">Reports</text>
 
   <!-- Settings (active) -->
-  <rect x="8" y="210" width="224" height="36" rx="6" fill="#eff6ff"/>
-  <rect x="18" y="218" width="20" height="20" rx="4" fill="#2563eb"/>
-  <g transform="translate(19,219)" stroke="#2563eb" stroke-width="1.2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="9" cy="9" r="2.5"/>
-    <path d="M15.5 11.5a1.4 1.4 0 00.3 1.55l.05.05a1.7 1.7 0 010 2.4 1.7 1.7 0 01-2.4 0l-.05-.05a1.4 1.4 0 00-1.55-.3 1.4 1.4 0 00-.85 1.28V17a1.7 1.7 0 01-3.4 0v-.08a1.4 1.4 0 00-.9-1.28 1.4 1.4 0 00-1.55.3l-.05.05a1.7 1.7 0 01-2.4-2.4l.05-.05A1.4 1.4 0 003.1 12a1.4 1.4 0 00-1.28-.85H1a1.7 1.7 0 010-3.4h.07a1.4 1.4 0 001.28-.9 1.4 1.4 0 00-.3-1.55l-.05-.05a1.7 1.7 0 012.4-2.4l.05.05A1.4 1.4 0 006 3.1a1.4 1.4 0 00.85-1.28V1a1.7 1.7 0 013.4 0v.07a1.4 1.4 0 00.85 1.28 1.4 1.4 0 001.55-.3l.05-.05a1.7 1.7 0 012.4 2.4l-.05.05A1.4 1.4 0 0015.5 6a1.4 1.4 0 001.28.85H17a1.7 1.7 0 010 3.4h-.07a1.4 1.4 0 00-1.28.85z"/>
+  <rect x="8" y="270" width="224" height="36" rx="6" fill="#eff6ff"/>
+  <g transform="translate(16, 279) scale(0.75)" stroke="#2563eb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
   </g>
-  <text x="48" y="232" font-size="13" font-weight="600" fill="#2563eb">Settings</text>
+  <text x="48" y="292" font-size="13" font-weight="600" fill="#2563eb">Settings</text>
 
   <!-- Status pills -->
   <line x1="16" y1="558" x2="224" y2="558" stroke="#e2e6ea" stroke-width="1"/>
