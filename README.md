@@ -1,15 +1,16 @@
-# 🗄️ GitHub → Google Drive Backup
+# GitHub → Google Drive Backup
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-Automated-2ea44f?logo=github-actions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
-[![GitHub Pages](https://img.shields.io/badge/Live%20Dashboard-GitHub%20Pages-0969da?logo=github&logoColor=white)](https://omarrao.github.io/github-gdrive-backup/)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-2563eb?logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![GitHub Actions](https://img.shields.io/badge/Automated-GitHub%20Actions-1a7f37?logo=github-actions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
+[![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-GitHub%20Pages-2563eb?logo=github&logoColor=white)](https://omarrao.github.io/github-gdrive-backup/)
+[![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![Google Drive](https://img.shields.io/badge/Storage-Google%20Drive-4285F4?logo=googledrive&logoColor=white)](https://drive.google.com/)
 
-**Back up every GitHub repository to Google Drive — and restore with one click.**
+**Back up every GitHub repository to Google Drive — code, issues, PRs, releases, wiki, labels, milestones — and restore with one click.**
 
-Covers source code, issues, pull requests, releases, wiki, labels, and milestones. Includes a clean light-mode web dashboard hosted on GitHub Pages, plus fully automated GitHub Actions workflows for daily scheduled backups and on-demand restores.
+Runs automatically every day at 02:00 UTC via GitHub Actions. A light-mode dashboard hosted on GitHub Pages lets you trigger backups, browse sessions, generate reports, and manage settings — no server required.
 
-🌐 **[Live Dashboard](https://omarrao.github.io/github-gdrive-backup/)** &nbsp;·&nbsp; 📦 **[Releases](https://github.com/OmarRao/github-gdrive-backup/releases)** &nbsp;·&nbsp; ⚙️ **[Actions](https://github.com/OmarRao/github-gdrive-backup/actions)**
+**[Live Dashboard](https://omarrao.github.io/github-gdrive-backup/)** &nbsp;·&nbsp; **[Releases](https://github.com/OmarRao/github-gdrive-backup/releases)** &nbsp;·&nbsp; **[Actions](https://github.com/OmarRao/github-gdrive-backup/actions)**
 
 ---
 
@@ -17,7 +18,7 @@ Covers source code, issues, pull requests, releases, wiki, labels, and milestone
 
 ### Dashboard
 
-The main overview at a glance — repository count, backup sessions, time since last backup, and live workflow run status in a scrollable table. Light-mode, no server required, hosted directly on GitHub Pages.
+The main overview — repository count, backup session count, time since last run, and active workflow status. The hero banner shows feature badges and the sidebar provides instant navigation with live connection status indicators.
 
 ![Dashboard](docs/screenshots/dashboard.svg)
 
@@ -25,7 +26,7 @@ The main overview at a glance — repository count, backup sessions, time since 
 
 ### Backup
 
-Select individual repositories or back everything up in one shot. Choose exactly what to include — source code, issues, PRs, releases, wiki, labels, and milestones — then fire the GitHub Actions workflow with a single click.
+Select individual repos or back up everything in one shot. Toggle exactly what to include — source code, issues, PRs, releases, wiki, labels, and milestones — then trigger the GitHub Actions workflow instantly from the dashboard.
 
 ![Backup](docs/screenshots/backup.svg)
 
@@ -33,15 +34,23 @@ Select individual repositories or back everything up in one shot. Choose exactly
 
 ### Restore
 
-Browse timestamped backup sessions pulled live from your Google Drive folder. Pick a session, optionally specify repos and a target owner, and trigger the restore workflow directly from the dashboard.
+Browse timestamped backup sessions loaded live from Google Drive. Select a session, optionally filter repos and specify a target owner, then trigger the restore workflow directly without leaving the dashboard.
 
 ![Restore](docs/screenshots/restore.svg)
 
 ---
 
+### Reports
+
+Track backup success rates, consecutive-day streaks, failure counts, and full run history. Every backup and restore run is listed with its status, trigger type, duration, and a direct link. Export the full history as a CSV with one click.
+
+![Reports](docs/screenshots/reports.svg)
+
+---
+
 ### Settings
 
-Configure your GitHub token, connect Google Drive via OAuth, verify your backup folder, and find all required Actions secrets in one place. Tokens are stored in `localStorage` only — never sent to a third party.
+Configure your GitHub Personal Access Token, connect Google Drive via OAuth, verify your backup folder ID, and review all required Actions secrets. Tokens are stored in `localStorage` only — never sent to any third party.
 
 ![Settings](docs/screenshots/settings.svg)
 
@@ -51,45 +60,52 @@ Configure your GitHub token, connect Google Drive via OAuth, verify your backup 
 
 | Feature | Details |
 |---|---|
-| **Full backup** | Source code (git mirror, all branches + tags), issues, PRs, releases, wiki, labels, milestones |
-| **Full restore** | Recreates repos on GitHub and pushes all branches, tags, labels, and milestones |
-| **Light-mode dashboard** | Clean browser UI hosted on GitHub Pages — trigger backups, monitor runs, manage settings |
-| **GitHub Actions** | Scheduled daily backup (02:00 UTC) + manual restore workflow — fully automated |
-| **No server needed** | Dashboard runs at `https://omarrao.github.io/github-gdrive-backup/` — pure static HTML |
-| **Workflow triggering** | One click in the dashboard fires GitHub Actions via the GitHub API |
-| **Selective backup** | Choose specific repos or all; choose exactly what data to include |
-| **Concurrent processing** | Configurable parallel repo operations for faster backups |
-| **Drive session browser** | Connect Google Drive in the dashboard to browse real backup sessions live |
-| **Rotating logs** | Winston log files with error isolation, uploaded as GitHub Actions artifacts |
+| **Full backup** | Git mirror (all branches + tags), issues, PRs, releases, wiki, labels, milestones |
+| **Full restore** | Recreates repos on GitHub, pushes all branches and tags, rebuilds labels and milestones |
+| **Reports dashboard** | Success rate, streak counter, per-run breakdown, CSV export |
+| **Light-mode dashboard** | Static HTML on GitHub Pages — no server, no build step |
+| **Daily automation** | GitHub Actions cron at 02:00 UTC, plus manual trigger at any time |
+| **Selective backup** | Pick specific repos and choose exactly which data types to include |
+| **Private repo support** | Backs up both public and private repositories via PAT with `repo` scope |
+| **Drive session browser** | Connect Google Drive in the dashboard to browse sessions live |
+| **Concurrent processing** | Configurable parallel operations — default 3 repos at once |
+| **Rotating logs** | Winston log files uploaded as GitHub Actions artifacts, retained 30 days |
 
 ---
 
 ## Architecture
 
 ```
-Browser (GitHub Pages dashboard — light mode, no server)
-        │  talks directly to GitHub API + Google Drive API
+Browser (GitHub Pages — static, no server)
+        │  GitHub API + Google Drive API called directly from browser
         ▼
-GitHub Actions workflows  ─────────────────────────────────────┐
-  backup.yml  (scheduled daily 02:00 UTC + manual trigger)     │
-  restore.yml (manual trigger)                                  │
-        │                                                       │
-        ▼                                                       ▼
-  Node.js backup code                               Google Drive
-  ├── Clone all repos (git mirror)                  └── Timestamped session folders
-  ├── Fetch issues, PRs, releases                       ├── backup-2026-06-15T02-00-00-000Z/
-  ├── Fetch wiki, labels, milestones                    │   ├── api-service/
-  └── Zip + upload to Drive                             │   │   ├── api-service.zip
-                                                        │   │   └── metadata.json
-                                                        │   └── backup-summary.json
-                                                        └── ...
+GitHub Actions Workflows
+  backup.yml   — daily cron 02:00 UTC + manual dispatch
+  restore.yml  — manual dispatch only
+        │
+        ▼
+Node.js 22 (ubuntu-latest runner)
+  ├── Clone repos via git mirror (all branches + tags)
+  ├── Fetch issues, PRs, releases, wiki, labels, milestones
+  ├── Zip per-repo archive + metadata.json
+  └── Upload to Google Drive → timestamped session folder
+
+Google Drive
+  └── backup-2026-06-15T02-00-00-000Z/
+      ├── backup-summary.json
+      ├── api-service/
+      │   ├── api-service.zip
+      │   └── metadata.json
+      └── frontend-app/
+          ├── frontend-app.zip
+          └── metadata.json
 ```
 
 ---
 
 ## Quick Start
 
-### 1. Clone and install
+### 1. Fork and clone
 
 ```bash
 git clone https://github.com/OmarRao/github-gdrive-backup.git
@@ -97,119 +113,80 @@ cd github-gdrive-backup
 npm install
 ```
 
-### 2. Configure environment
-
-```bash
-cp .env.example .env
-# Edit .env — fill in GITHUB_TOKEN, GITHUB_USER, GDRIVE_FOLDER_ID
-```
-
-### 3. Set up Google Drive credentials
+### 2. Create Google Cloud OAuth credentials
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/) → **APIs & Services → Credentials**
-2. Create an **OAuth 2.0 Client ID** (Web application)
-3. Add `https://omarrao.github.io` as an **Authorised JavaScript origin**
-4. Add `http://localhost` as an **Authorised redirect URI**
-5. Download the JSON → save as `credentials/google-client-secret.json`
-6. Run the one-time auth script:
+2. Enable the **Google Drive API** for your project
+3. Create an **OAuth 2.0 Client ID** — type: **Web application**
+4. Add `https://YOUR_GITHUB_USERNAME.github.io` as an **Authorised JavaScript origin**
+5. Add `http://localhost:8080` as an **Authorised redirect URI**
+6. Download the JSON and save as `credentials/google-client-secret.json`
+
+### 3. Run the one-time OAuth flow
 
 ```bash
 python get_token.py
 ```
 
-7. Follow the browser prompt — token is saved to `credentials/google-token.json` automatically
+Follow the browser prompt. The token is auto-captured and saved to `credentials/google-token.json`.
 
-### 4. Create a Google Drive folder
+### 4. Create a Google Drive backup folder
 
-Create a folder in Drive, then copy its ID from the URL:
+Create a folder in Drive. Copy the folder ID from its URL:
 
 ```
-https://drive.google.com/drive/folders/YOUR_FOLDER_ID_HERE
+https://drive.google.com/drive/folders/YOUR_FOLDER_ID
 ```
 
-Set `GDRIVE_FOLDER_ID=YOUR_FOLDER_ID_HERE` in `.env`.
+### 5. Add GitHub Actions secrets
 
-### 5. Run your first backup
+Go to **Settings → Secrets and variables → Actions** and add these 5 secrets:
 
-```bash
-# CLI — back up all repos
-npm run backup
-
-# Or launch the self-hosted web dashboard
-npm start
-# → http://localhost:3000
-```
-
----
-
-## GitHub Pages Dashboard
-
-The `docs/index.html` dashboard is hosted on GitHub Pages at:
-
-**https://omarrao.github.io/github-gdrive-backup/**
-
-It communicates directly with the GitHub API and Google Drive API from your browser:
-
-- Enter your GitHub token in **Settings → GitHub** (stored in `localStorage` only — never sent anywhere else)
-- Click **Sign in with Google** in **Settings → Google Drive** to browse backup sessions live
-- Click **Backup** to trigger the `backup.yml` workflow directly from the dashboard
-- Click **Restore** to trigger `restore.yml` with a selected session
-- Watch live run status in **Workflow Runs**
-
-> **Security:** Your GitHub token and Google Drive token never leave your browser. They are stored in `localStorage` and sent only to `api.github.com` and `www.googleapis.com` respectively.
-
----
-
-## GitHub Actions Setup
-
-Add these **5 secrets** to your repository → **Settings → Secrets → Actions**:
-
-| Secret | Description |
-|--------|-------------|
+| Secret | Value |
+|--------|-------|
 | `GH_BACKUP_TOKEN` | GitHub PAT with `repo`, `workflow`, `read:org`, `read:user` scopes |
-| `GH_USER` | Your GitHub username or org to back up |
-| `GDRIVE_FOLDER_ID` | Google Drive folder ID (from the folder URL) |
-| `GOOGLE_CLIENT_SECRET` | Full JSON content of `credentials/google-client-secret.json` |
-| `GOOGLE_TOKEN` | Full JSON content of `credentials/google-token.json` (from one-time auth) |
+| `GH_USER` | Your GitHub username or organisation name |
+| `GDRIVE_FOLDER_ID` | The folder ID from step 4 |
+| `GOOGLE_CLIENT_SECRET` | Full JSON contents of `credentials/google-client-secret.json` |
+| `GOOGLE_TOKEN` | Full JSON contents of `credentials/google-token.json` |
 
-The **backup** workflow runs daily at 02:00 UTC and can be triggered manually from
-[Actions → Scheduled Backup → Run workflow](https://github.com/OmarRao/github-gdrive-backup/actions/workflows/backup.yml).
+### 6. Trigger your first backup
 
-The **restore** workflow is manual-only — trigger from
-[Actions → Restore → Run workflow](https://github.com/OmarRao/github-gdrive-backup/actions/workflows/restore.yml).
+Go to **Actions → Scheduled GitHub → Google Drive Backup → Run workflow**, or open the live dashboard and click **Backup → Trigger Backup Workflow**.
 
 ---
 
-## CLI Reference
+## Dashboard Pages
 
-```bash
-npm run backup       # Back up all repos now
-npm run restore      # Restore from latest Drive session
-npm start            # Self-hosted web dashboard on http://localhost:3000
-npm run dev          # Dev mode with auto-reload (nodemon)
-python get_token.py  # One-time Google OAuth flow → credentials/google-token.json
-```
+The dashboard at **https://omarrao.github.io/github-gdrive-backup/** has six pages:
+
+| Page | What it does |
+|------|-------------|
+| **Dashboard** | Stats overview and recent workflow run history |
+| **Backup** | Select repos, choose data types, trigger backup workflow |
+| **Restore** | Browse Drive sessions, trigger restore workflow |
+| **Workflow Runs** | Full list of all backup and restore runs with live status |
+| **Reports** | Success rate, streak, run breakdown table, CSV export |
+| **Settings** | GitHub token, Google Drive OAuth, folder ID, secrets reference |
+
+> **Security:** GitHub token and Drive token are stored in `localStorage` only. They are sent to `api.github.com` and `www.googleapis.com` respectively — no third party ever receives them.
 
 ---
 
 ## Configuration Reference
 
 ```env
-# GitHub
 GITHUB_TOKEN=ghp_...
 GITHUB_USER=your-username
 
-# Google Drive
 GOOGLE_CLIENT_SECRET_PATH=./credentials/google-client-secret.json
 GOOGLE_TOKEN_PATH=./credentials/google-token.json
 GDRIVE_FOLDER_ID=1abc...xyz
 
-# Backup behaviour
 BACKUP_INCLUDE=code,issues,pull_requests,releases,wiki,labels,milestones
 BACKUP_CONCURRENCY=3
 BACKUP_TMP_DIR=./tmp
 
-# Self-hosted web server (optional)
 PORT=3000
 ```
 
@@ -219,25 +196,35 @@ PORT=3000
 
 ```
 GDRIVE_FOLDER_ID/
-└── backup-2026-06-15T02-00-00-000Z/      ← timestamped session (one per run)
-    ├── backup-summary.json               ← success/fail counts, timestamps
-    ├── api-service/
-    │   ├── api-service.zip               ← full git mirror (all branches + tags)
-    │   ├── api-service-wiki.zip          ← wiki mirror (if the repo has one)
-    │   └── metadata.json                 ← issues, PRs, releases, labels, milestones
-    └── frontend-app/
-        ├── frontend-app.zip
-        └── metadata.json
+└── backup-2026-06-15T02-00-00-000Z/
+    ├── backup-summary.json
+    ├── repo-name/
+    │   ├── repo-name.zip          — full git mirror (all branches + tags)
+    │   ├── repo-name-wiki.zip     — wiki mirror (if repo has one)
+    │   └── metadata.json          — issues, PRs, releases, labels, milestones
+    └── ...
 ```
 
 ---
 
 ## Restore Behaviour
 
-- **Creates** the GitHub repo if it doesn't exist (private by default, configurable)
-- **Pushes** all branches and tags with `--force` (safe to re-run)
-- **Recreates** labels and milestones exactly as they were
-- Issues and PRs are preserved in `metadata.json` for reference (GitHub API does not support creating issues via restore)
+- Creates the target GitHub repo if it does not exist (private by default)
+- Pushes all branches and tags with `--force` — safe to re-run
+- Recreates labels and milestones exactly as backed up
+- Issues and PRs are preserved in `metadata.json` — the GitHub API does not support programmatic issue creation
+
+---
+
+## CLI Reference
+
+```bash
+npm run backup        # Back up all repos immediately
+npm run restore       # Restore from the latest Drive session
+npm start             # Self-hosted Express dashboard on http://localhost:3000
+npm run dev           # Dev mode with nodemon auto-reload
+python get_token.py   # One-time Google OAuth → credentials/google-token.json
+```
 
 ---
 
@@ -246,40 +233,36 @@ GDRIVE_FOLDER_ID/
 ```
 github-gdrive-backup/
 ├── .github/workflows/
-│   ├── backup.yml          # Daily scheduled (02:00 UTC) + manual backup
-│   └── restore.yml         # Manual restore
+│   ├── backup.yml          — daily cron + manual backup
+│   └── restore.yml         — manual restore
 ├── docs/
-│   ├── index.html          # GitHub Pages dashboard (light mode, no server needed)
-│   ├── ui-preview.html     # Static UI mockup
-│   └── screenshots/        # README screenshots (SVG)
+│   ├── index.html          — GitHub Pages dashboard
+│   ├── ui-preview.html     — screenshot gallery
+│   └── screenshots/        — SVG mockups for README
 ├── src/
-│   ├── auth/google-auth.js # One-time Google OAuth flow (Node.js)
+│   ├── auth/google-auth.js
 │   ├── backup/
-│   │   ├── github.js       # GitHub API client (repos, issues, PRs, releases, wiki)
-│   │   ├── gdrive.js       # Google Drive client (upload, folder management)
-│   │   └── index.js        # Backup orchestrator
-│   ├── restore/index.js    # Restore orchestrator
-│   ├── server/             # Optional self-hosted Express dashboard
-│   │   ├── app.js
-│   │   ├── routes/api.js
-│   │   └── public/
+│   │   ├── github.js       — GitHub API client
+│   │   ├── gdrive.js       — Google Drive client
+│   │   └── index.js        — backup orchestrator
+│   ├── restore/index.js    — restore orchestrator
+│   ├── server/             — optional self-hosted Express server
 │   └── logger.js
-├── credentials/            # Git-ignored — your OAuth files go here
-├── get_token.py            # One-time Python OAuth flow (alternative to Node auth)
+├── credentials/            — git-ignored, OAuth files go here
+├── get_token.py            — one-time Google OAuth script
 ├── .env.example
-├── CHANGELOG.md
 └── README.md
 ```
 
 ---
 
-## Security Notes
+## Security
 
-- `credentials/` and `.env` are in `.gitignore` — **never committed to the repository**
-- The GitHub Pages dashboard stores tokens in `localStorage` only — **never sent to any third party**
-- GitHub PAT needs `repo`, `workflow`, `read:org`, `read:user` — no destructive write scopes required
-- Google Drive token is scoped to `drive.file` (Actions) or `drive.readonly` (dashboard) — minimal permissions
-- The self-hosted web server has no built-in authentication — run it locally or behind a reverse proxy
+- `credentials/` and `.env` are in `.gitignore` — never committed
+- Dashboard tokens stored in `localStorage` only — never sent to any third party
+- GitHub PAT scopes: `repo`, `workflow`, `read:org`, `read:user` — read-only for backup, no destructive permissions
+- Google Drive token scoped to `drive.file` in Actions, `drive.readonly` in the dashboard
+- Self-hosted Express server has no built-in auth — run locally or behind a reverse proxy
 
 ---
 
