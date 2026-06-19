@@ -1,0 +1,47 @@
+name: Cleanup Old Backup Sessions
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'
+  workflow_dispatch:
+    inputs:
+      retention_days:
+        description: 'Delete sessions older than N days'
+        required: false
+        default: '90'
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Write Google credentials
+        run: |
+          echo '${{ secrets.GOOGLE_CLIENT_SECRET }}' > credentials/google-client-secret.json
+          echo '${{ secrets.GOOGLE_TOKEN }}' > credentials/google-token.json
+
+      - name: Run cleanup
+        env:
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          RETENTION_DAYS: ${{ github.event.inputs.retention_days || '90' }}
+        run: node src/cleanup/index.js
+
+      - name: Upload cleanup log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cleanup-log-${{ github.run_number }}
+          path: logs/cleanup-*.log
+          retention-days: 7
