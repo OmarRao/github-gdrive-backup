@@ -70,6 +70,16 @@ Configure your GitHub Personal Access Token, connect Google Drive via OAuth, ver
 | **Drive session browser** | Connect Google Drive in the dashboard to browse sessions live |
 | **Concurrent processing** | Configurable parallel operations — default 3 repos at once |
 | **Rotating logs** | Winston log files uploaded as GitHub Actions artifacts, retained 30 days |
+| **Dark mode** | Toggle between light and dark themes — persists in browser |
+| **Keyboard shortcuts** | `D/B/R/W/P/S` navigate pages, `?` shows shortcut help |
+| **Toast notifications** | Non-blocking success/error feedback on all workflow actions |
+| **Restore preview** | Confirm modal shows session, target owner, and impact before restore |
+| **Multi-account** | Add multiple GitHub accounts/orgs and switch between them |
+| **Retention policy** | UI to configure auto-deletion of old Drive sessions (30–365 days) |
+| **Failure alerts** | Slack and email notifications when backup fails (`notify.yml`) |
+| **Incremental backup** | Optional mode that only backs up repos changed since last session |
+| **Auto-cleanup** | Weekly workflow removes Drive sessions beyond retention threshold |
+| **Health status** | `docs/status.json` updated on each run for badge/monitoring use |
 
 ---
 
@@ -150,6 +160,14 @@ Go to **Settings → Secrets and variables → Actions** and add these 5 secrets
 | `GOOGLE_CLIENT_SECRET` | Full JSON contents of `credentials/google-client-secret.json` |
 | `GOOGLE_TOKEN` | Full JSON contents of `credentials/google-token.json` |
 
+**Optional notification secrets:**
+
+| Secret | Value |
+|--------|-------|
+| `SLACK_WEBHOOK_URL` | Incoming webhook URL for Slack failure alerts |
+| `NOTIFY_EMAIL` | Gmail address for email failure alerts |
+| `NOTIFY_EMAIL_PASSWORD` | Gmail app password (not your account password) |
+
 ### 6. Trigger your first backup
 
 Go to **Actions → Scheduled GitHub → Google Drive Backup → Run workflow**, or open the live dashboard and click **Backup → Trigger Backup Workflow**.
@@ -163,13 +181,34 @@ The dashboard at **https://omarrao.github.io/github-gdrive-backup/** has six pag
 | Page | What it does |
 |------|-------------|
 | **Dashboard** | Stats overview and recent workflow run history |
-| **Backup** | Select repos, choose data types, trigger backup workflow |
-| **Restore** | Browse Drive sessions, trigger restore workflow |
+| **Backup** | Select repos, choose data types, toggle incremental mode, trigger backup |
+| **Restore** | Browse Drive sessions, preview impact, trigger restore |
 | **Workflow Runs** | Full list of all backup and restore runs with live status |
 | **Reports** | Success rate, streak, run breakdown table, CSV export |
-| **Settings** | GitHub token, Google Drive OAuth, folder ID, secrets reference |
+| **Settings — GitHub** | GitHub token, username, multi-account management |
+| **Settings — Google Drive** | OAuth connect, folder ID |
+| **Settings — Retention** | Configure auto-deletion period and schedule |
+| **Settings — Actions Secrets** | Reference for all required secrets |
+| **Settings — Setup Guide** | Step-by-step onboarding |
 
 > **Security:** GitHub token and Drive token are stored in `localStorage` only. They are sent to `api.github.com` and `www.googleapis.com` respectively — no third party ever receives them.
+
+---
+
+## Keyboard Shortcuts
+
+Press `?` anywhere in the dashboard to open the shortcuts panel.
+
+| Key | Action |
+|-----|--------|
+| `D` | Dashboard |
+| `B` | Backup |
+| `R` | Restore |
+| `W` | Workflow Runs |
+| `P` | Reports |
+| `S` | Settings |
+| `?` | Show shortcut help |
+| `Esc` | Close modals |
 
 ---
 
@@ -216,6 +255,16 @@ GDRIVE_FOLDER_ID/
 
 ---
 
+## Backup Retention & Cleanup
+
+Configure automatic deletion of old sessions in **Settings → Retention**. Available periods: 30, 60, 90, 180 days, or 1 year.
+
+The `cleanup.yml` workflow runs every Sunday at 03:00 UTC (or on demand). It paginates through all session folders in your Drive backup folder and deletes any created before the retention cutoff.
+
+To trigger manually: **Settings → Retention → Run Cleanup Workflow**, or via Actions → Cleanup Old Backup Sessions → Run workflow.
+
+---
+
 ## CLI Reference
 
 ```bash
@@ -253,6 +302,17 @@ github-gdrive-backup/
 ├── .env.example
 └── README.md
 ```
+
+---
+
+## Failure Alerts
+
+When a backup run fails, `notify.yml` automatically fires and:
+- Posts a Slack message (if `SLACK_WEBHOOK_URL` secret is set)
+- Sends an email (if `NOTIFY_EMAIL` and `NOTIFY_EMAIL_PASSWORD` secrets are set)
+- Updates `docs/status.json` with the failure status and run URL
+
+Add either or both secrets to **Settings → Secrets and variables → Actions** to activate alerts.
 
 ---
 
