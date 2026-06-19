@@ -7,11 +7,11 @@ on:
 
 jobs:
   notify:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    if: github.event.workflow_run.conclusion == 'failure'
     runs-on: ubuntu-latest
     steps:
       - name: Send Slack notification
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        if: secrets.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
@@ -32,7 +32,7 @@ jobs:
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
       - name: Send email notification
-        if: ${{ secrets.NOTIFY_EMAIL != '' }}
+        if: secrets.NOTIFY_EMAIL != ''
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -56,19 +56,28 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const content = JSON.stringify({
+              status: 'failing',
+              last_run: new Date().toISOString(),
+              run_url: context.payload.workflow_run.html_url
+            });
+            const encoded = Buffer.from(content).toString('base64');
+            let sha;
+            try {
+              const existing = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: 'docs/status.json'
+              });
+              sha = existing.data.sha;
+            } catch (e) {
+              sha = undefined;
+            }
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
               path: 'docs/status.json',
-              message: 'chore: update backup status badge',
-              content: Buffer.from(JSON.stringify({
-                status: 'failing',
-                last_run: new Date().toISOString(),
-                run_url: context.payload.workflow_run.html_url
-              })).toString('base64'),
-              sha: await github.rest.repos.getContent({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                path: 'docs/status.json'
-              }).then(r => r.data.sha).catch(() => undefined)
+              message: 'chore: update backup status [skip ci]',
+              content: encoded,
+              ...(sha ? { sha } : {})
             });
