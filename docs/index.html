@@ -44,6 +44,24 @@
       --t:           160ms ease;
     }
 
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --bg-card: #1e293b;
+      --bg-hover: #334155;
+      --bg-sidebar: #1e293b;
+      --border: #334155;
+      --border-mid: #475569;
+      --text: #f1f5f9;
+      --text-2: #e2e8f0;
+      --muted: #94a3b8;
+      --muted-light: #64748b;
+      --primary-bg: #052e16;
+      --accent-bg: #1e3a5f;
+      --warn-bg: #451a03;
+      --danger-bg: #450a0a;
+      --success-bg: #052e16;
+    }
+
     html { scroll-behavior: smooth; }
 
     body {
@@ -581,6 +599,40 @@
     .about-link:hover { background: var(--accent-bg); border-color: #bfdbfe; text-decoration: none; }
     .about-link svg { width: 12px; height: 12px; fill: currentColor; }
 
+    /* ── Theme button ─────────────────────────────────────────────────────── */
+    .theme-btn { background:none; border:none; cursor:pointer; color:var(--muted); padding:4px; border-radius:6px; }
+    .theme-btn:hover { background:var(--bg-hover); color:var(--text); }
+    .theme-btn svg { width:16px; height:16px; fill:currentColor; display:block; }
+
+    /* ── Toast ────────────────────────────────────────────────────────────── */
+    .toast {
+      display:flex; align-items:center; gap:10px;
+      background:var(--bg-card); border:1px solid var(--border);
+      border-radius:10px; padding:12px 16px;
+      box-shadow:var(--shadow-lg); font-size:13px; font-weight:500;
+      color:var(--text); pointer-events:all; max-width:340px;
+      animation:toastIn .2s ease both;
+    }
+    .toast.success { border-left:3px solid var(--primary); }
+    .toast.error   { border-left:3px solid var(--danger); }
+    .toast.info    { border-left:3px solid var(--accent); }
+    @keyframes toastIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Modal ────────────────────────────────────────────────────────────── */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px); }
+    .modal-overlay.hidden { display:none; }
+    .modal-box { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-lg); padding:24px; width:90%; max-height:85vh; overflow-y:auto; box-shadow:var(--shadow-lg); }
+    .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+    .modal-title { font-size:15px; font-weight:700; color:var(--text); }
+    .modal-close { background:none; border:none; cursor:pointer; color:var(--muted); padding:4px; border-radius:6px; }
+    .modal-close:hover { background:var(--bg-hover); color:var(--text); }
+    .modal-close svg { width:18px; height:18px; fill:currentColor; display:block; }
+
+    /* ── Keyboard shortcuts ───────────────────────────────────────────────── */
+    .shortcut-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; color:var(--text-2); }
+    .shortcut-row:last-child { border-bottom:none; }
+    kbd { background:var(--bg-hover); border:1px solid var(--border-mid); border-radius:5px; padding:2px 8px; font-family:monospace; font-size:12px; font-weight:700; color:var(--text); }
+
     /* ── Responsive ───────────────────────────────────────────────────────── */
     @media (max-width: 900px) {
       .two-col { grid-template-columns: 1fr; }
@@ -632,9 +684,14 @@
       </div>
       GH Backup
     </a>
-    <button class="sidebar-close-btn" onclick="closeSidebar()">
-      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-    </button>
+    <div style="display:flex;align-items:center;gap:4px">
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode">
+        <svg id="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      <button class="sidebar-close-btn" onclick="closeSidebar()">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
   </div>
 
   <ul class="sidebar-nav">
@@ -713,6 +770,7 @@
         Substack
       </a>
     </div>
+    <div style="font-size:10px;color:var(--muted-light);margin-top:6px">Press <kbd style="font-size:10px;padding:1px 5px;background:var(--bg-hover);border:1px solid var(--border);border-radius:3px">?</kbd> for shortcuts</div>
   </div>
 </nav>
 
@@ -915,7 +973,7 @@
             Restore repos as private
           </label>
         </div>
-        <button class="btn btn-warning btn-full" onclick="triggerRestore()">
+        <button class="btn btn-warning btn-full" onclick="showRestorePreview()">
           <svg viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg>
           Trigger Restore Workflow
         </button>
@@ -955,6 +1013,8 @@
       <button class="tab-btn" onclick="switchTab(this,'tab-drive')">Google Drive</button>
       <button class="tab-btn" onclick="switchTab(this,'tab-secrets')">Actions Secrets</button>
       <button class="tab-btn" onclick="switchTab(this,'tab-setup')">Setup Guide</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-accounts');renderAccounts()">Accounts</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-retention')">Retention</button>
     </div>
 
     <!-- GitHub tab -->
@@ -1183,6 +1243,62 @@
         </div>
       </div>
     </div>
+
+    <!-- Accounts tab -->
+    <div id="tab-accounts" class="tab-panel hidden">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">GitHub Accounts</div><div class="card-subtitle">Back up from multiple GitHub accounts or organisations</div></div>
+          <button class="btn btn-secondary" style="font-size:12px;padding:6px 12px" onclick="addAccount()">+ Add Account</button>
+        </div>
+        <div id="accounts-list" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+      <div class="card mt-4">
+        <div class="card-header"><div class="card-title">Active Account</div></div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Select which account to use for backup and restore operations.</p>
+        <select id="active-account-select" class="form-input" onchange="switchAccount(this.value)" style="max-width:300px"></select>
+      </div>
+    </div>
+
+    <!-- Retention tab -->
+    <div id="tab-retention" class="tab-panel hidden">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Backup Retention</div><div class="card-subtitle">Auto-delete Drive sessions older than a threshold</div></div>
+        <div class="form-group">
+          <label class="form-label">Retention Period</label>
+          <select id="retention-days" class="form-input" style="max-width:200px">
+            <option value="0">Keep all (no deletion)</option>
+            <option value="30">30 days</option>
+            <option value="60">60 days</option>
+            <option value="90">90 days</option>
+            <option value="180">180 days</option>
+            <option value="365">1 year</option>
+          </select>
+          <div class="form-hint">The cleanup workflow will remove Drive sessions older than this. Requires <code>GDRIVE_FOLDER_ID</code> and <code>GOOGLE_TOKEN</code> secrets.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cleanup Schedule</label>
+          <select id="retention-schedule" class="form-input" style="max-width:200px">
+            <option value="weekly">Weekly (Sunday 03:00 UTC)</option>
+            <option value="monthly">Monthly (1st of month)</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="saveRetentionSettings()">Save Retention Settings</button>
+        <div id="retention-note" class="notice notice-info hidden mt-4">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span>Settings saved. Update your <code>cleanup.yml</code> workflow file to match these values.</span>
+        </div>
+      </div>
+      <div class="card mt-4">
+        <div class="card-header"><div class="card-title">Run Cleanup Now</div></div>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Manually trigger the cleanup workflow to remove sessions beyond your retention period.</p>
+        <button class="btn btn-warning" onclick="triggerCleanup()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+          Run Cleanup Workflow
+        </button>
+      </div>
+    </div>
+
   </section>
 
 
@@ -1294,6 +1410,45 @@
   </section>
 
 </main>
+
+<div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
+
+<div id="shortcuts-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-header">
+      <span class="modal-title">Keyboard Shortcuts</span>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;padding:16px 0">
+      <div class="shortcut-row"><kbd>D</kbd><span>Dashboard</span></div>
+      <div class="shortcut-row"><kbd>B</kbd><span>Backup</span></div>
+      <div class="shortcut-row"><kbd>R</kbd><span>Restore</span></div>
+      <div class="shortcut-row"><kbd>W</kbd><span>Workflow Runs</span></div>
+      <div class="shortcut-row"><kbd>P</kbd><span>Reports</span></div>
+      <div class="shortcut-row"><kbd>S</kbd><span>Settings</span></div>
+      <div class="shortcut-row"><kbd>?</kbd><span>Show this help</span></div>
+      <div class="shortcut-row"><kbd>Esc</kbd><span>Close modals</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="restore-preview-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title">Restore Preview</span>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <div id="restore-preview-body" style="padding:8px 0 16px"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-warning" id="restore-confirm-btn">Confirm Restore</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const REPO_OWNER  = 'OmarRao';
@@ -1583,7 +1738,11 @@ async function triggerBackup() {
     });
     result.classList.add('success');
     result.innerHTML = `Backup workflow triggered! <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/backup.yml" target="_blank">View run &rarr;</a>`;
-  } catch (err) { result.classList.add('error'); result.innerHTML = err.message; }
+    showToast('Backup workflow triggered successfully', 'success');
+  } catch (err) {
+    result.classList.add('error'); result.innerHTML = err.message;
+    showToast('Failed to trigger backup: ' + err.message, 'error');
+  }
 }
 
 // ── Restore ───────────────────────────────────────────────────────────────────
@@ -1634,22 +1793,7 @@ function selectSession(el) {
   selectedSession = { id: el.dataset.id, name: el.dataset.name };
 }
 
-async function triggerRestore() {
-  const result = document.getElementById('restore-result');
-  result.className = 'result-area'; result.classList.remove('hidden');
-  result.innerHTML = 'Triggering restore workflow…';
-  const repos = document.getElementById('restore-repos').value.trim();
-  const owner = document.getElementById('restore-owner').value.trim();
-  const priv  = document.getElementById('restore-private').checked ? 'true' : 'false';
-  try {
-    await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/restore.yml/dispatches`, {
-      method: 'POST', headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({ ref:'main', inputs:{ repos, target_owner:owner, private:priv } }),
-    });
-    result.classList.add('success');
-    result.innerHTML = `Restore triggered! <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/restore.yml" target="_blank">View run &rarr;</a>`;
-  } catch (err) { result.classList.add('error'); result.innerHTML = err.message; }
-}
+// triggerRestore is replaced by showRestorePreview → doTriggerRestore (defined below)
 
 // ── Workflow Runs ─────────────────────────────────────────────────────────────
 async function loadRuns() {
@@ -1782,7 +1926,7 @@ async function loadReports() {
 }
 
 function exportReportCSV() {
-  if (!reportRuns.length) { alert('No data to export — load reports first.'); return; }
+  if (!reportRuns.length) { showToast('No data to export — load reports first.', 'info'); return; }
   const rows = [['Run','Status','Trigger','Started','Duration','URL']];
   reportRuns.forEach(r => {
     const dur = r.updated_at && r.created_at
@@ -1797,11 +1941,176 @@ function exportReportCSV() {
   a.click();
 }
 
+// ── Dark mode ─────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  const dark = document.body.getAttribute('data-theme') === 'dark';
+  document.body.setAttribute('data-theme', dark ? 'light' : 'dark');
+  localStorage.setItem('theme', dark ? 'light' : 'dark');
+  document.getElementById('theme-icon').innerHTML = dark
+    ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'
+    : '<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/><line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+}
+(function initTheme() {
+  const saved = localStorage.getItem('theme') || 'light';
+  document.body.setAttribute('data-theme', saved);
+  if (saved === 'dark') {
+    document.getElementById('theme-icon').innerHTML = '<circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2" fill="none"/><line x1="12" y1="1" x2="12" y2="3" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="21" x2="12" y2="23" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="1" y1="12" x2="3" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="21" y1="12" x2="23" y2="12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+  }
+})();
+
+// ── Toasts ────────────────────────────────────────────────────────────────────
+function showToast(msg, type='info', duration=4000) {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.textContent = msg;
+  document.getElementById('toast-container').appendChild(t);
+  setTimeout(() => t.remove(), duration);
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+function toggleShortcutsModal() {
+  const m = document.getElementById('shortcuts-modal');
+  m.classList.toggle('hidden');
+}
+function closeModal() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.add('hidden'));
+}
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  if (e.key === '?') { toggleShortcutsModal(); return; }
+  if (e.key === 'b' || e.key === 'B') { closeModal(); navTo('backup'); return; }
+  if (e.key === 'r' || e.key === 'R') { closeModal(); navTo('restore'); return; }
+  if (e.key === 'd' || e.key === 'D') { closeModal(); navTo('dashboard'); return; }
+  if (e.key === 'w' || e.key === 'W') { closeModal(); navTo('runs'); return; }
+  if (e.key === 'p' || e.key === 'P') { closeModal(); navTo('reports'); return; }
+  if (e.key === 's' || e.key === 'S') { closeModal(); navTo('settings'); return; }
+  if (e.key === 'Escape') { closeModal(); }
+});
+
+// ── Restore preview ───────────────────────────────────────────────────────────
+function showRestorePreview() {
+  const session = selectedSession?.name
+    || document.querySelector('.session-item.selected')?.dataset?.name
+    || 'Selected session';
+  const targetOwner = document.getElementById('restore-owner')?.value.trim() || ghUser || 'self';
+  const body = document.getElementById('restore-preview-body');
+  body.innerHTML = `
+    <div class="notice notice-warn" style="margin-bottom:12px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <span>This will create or overwrite repositories under <strong>${targetOwner}</strong>.</span>
+    </div>
+    <div style="font-size:13px;color:var(--text-2);line-height:1.8">
+      <div><strong>Session:</strong> ${session}</div>
+      <div><strong>Target owner:</strong> ${targetOwner}</div>
+      <div><strong>Action:</strong> Repos will be created if missing, branches force-pushed if existing.</div>
+    </div>
+  `;
+  document.getElementById('restore-preview-modal').classList.remove('hidden');
+  document.getElementById('restore-confirm-btn').onclick = () => { closeModal(); doTriggerRestore(); };
+}
+
+async function doTriggerRestore() {
+  const result = document.getElementById('restore-result');
+  result.className = 'result-area'; result.classList.remove('hidden');
+  result.innerHTML = 'Triggering restore workflow…';
+  const repos = document.getElementById('restore-repos').value.trim();
+  const owner = document.getElementById('restore-owner').value.trim();
+  const priv  = document.getElementById('restore-private').checked ? 'true' : 'false';
+  try {
+    await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/restore.yml/dispatches`, {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ ref:'main', inputs:{ repos, target_owner:owner, private:priv } }),
+    });
+    result.classList.add('success');
+    result.innerHTML = `Restore triggered! <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/restore.yml" target="_blank">View run &rarr;</a>`;
+    showToast('Restore workflow triggered successfully', 'success');
+  } catch (err) {
+    result.classList.add('error'); result.innerHTML = err.message;
+    showToast('Failed to trigger restore: ' + err.message, 'error');
+  }
+}
+
+// ── Multi-account ─────────────────────────────────────────────────────────────
+let accounts = JSON.parse(localStorage.getItem('gh_accounts') || '[]');
+
+function renderAccounts() {
+  const list = document.getElementById('accounts-list');
+  const sel  = document.getElementById('active-account-select');
+  if (!list || !sel) return;
+  list.innerHTML = accounts.length ? accounts.map((a, i) => `
+    <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px">
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:13px;color:var(--text-2)">${a.user}</div>
+        <div style="font-size:11px;color:var(--muted)">Token ending ···${a.token.slice(-4)}</div>
+      </div>
+      <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" onclick="removeAccount(${i})">Remove</button>
+    </div>
+  `).join('') : '<p style="color:var(--muted);font-size:13px">No additional accounts. Add one above.</p>';
+  sel.innerHTML = [{ user: ghUser || 'Primary', token: '' }, ...accounts]
+    .map((a, i) => `<option value="${i}">${i === 0 ? 'Primary — ' : ''}${a.user}</option>`).join('');
+}
+
+function addAccount() {
+  const token = prompt('Enter GitHub Personal Access Token for the additional account:');
+  if (!token) return;
+  fetch('https://api.github.com/user', { headers: { Authorization: `token ${token}` } })
+    .then(r => r.json()).then(u => {
+      accounts.push({ user: u.login, token });
+      localStorage.setItem('gh_accounts', JSON.stringify(accounts));
+      renderAccounts();
+      showToast(`Added account: ${u.login}`, 'success');
+    }).catch(() => showToast('Invalid token or network error', 'error'));
+}
+
+function removeAccount(i) {
+  accounts.splice(i, 1);
+  localStorage.setItem('gh_accounts', JSON.stringify(accounts));
+  renderAccounts();
+}
+
+function switchAccount(i) {
+  if (i == 0) return;
+  const a = accounts[i - 1];
+  ghToken = a.token; ghUser = a.user;
+  showToast(`Switched to ${a.user}`, 'info');
+}
+
+// ── Retention ─────────────────────────────────────────────────────────────────
+function saveRetentionSettings() {
+  const days  = document.getElementById('retention-days').value;
+  const sched = document.getElementById('retention-schedule').value;
+  localStorage.setItem('retention_days', days);
+  localStorage.setItem('retention_schedule', sched);
+  document.getElementById('retention-note').classList.remove('hidden');
+  showToast('Retention settings saved', 'success');
+}
+
+async function triggerCleanup() {
+  if (!ghToken) { showToast('Connect GitHub first', 'error'); return; }
+  const days = localStorage.getItem('retention_days') || '90';
+  try {
+    const r = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/cleanup.yml/dispatches`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${ghToken}`, Accept: 'application/vnd.github+json', 'Content-Type': 'application/json', 'X-GitHub-Api-Version': '2022-11-28' },
+      body: JSON.stringify({ ref: 'main', inputs: { retention_days: days } }),
+    });
+    if (r.status === 204) showToast('Cleanup workflow triggered', 'success');
+    else showToast('Failed to trigger cleanup', 'error');
+  } catch(e) { showToast('Error: ' + e.message, 'error'); }
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 updateGHStatus();
 updateDriveStatus();
 loadDashboard();
 updateBackupDriveBanner();
+
+// Load retention settings
+const retDays = document.getElementById('retention-days');
+const retSched = document.getElementById('retention-schedule');
+if (retDays) retDays.value = localStorage.getItem('retention_days') || '0';
+if (retSched) retSched.value = localStorage.getItem('retention_schedule') || 'weekly';
 </script>
 </body>
 </html>
