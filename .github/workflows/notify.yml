@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Slack notification
-        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        continue-on-error: true
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
@@ -32,7 +32,7 @@ jobs:
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
       - name: Send email notification
-        if: ${{ secrets.NOTIFY_EMAIL != '' }}
+        continue-on-error: true
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -41,7 +41,7 @@ jobs:
           password: ${{ secrets.NOTIFY_EMAIL_PASSWORD }}
           subject: "[GH Backup] Backup failed - Run #${{ github.event.workflow_run.run_number }}"
           to: ${{ secrets.NOTIFY_EMAIL }}
-          from: "GH Backup <${{ secrets.NOTIFY_EMAIL }}>"
+          from: "GH Backup"
           body: |
             Your GitHub to Google Drive backup failed.
 
