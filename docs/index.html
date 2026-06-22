@@ -628,6 +628,56 @@
     .modal-close:hover { background:var(--bg-hover); color:var(--text); }
     .modal-close svg { width:18px; height:18px; fill:currentColor; display:block; }
 
+    /* ── Diff modal ──────────────────────────────────────────────────────── */
+    .diff-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px; }
+    .diff-col-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 8px; }
+    .diff-list { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+    .diff-item {
+      font-size: 13px; padding: 6px 10px; border-radius: var(--radius-sm);
+      border: 1px solid var(--border); color: var(--text-2);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .diff-item.added   { background: var(--success-bg); border-color: #86efac; color: #15803d; }
+    .diff-item.unchanged { background: var(--bg); }
+    .diff-item.added::before   { content: '+'; font-weight: 800; }
+    .diff-item.unchanged::before { content: '·'; color: var(--muted-light); font-weight: 700; }
+
+    /* ── Bar chart ───────────────────────────────────────────────────────── */
+    .bar-chart-wrap { margin: 24px 0; }
+    .bar-chart-title { font-size: 14.5px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .bar-chart-subtitle { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+    .bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 120px; padding-bottom: 28px; position: relative; }
+    .bar-chart::after { content: ''; position: absolute; bottom: 28px; left: 0; right: 0; height: 1px; background: var(--border); }
+    .bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; min-width: 0; }
+    .bar-fill { width: 100%; background: var(--accent); border-radius: 4px 4px 0 0; transition: height .3s ease; position: relative; }
+    .bar-fill:hover { opacity: .85; }
+    .bar-val { font-size: 10px; font-weight: 700; color: var(--accent); white-space: nowrap; }
+    .bar-label { font-size: 10px; color: var(--muted); white-space: nowrap; margin-top: 4px; }
+    .bar-chart-note { font-size: 11.5px; color: var(--muted); font-style: italic; margin-top: 6px; }
+
+    /* ── Wizard ──────────────────────────────────────────────────────────── */
+    .wizard-wrap { }
+    .wizard-progress { display: flex; align-items: center; gap: 0; margin-bottom: 24px; }
+    .wizard-step-dot {
+      width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; color: var(--muted); background: var(--bg-card);
+      flex-shrink: 0; position: relative; z-index: 1;
+    }
+    .wizard-step-dot.done  { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .wizard-step-dot.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .wizard-connector { flex: 1; height: 2px; background: var(--border); }
+    .wizard-connector.done { background: var(--primary); }
+    .wizard-body { background: var(--bg); border: 1.5px solid var(--border); border-radius: var(--radius); padding: 22px 24px; }
+    .wizard-step-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .5px; color: var(--accent); margin-bottom: 6px; }
+    .wizard-step-title { font-size: 16px; font-weight: 700; color: var(--text); margin-bottom: 10px; }
+    .wizard-step-desc { font-size: 13.5px; color: var(--text-2); line-height: 1.7; margin-bottom: 16px; }
+    .wizard-code { background: var(--bg-hover); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'SFMono-Regular', Consolas, monospace; font-size: 12.5px; color: var(--text); overflow-x: auto; white-space: pre; margin-bottom: 14px; line-height: 1.6; }
+    .wizard-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; gap: 12px; flex-wrap: wrap; }
+    .wizard-nav { display: flex; gap: 10px; }
+    .wizard-complete-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--text-2); cursor: pointer; }
+    .wizard-complete-label input[type=checkbox] { accent-color: var(--primary); width: 16px; height: 16px; }
+
     /* ── Keyboard shortcuts ───────────────────────────────────────────────── */
     .shortcut-row { display:flex; align-items:center; justify-content:space-between; padding:6px 0; border-bottom:1px solid var(--border); font-size:13px; color:var(--text-2); }
     .shortcut-row:last-child { border-bottom:none; }
@@ -1173,47 +1223,30 @@
     <div id="tab-setup" class="tab-panel">
       <div class="card">
         <div class="card-header">
-          <div class="card-title">Quick Setup Guide</div>
+          <div>
+            <div class="card-title">Setup Wizard</div>
+            <div class="card-subtitle" id="wizard-step-label-sub">Step 1 of 5</div>
+          </div>
+          <button class="btn btn-secondary" style="font-size:12px;padding:5px 12px" onclick="wizardReset()">Reset</button>
         </div>
-        <ol class="setup-steps">
-          <li class="setup-step">
-            <span class="step-num">1</span>
-            <div class="step-body">
-              <strong>Google Cloud OAuth app</strong> — go to
-              <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a>,
-              create an OAuth 2.0 Client ID (Web application), add <code>https://omarrao.github.io</code>
-              as an authorised JavaScript origin and <code>http://localhost</code> as an authorised redirect URI.
-            </div>
-          </li>
-          <li class="setup-step">
-            <span class="step-num">2</span>
-            <div class="step-body">
-              <strong>One-time CLI auth</strong> — clone the repo locally, run
-              <code>python get_token.py</code>, follow the browser prompt, then copy the contents of
-              <code>credentials/google-token.json</code> into the <code>GOOGLE_TOKEN</code> Actions secret.
-            </div>
-          </li>
-          <li class="setup-step">
-            <span class="step-num">3</span>
-            <div class="step-body">
-              <strong>Add all 5 secrets</strong> — see the Actions Secrets tab above for the full list with descriptions.
-            </div>
-          </li>
-          <li class="setup-step">
-            <span class="step-num">4</span>
-            <div class="step-body">
-              <strong>Trigger a backup</strong> — go to the Backup tab, select your repos, and click
-              <em>Trigger Backup Workflow</em>. The workflow runs automatically every day at 02:00 UTC.
-            </div>
-          </li>
-          <li class="setup-step">
-            <span class="step-num">5</span>
-            <div class="step-body">
-              <strong>Connect Drive in the dashboard</strong> — paste your Google OAuth Client ID in the
-              Google Drive settings tab and click <em>Sign in with Google</em> to browse backup sessions live.
-            </div>
-          </li>
-        </ol>
+
+        <!-- Progress dots -->
+        <div class="wizard-progress" id="wizard-progress"></div>
+
+        <!-- Step body -->
+        <div class="wizard-body" id="wizard-body"></div>
+
+        <!-- Footer nav -->
+        <div class="wizard-footer">
+          <label class="wizard-complete-label">
+            <input type="checkbox" id="wizard-check" onchange="wizardMarkComplete(this.checked)" />
+            Mark this step complete
+          </label>
+          <div class="wizard-nav">
+            <button class="btn btn-secondary" onclick="wizardNav(-1)" id="wizard-prev">Previous</button>
+            <button class="btn btn-primary"   onclick="wizardNav(1)"  id="wizard-next">Next</button>
+          </div>
+        </div>
       </div>
 
       <div class="card mt-4">
@@ -1360,6 +1393,16 @@
       </div>
     </div>
 
+    <!-- Backup Size Chart -->
+    <div class="card" style="margin-bottom:24px">
+      <div class="bar-chart-title">Backup Size Over Time</div>
+      <div class="bar-chart-subtitle">Example data — connect Google Drive to see live size data</div>
+      <div class="bar-chart" id="size-bar-chart">
+        <!-- bars injected by JS -->
+      </div>
+      <div class="bar-chart-note">Connect Google Drive to see live size data</div>
+    </div>
+
     <div class="two-col" style="align-items:start">
       <div class="card">
         <div class="card-header">
@@ -1430,6 +1473,32 @@
       <div class="shortcut-row"><kbd>S</kbd><span>Settings</span></div>
       <div class="shortcut-row"><kbd>?</kbd><span>Show this help</span></div>
       <div class="shortcut-row"><kbd>Esc</kbd><span>Close modals</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- Diff modal -->
+<div id="diff-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header">
+      <span class="modal-title" id="diff-modal-title">Backup Diff</span>
+      <button class="modal-close" onclick="closeModal()">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <div class="notice notice-info" style="margin-bottom:14px">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
+      <span>Connect Google Drive to see live session diffs. Showing example placeholder data.</span>
+    </div>
+    <div class="diff-cols">
+      <div>
+        <div class="diff-col-title">Added / Changed</div>
+        <ul class="diff-list" id="diff-added"></ul>
+      </div>
+      <div>
+        <div class="diff-col-title">Unchanged</div>
+        <ul class="diff-list" id="diff-unchanged"></ul>
+      </div>
     </div>
   </div>
 </div>
@@ -1812,6 +1881,7 @@ function initSettings() {
   if (googleClientId) document.getElementById('s-google-client-id').value = googleClientId;
   if (driveToken) showDriveConnected();
   updateDriveStatus();
+  wizardRender();
 }
 
 async function saveGitHub() {
@@ -1855,11 +1925,13 @@ function runBadge(status, conclusion) {
 
 function renderRuns(runs, container) {
   if (!runs.length) { container.innerHTML = '<p class="muted" style="padding:8px 0">No runs yet.</p>'; return; }
+  const isRunsPage = container.id === 'runs-list';
   container.innerHTML = runs.map(r => `
     <div class="run-item">
       ${runBadge(r.status, r.conclusion)}
       <span class="run-name">${r.name} <span class="run-num">#${r.run_number}</span></span>
       <span class="run-time">${relTime(r.created_at)}</span>
+      ${isRunsPage ? `<button class="run-link" onclick="showDiffModal('${r.name} #${r.run_number}', '${r.created_at}')">Diff</button>` : ''}
       <a class="run-link" href="${r.html_url}" target="_blank">View &rarr;</a>
     </div>`).join('');
 }
@@ -2100,11 +2172,156 @@ async function triggerCleanup() {
   } catch(e) { showToast('Error: ' + e.message, 'error'); }
 }
 
+// ── Diff modal ────────────────────────────────────────────────────────────────
+const DIFF_MOCK_ADDED = [
+  'api-service', 'frontend-app', 'auth-service'
+];
+const DIFF_MOCK_UNCHANGED = [
+  'infra-scripts', 'shared-libs', 'docs-site', 'legacy-api', 'mobile-app'
+];
+
+function showDiffModal(runLabel, createdAt) {
+  document.getElementById('diff-modal-title').textContent = `Backup Diff — ${runLabel}`;
+  document.getElementById('diff-added').innerHTML =
+    DIFF_MOCK_ADDED.map(r => `<li class="diff-item added">${r}</li>`).join('');
+  document.getElementById('diff-unchanged').innerHTML =
+    DIFF_MOCK_UNCHANGED.map(r => `<li class="diff-item unchanged">${r}</li>`).join('');
+  document.getElementById('diff-modal').classList.remove('hidden');
+}
+
+// ── Bar chart ─────────────────────────────────────────────────────────────────
+const CHART_DATA = [
+  { label: 'Jun 15', val: 2.1 },
+  { label: 'Jun 16', val: 2.3 },
+  { label: 'Jun 17', val: 2.3 },
+  { label: 'Jun 18', val: 2.6 },
+  { label: 'Jun 19', val: 2.5 },
+  { label: 'Jun 20', val: 2.8 },
+  { label: 'Jun 21', val: 3.0 },
+];
+
+function renderBarChart() {
+  const el = document.getElementById('size-bar-chart');
+  if (!el) return;
+  const max = Math.max(...CHART_DATA.map(d => d.val));
+  const chartH = 90; // px available for bars (total wrap is 120px, 28px reserved for labels)
+  el.innerHTML = CHART_DATA.map(d => {
+    const barH = Math.round((d.val / max) * chartH);
+    return `<div class="bar-col">
+      <span class="bar-val">${d.val} GB</span>
+      <div class="bar-fill" style="height:${barH}px" title="${d.label}: ${d.val} GB"></div>
+      <span class="bar-label">${d.label}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── Onboarding wizard ─────────────────────────────────────────────────────────
+const WIZARD_STEPS = [
+  {
+    title: 'Fork the repository',
+    desc:  'Start by forking the <strong>github-gdrive-backup</strong> repo into your own GitHub account. This gives you your own copy of the workflows and scripts.',
+    code:  '# On GitHub.com:\n# 1. Go to https://github.com/OmarRao/github-gdrive-backup\n# 2. Click the "Fork" button (top-right)\n# 3. Choose your account as the destination\n# 4. Clone your fork locally:\ngit clone https://github.com/YOUR_USERNAME/github-gdrive-backup.git',
+  },
+  {
+    title: 'Create Google Cloud credentials',
+    desc:  'Create an OAuth 2.0 Client ID in Google Cloud Console. This allows the backup workflow to write to your Google Drive.',
+    code:  '# Steps:\n# 1. Go to https://console.cloud.google.com/apis/credentials\n# 2. Click "Create Credentials" → "OAuth 2.0 Client ID"\n# 3. Application type: Web application\n# 4. Authorised JavaScript origins:\n#    https://YOUR_USERNAME.github.io\n# 5. Authorised redirect URIs:\n#    http://localhost\n# 6. Download the JSON — save as credentials/google-client-secret.json',
+  },
+  {
+    title: 'Run the OAuth flow',
+    desc:  'Run the one-time local authentication script to generate a Google token. This token is what the GitHub Action uses to write to Drive.',
+    code:  '# In your cloned repo:\npip install google-auth-oauthlib google-api-python-client\npython get_token.py\n\n# Follow the browser prompt, then:\ncat credentials/google-token.json\n# Copy the entire JSON — you\'ll paste it as a GitHub secret next.',
+  },
+  {
+    title: 'Add GitHub Actions secrets',
+    desc:  'Add all 5 required secrets under your fork\'s Settings → Secrets → Actions. The workflow reads these at runtime — they are never exposed in logs.',
+    code:  '# Required secrets (Settings → Secrets → Actions):\n\nGH_BACKUP_TOKEN      # GitHub PAT (scopes: repo, workflow, read:org, read:user)\nGH_USER              # Your GitHub username or org to back up\nGDRIVE_FOLDER_ID     # Google Drive folder ID (from Drive URL)\nGOOGLE_CLIENT_SECRET # Full JSON of credentials/google-client-secret.json\nGOOGLE_TOKEN         # Full JSON of credentials/google-token.json',
+  },
+  {
+    title: 'Trigger your first backup',
+    desc:  'You\'re all set! Trigger a manual backup run from the Actions tab, or use the Backup page in this dashboard. The workflow also runs automatically every day at 02:00 UTC.',
+    code:  '# Option A — via this dashboard:\n# Go to the Backup page, select repos, click "Trigger Backup Workflow"\n\n# Option B — via GitHub Actions UI:\n# 1. Go to your fork on GitHub\n# 2. Click "Actions" → "backup"\n# 3. Click "Run workflow" → "Run workflow"\n\n# Automatic schedule: daily at 02:00 UTC (see .github/workflows/backup.yml)',
+  },
+];
+
+let wizardStep = parseInt(localStorage.getItem('wizard_step') || '0');
+
+function wizardCompletedSteps() {
+  return JSON.parse(localStorage.getItem('wizard_completed') || '[]');
+}
+
+function wizardRender() {
+  const total = WIZARD_STEPS.length;
+  const step  = WIZARD_STEPS[wizardStep];
+  const done  = wizardCompletedSteps();
+
+  // Progress bar
+  const prog = document.getElementById('wizard-progress');
+  if (prog) {
+    let html = '';
+    for (let i = 0; i < total; i++) {
+      const cls = done.includes(i) ? 'done' : (i === wizardStep ? 'active' : '');
+      html += `<div class="wizard-step-dot ${cls}" title="Step ${i+1}">${done.includes(i) ? '&#10003;' : i+1}</div>`;
+      if (i < total - 1) html += `<div class="wizard-connector ${done.includes(i) ? 'done' : ''}"></div>`;
+    }
+    prog.innerHTML = html;
+  }
+
+  // Sub-label
+  const sub = document.getElementById('wizard-step-label-sub');
+  if (sub) sub.textContent = `Step ${wizardStep + 1} of ${total}`;
+
+  // Body
+  const body = document.getElementById('wizard-body');
+  if (body) {
+    body.innerHTML = `
+      <div class="wizard-step-label">Step ${wizardStep + 1} of ${total}</div>
+      <div class="wizard-step-title">${step.title}</div>
+      <div class="wizard-step-desc">${step.desc}</div>
+      <div class="wizard-code">${step.code.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+    `;
+  }
+
+  // Checkbox
+  const chk = document.getElementById('wizard-check');
+  if (chk) chk.checked = done.includes(wizardStep);
+
+  // Nav buttons
+  const prev = document.getElementById('wizard-prev');
+  const next = document.getElementById('wizard-next');
+  if (prev) prev.disabled = wizardStep === 0;
+  if (next) next.textContent = wizardStep === total - 1 ? 'Finish' : 'Next';
+}
+
+function wizardNav(dir) {
+  const total = WIZARD_STEPS.length;
+  wizardStep = Math.max(0, Math.min(total - 1, wizardStep + dir));
+  localStorage.setItem('wizard_step', wizardStep);
+  wizardRender();
+}
+
+function wizardMarkComplete(checked) {
+  const done = wizardCompletedSteps();
+  if (checked && !done.includes(wizardStep)) done.push(wizardStep);
+  if (!checked) { const idx = done.indexOf(wizardStep); if (idx > -1) done.splice(idx, 1); }
+  localStorage.setItem('wizard_completed', JSON.stringify(done));
+  wizardRender();
+}
+
+function wizardReset() {
+  wizardStep = 0;
+  localStorage.setItem('wizard_step', '0');
+  localStorage.removeItem('wizard_completed');
+  wizardRender();
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 updateGHStatus();
 updateDriveStatus();
 loadDashboard();
 updateBackupDriveBanner();
+renderBarChart();
+wizardRender();
 
 // Load retention settings
 const retDays = document.getElementById('retention-days');
