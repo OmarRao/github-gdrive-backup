@@ -2,6 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-2563eb?logo=opensourceinitiative&logoColor=white)](LICENSE)
 [![GitHub Actions](https://img.shields.io/badge/Automated-GitHub%20Actions-1a7f37?logo=github-actions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
+[![Backup Status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FOmarRao%2Fgithub-gdrive-backup%2Fmain%2Fdocs%2Fstatus.json&query=%24.status&label=Backup%20Status&color=22c55e&logo=githubactions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-GitHub%20Pages-2563eb?logo=github&logoColor=white)](https://omarrao.github.io/github-gdrive-backup/)
 [![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Google Drive](https://img.shields.io/badge/Storage-Google%20Drive-4285F4?logo=googledrive&logoColor=white)](https://drive.google.com/)
@@ -79,7 +80,7 @@ Configure your GitHub Personal Access Token, connect Google Drive via OAuth, ver
 | **Failure alerts** | Slack and email notifications when backup fails (`notify.yml`) |
 | **Incremental backup** | Optional mode that only backs up repos changed since last session |
 | **Auto-cleanup** | Weekly workflow removes Drive sessions beyond retention threshold |
-| **Health status** | `docs/status.json` updated on each run for badge/monitoring use |
+| **Health status** | `docs/status.json` updated on each run; live README badge reflects current status via shields.io dynamic badge |
 
 ---
 
