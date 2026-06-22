@@ -1,4 +1,5 @@
 name: Backup Failure Notification
+# Fires only when the backup workflow completes with conclusion == failure
 
 on:
   workflow_run:
