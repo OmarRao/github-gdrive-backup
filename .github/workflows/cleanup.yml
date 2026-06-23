@@ -22,19 +22,24 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'npm'
 
       - name: Install dependencies
-        run: npm ci
+        run: npm install
 
       - name: Write Google credentials
+        env:
+          GOOGLE_CLIENT_SECRET_JSON: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_TOKEN_JSON: ${{ secrets.GOOGLE_TOKEN }}
         run: |
-          echo '${{ secrets.GOOGLE_CLIENT_SECRET }}' > credentials/google-client-secret.json
-          echo '${{ secrets.GOOGLE_TOKEN }}' > credentials/google-token.json
+          mkdir -p credentials
+          printf '%s' "$GOOGLE_CLIENT_SECRET_JSON" > credentials/google-client-secret.json
+          printf '%s' "$GOOGLE_TOKEN_JSON"         > credentials/google-token.json
 
       - name: Run cleanup
         env:
           GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
+          GOOGLE_TOKEN_PATH: ./credentials/google-token.json
           RETENTION_DAYS: ${{ github.event.inputs.retention_days || '90' }}
         run: node src/cleanup/index.js
 
@@ -45,3 +50,4 @@ jobs:
           name: cleanup-log-${{ github.run_number }}
           path: logs/cleanup-*.log
           retention-days: 7
+          if-no-files-found: ignore
