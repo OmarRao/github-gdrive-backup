@@ -697,9 +697,14 @@
       .page-hero { padding: 20px 20px; }
       .page-hero h1 { font-size: 18px; }
       .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-      .stat-card { padding: 14px; }
+      .stat-card { padding: 12px; }
       .card { padding: 16px 18px; }
+      .card { overflow-x: auto; }
       .page-header h1 { font-size: 19px; }
+    }
+
+    @media (max-width: 500px) {
+      .col-duration, .col-trigger { display: none; }
     }
 
     @media (max-width: 440px) {
@@ -1045,6 +1050,16 @@
       </button>
     </div>
     <div class="card">
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <input type="text" id="runs-search" class="form-input" placeholder="Filter by run name…"
+          style="flex:1;min-width:160px" oninput="applyRunsFilter()" />
+        <select id="runs-status-filter" class="form-input" style="width:140px" onchange="applyRunsFilter()">
+          <option value="">All statuses</option>
+          <option value="success">Success</option>
+          <option value="failure">Failure</option>
+          <option value="in_progress">Running</option>
+        </select>
+      </div>
       <div id="runs-list" class="run-list"><p class="muted">Loading…</p></div>
     </div>
   </section>
@@ -1432,15 +1447,24 @@
           <div class="card-subtitle">Duration, trigger, and conclusion for each backup run</div>
         </div>
       </div>
+      <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+        <input type="text" id="rpt-search" class="form-input" placeholder="Filter by run # or status…"
+          style="flex:1;min-width:160px" oninput="applyReportsFilter()" />
+        <select id="rpt-date-filter" class="form-input" style="width:160px" onchange="applyReportsFilter()">
+          <option value="0">All time</option>
+          <option value="7">Last 7 days</option>
+          <option value="30">Last 30 days</option>
+        </select>
+      </div>
       <div style="overflow-x:auto">
         <table class="data-table" id="rpt-table">
           <thead>
             <tr>
               <th>Run</th>
               <th>Status</th>
-              <th>Trigger</th>
+              <th class="col-trigger">Trigger</th>
               <th>Started</th>
-              <th>Duration</th>
+              <th class="col-duration">Duration</th>
               <th>Link</th>
             </tr>
           </thead>
@@ -1870,7 +1894,8 @@ async function loadRuns() {
   el.innerHTML = '<p class="muted">Loading…</p>';
   try {
     const data = await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?per_page=30`);
-    renderRuns(data.workflow_runs || [], el);
+    _allRuns = data.workflow_runs || [];
+    applyRunsFilter();
   } catch (err) { el.innerHTML = `<p style="color:var(--danger)">Error: ${err.message}</p>`; }
 }
 
@@ -1986,9 +2011,9 @@ async function loadReports() {
       return `<tr>
         <td style="font-weight:600">#${r.run_number}</td>
         <td><span class="run-badge ${cls}">${key}</span></td>
-        <td style="color:var(--muted);font-size:12px">${r.event || '—'}</td>
+        <td class="col-trigger" style="color:var(--muted);font-size:12px">${r.event || '—'}</td>
         <td style="color:var(--muted);font-size:12px">${relTime(r.created_at)}</td>
-        <td style="color:var(--muted);font-size:12px">${dur}</td>
+        <td class="col-duration" style="color:var(--muted);font-size:12px">${dur}</td>
         <td><a class="run-link" href="${r.html_url}" target="_blank">View →</a></td>
       </tr>`;
     }).join('');
@@ -2180,13 +2205,76 @@ const DIFF_MOCK_UNCHANGED = [
   'infra-scripts', 'shared-libs', 'docs-site', 'legacy-api', 'mobile-app'
 ];
 
-function showDiffModal(runLabel, createdAt) {
+async function showDiffModal(runLabel, createdAt) {
   document.getElementById('diff-modal-title').textContent = `Backup Diff — ${runLabel}`;
-  document.getElementById('diff-added').innerHTML =
-    DIFF_MOCK_ADDED.map(r => `<li class="diff-item added">${r}</li>`).join('');
-  document.getElementById('diff-unchanged').innerHTML =
-    DIFF_MOCK_UNCHANGED.map(r => `<li class="diff-item unchanged">${r}</li>`).join('');
   document.getElementById('diff-modal').classList.remove('hidden');
+
+  const addedEl     = document.getElementById('diff-added');
+  const unchangedEl = document.getElementById('diff-unchanged');
+  const noticeEl    = document.querySelector('#diff-modal .notice-info');
+
+  if (driveToken && driveFolderID) {
+    // Hide the "connect Drive" notice
+    if (noticeEl) noticeEl.classList.add('hidden');
+    addedEl.innerHTML     = '<li class="diff-item unchanged" style="color:var(--muted)">Loading…</li>';
+    unchangedEl.innerHTML = '';
+
+    try {
+      // Fetch all session folders, sorted oldest-first so we can find prev session
+      const data = await driveFetch(
+        `/drive/v3/files?q='${driveFolderID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name,createdTime)&orderBy=createdTime&pageSize=50`
+      );
+      const sessions = data.files || [];
+
+      // Find session closest to createdAt
+      const target = new Date(createdAt).getTime();
+      let bestIdx = 0, bestDiff = Infinity;
+      sessions.forEach((s, i) => {
+        // Also try parsing date from folder name like backup-2026-06-15T02-00-00-000Z
+        const nameDate = s.name.match(/(\d{4}-\d{2}-\d{2}T[\d-]+Z)/);
+        const t = nameDate
+          ? new Date(nameDate[1].replace(/(\d{2})-(\d{2})-(\d{3})Z$/, '$1:$2:$3Z')).getTime()
+          : new Date(s.createdTime).getTime();
+        const diff = Math.abs(t - target);
+        if (diff < bestDiff) { bestDiff = diff; bestIdx = i; }
+      });
+
+      const curSession  = sessions[bestIdx];
+      const prevSession = bestIdx > 0 ? sessions[bestIdx - 1] : null;
+
+      // List child folders (repos) in current session
+      const [curData, prevData] = await Promise.all([
+        driveFetch(`/drive/v3/files?q='${curSession.id}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(name)&pageSize=200`),
+        prevSession
+          ? driveFetch(`/drive/v3/files?q='${prevSession.id}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(name)&pageSize=200`)
+          : Promise.resolve({ files: [] }),
+      ]);
+
+      const curNames  = new Set((curData.files  || []).map(f => f.name));
+      const prevNames = new Set((prevData.files || []).map(f => f.name));
+
+      const added     = [...curNames].filter(n => !prevNames.has(n));
+      const unchanged = [...curNames].filter(n =>  prevNames.has(n));
+
+      addedEl.innerHTML = added.length
+        ? added.map(r => `<li class="diff-item added">${r}</li>`).join('')
+        : '<li class="diff-item unchanged" style="color:var(--muted)">None new</li>';
+      unchangedEl.innerHTML = unchanged.length
+        ? unchanged.map(r => `<li class="diff-item unchanged">${r}</li>`).join('')
+        : '<li class="diff-item unchanged" style="color:var(--muted)">—</li>';
+
+    } catch (err) {
+      addedEl.innerHTML = `<li class="diff-item" style="color:var(--danger)">${err.message}</li>`;
+      unchangedEl.innerHTML = '';
+    }
+  } else {
+    // No Drive — show mock with notice
+    if (noticeEl) noticeEl.classList.remove('hidden');
+    addedEl.innerHTML =
+      DIFF_MOCK_ADDED.map(r => `<li class="diff-item added">${r}</li>`).join('');
+    unchangedEl.innerHTML =
+      DIFF_MOCK_UNCHANGED.map(r => `<li class="diff-item unchanged">${r}</li>`).join('');
+  }
 }
 
 // ── Bar chart ─────────────────────────────────────────────────────────────────
@@ -2200,18 +2288,134 @@ const CHART_DATA = [
   { label: 'Jun 21', val: 3.0 },
 ];
 
-function renderBarChart() {
+async function renderBarChart() {
   const el = document.getElementById('size-bar-chart');
   if (!el) return;
-  const max = Math.max(...CHART_DATA.map(d => d.val));
-  const chartH = 90; // px available for bars (total wrap is 120px, 28px reserved for labels)
-  el.innerHTML = CHART_DATA.map(d => {
-    const barH = Math.round((d.val / max) * chartH);
-    return `<div class="bar-col">
-      <span class="bar-val">${d.val} GB</span>
-      <div class="bar-fill" style="height:${barH}px" title="${d.label}: ${d.val} GB"></div>
-      <span class="bar-label">${d.label}</span>
-    </div>`;
+
+  const subtitleEl = el.previousElementSibling;
+  const noteEl     = el.nextElementSibling;
+
+  if (driveToken && driveFolderID) {
+    el.innerHTML = '<div style="color:var(--muted);font-size:12px;align-self:center">Loading…</div>';
+    try {
+      // Get last 30 session folders
+      const data = await driveFetch(
+        `/drive/v3/files?q='${driveFolderID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name,createdTime)&orderBy=createdTime&pageSize=30`
+      );
+      const sessions = (data.files || []).slice(-7); // last 7
+
+      if (!sessions.length) {
+        el.innerHTML = '<div style="color:var(--muted);font-size:12px;align-self:center">No backup sessions found in Drive folder.</div>';
+        return;
+      }
+
+      // Sum child file sizes for each session
+      const sizePromises = sessions.map(s =>
+        driveFetch(`/drive/v3/files?q='${s.id}'+in+parents+and+trashed=false&fields=files(size)&pageSize=200`)
+          .then(d => (d.files || []).reduce((sum, f) => sum + parseInt(f.size || 0), 0))
+          .catch(() => 0)
+      );
+      const sizes = await Promise.all(sizePromises);
+
+      // Build chart data — label from folder name or createdTime
+      const chartData = sessions.map((s, i) => {
+        const m = s.name.match(/(\d{4}-\d{2}-\d{2})/);
+        const label = m ? m[1].slice(5) : new Date(s.createdTime).toLocaleDateString('en-GB', { month:'short', day:'numeric' });
+        return { label, val: sizes[i] };
+      });
+
+      const maxVal = Math.max(...chartData.map(d => d.val), 1);
+      const chartH = 90;
+      el.innerHTML = chartData.map(d => {
+        const barH  = Math.round((d.val / maxVal) * chartH);
+        const label = d.val >= 1073741824
+          ? (d.val / 1073741824).toFixed(2) + ' GB'
+          : (d.val / 1048576).toFixed(1) + ' MB';
+        return `<div class="bar-col">
+          <span class="bar-val">${label}</span>
+          <div class="bar-fill" style="height:${barH}px" title="${d.label}: ${label}"></div>
+          <span class="bar-label">${d.label}</span>
+        </div>`;
+      }).join('');
+
+      if (subtitleEl && subtitleEl.classList.contains('bar-chart-subtitle'))
+        subtitleEl.textContent = 'Live data from Google Drive — last 7 sessions';
+      if (noteEl && noteEl.classList.contains('bar-chart-note'))
+        noteEl.classList.add('hidden');
+
+    } catch (err) {
+      el.innerHTML = `<div style="color:var(--danger);font-size:12px;align-self:center">Drive error: ${err.message}</div>`;
+    }
+  } else {
+    // Mock data
+    const max = Math.max(...CHART_DATA.map(d => d.val));
+    const chartH = 90;
+    el.innerHTML = CHART_DATA.map(d => {
+      const barH = Math.round((d.val / max) * chartH);
+      return `<div class="bar-col">
+        <span class="bar-val">${d.val} GB</span>
+        <div class="bar-fill" style="height:${barH}px" title="${d.label}: ${d.val} GB"></div>
+        <span class="bar-label">${d.label}</span>
+      </div>`;
+    }).join('');
+    if (subtitleEl && subtitleEl.classList.contains('bar-chart-subtitle'))
+      subtitleEl.textContent = 'Example data — connect Google Drive to see live size data';
+    if (noteEl && noteEl.classList.contains('bar-chart-note'))
+      noteEl.classList.remove('hidden');
+  }
+}
+
+// ── Runs page filter ──────────────────────────────────────────────────────────
+let _allRuns = [];
+
+function applyRunsFilter() {
+  const q      = (document.getElementById('runs-search')?.value || '').toLowerCase();
+  const status = document.getElementById('runs-status-filter')?.value || '';
+  const filtered = _allRuns.filter(r => {
+    const name    = (r.name || '').toLowerCase();
+    const runNum  = String(r.run_number || '');
+    const matchQ  = !q || name.includes(q) || runNum.includes(q);
+    const key     = r.conclusion || r.status || '';
+    const matchS  = !status || key === status;
+    return matchQ && matchS;
+  });
+  renderRuns(filtered, document.getElementById('runs-list'));
+}
+
+// ── Reports table filter ──────────────────────────────────────────────────────
+function applyReportsFilter() {
+  const q    = (document.getElementById('rpt-search')?.value || '').toLowerCase();
+  const days = parseInt(document.getElementById('rpt-date-filter')?.value || '0');
+  const now  = Date.now();
+  const cutoff = days > 0 ? now - days * 86400000 : 0;
+
+  const filtered = reportRuns.filter(r => {
+    const runNum = String(r.run_number || '');
+    const key    = (r.conclusion || r.status || '').toLowerCase();
+    const matchQ = !q || runNum.includes(q) || key.includes(q);
+    const matchD = !cutoff || new Date(r.created_at).getTime() >= cutoff;
+    return matchQ && matchD;
+  });
+
+  const tbody = document.getElementById('rpt-table-body');
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--muted)">No matching runs.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = filtered.map(r => {
+    const dur = r.updated_at && r.created_at
+      ? (() => { const s = Math.round((new Date(r.updated_at) - new Date(r.created_at)) / 1000); return s > 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`; })()
+      : '—';
+    const key = r.conclusion || r.status;
+    const cls = { success:'badge-success', failure:'badge-failure', in_progress:'badge-in_progress', cancelled:'badge-cancelled' }[key] || 'badge-queued';
+    return `<tr>
+      <td style="font-weight:600">#${r.run_number}</td>
+      <td><span class="run-badge ${cls}">${key}</span></td>
+      <td class="col-trigger" style="color:var(--muted);font-size:12px">${r.event || '—'}</td>
+      <td style="color:var(--muted);font-size:12px">${relTime(r.created_at)}</td>
+      <td class="col-duration" style="color:var(--muted);font-size:12px">${dur}</td>
+      <td><a class="run-link" href="${r.html_url}" target="_blank">View →</a></td>
+    </tr>`;
   }).join('');
 }
 
