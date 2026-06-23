@@ -1,5 +1,4 @@
 name: Backup Failure Notification
-# Fires only when the backup workflow completes with conclusion == failure
 
 on:
   workflow_run:
@@ -11,69 +10,27 @@ jobs:
     if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Send Slack notification
-        continue-on-error: true
-        uses: slackapi/slack-github-action@v1.26.0
-        with:
-          payload: |
-            {
-              "text": "Backup failed",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "*Backup failed* on `${{ github.event.workflow_run.head_branch }}`\nRun: <${{ github.event.workflow_run.html_url }}|#${{ github.event.workflow_run.run_number }}>\nStarted: ${{ github.event.workflow_run.created_at }}"
-                  }
-                }
-              ]
-            }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
-
-      - name: Send email notification
-        continue-on-error: true
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 465
-          username: ${{ secrets.NOTIFY_EMAIL }}
-          password: ${{ secrets.NOTIFY_EMAIL_PASSWORD }}
-          subject: "[GH Backup] Backup failed - Run #${{ github.event.workflow_run.run_number }}"
-          to: ${{ secrets.NOTIFY_EMAIL }}
-          from: "GH Backup"
-          body: |
-            Your GitHub to Google Drive backup failed.
-
-            Run: #${{ github.event.workflow_run.run_number }}
-            Branch: ${{ github.event.workflow_run.head_branch }}
-            Started: ${{ github.event.workflow_run.created_at }}
-
-            View the run: ${{ github.event.workflow_run.html_url }}
-
       - name: Update status badge
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const payload = context.payload.workflow_run;
             const content = JSON.stringify({
               status: 'failing',
               last_run: new Date().toISOString(),
-              run_url: context.payload.workflow_run.html_url
+              run_url: payload.html_url
             });
             const encoded = Buffer.from(content).toString('base64');
             let sha;
             try {
-              const existing = await github.rest.repos.getContent({
+              const res = await github.rest.repos.getContent({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 path: 'docs/status.json'
               });
-              sha = existing.data.sha;
-            } catch (e) {
-              sha = undefined;
-            }
+              sha = res.data.sha;
+            } catch (_) {}
             await github.rest.repos.createOrUpdateFileContents({
               owner: context.repo.owner,
               repo: context.repo.repo,
