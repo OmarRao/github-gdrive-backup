@@ -80,18 +80,17 @@
   <text x="276" y="40" font-size="20" font-weight="700" fill="#111827">Settings &amp; Setup</text>
   <text x="276" y="58" font-size="13" fill="#6b7280">Configure your GitHub and Google Drive connections to enable automated backups.</text>
 
-  <!-- Tab bar -->
+  <!-- Tab bar (5 tabs) -->
   <rect x="276" y="72" width="808" height="42" rx="8" fill="white" stroke="#e2e6ea" stroke-width="1"/>
   <!-- Active tab: GitHub -->
-  <rect x="277" y="73" width="100" height="40" rx="7" fill="white"/>
-  <line x1="277" y1="110" x2="377" y2="110" stroke="#2563eb" stroke-width="2"/>
-  <text x="327" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#2563eb">GitHub</text>
+  <rect x="277" y="73" width="120" height="40" rx="7" fill="white"/>
+  <line x1="277" y1="110" x2="397" y2="110" stroke="#2563eb" stroke-width="2"/>
+  <text x="337" y="97" text-anchor="middle" font-size="13" font-weight="600" fill="#2563eb">GitHub</text>
   <!-- Other tabs -->
-  <text x="435" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Google Drive</text>
-  <text x="545" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Actions Secrets</text>
-  <text x="660" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Setup Guide</text>
-  <text x="754" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Accounts</text>
-  <text x="840" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Retention</text>
+  <text x="490" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Google Drive</text>
+  <text x="620" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Accounts</text>
+  <text x="730" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Retention</text>
+  <text x="860" y="97" text-anchor="middle" font-size="13" fill="#6b7280">Setup Guide</text>
 
   <!-- Main settings card -->
   <rect x="276" y="126" width="808" height="360" rx="10" fill="white" stroke="#e2e6ea" stroke-width="1"/>

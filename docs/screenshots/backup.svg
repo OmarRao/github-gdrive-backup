@@ -18,6 +18,11 @@
   <text x="60" y="33" font-size="14" font-weight="700" fill="#111827">GH Backup</text>
   <text x="60" y="47" font-size="10" fill="#6b7280">Resilience Tool</text>
 
+  <!-- Dark mode toggle (moon icon) -->
+  <g transform="translate(212, 22) scale(0.6)">
+    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
   <line x1="16" y1="66" x2="224" y2="66" stroke="#e2e6ea" stroke-width="1"/>
 
   <text x="16" y="86" font-size="10" font-weight="600" fill="#9ca3af" letter-spacing="1">NAVIGATION</text>
