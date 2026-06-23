@@ -6,6 +6,7 @@
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-GitHub%20Pages-2563eb?logo=github&logoColor=white)](https://omarrao.github.io/github-gdrive-backup/)
 [![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Google Drive](https://img.shields.io/badge/Storage-Google%20Drive-4285F4?logo=googledrive&logoColor=white)](https://drive.google.com/)
+[![Use this template](https://img.shields.io/badge/Use%20this%20template-2563eb?logo=github&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/generate)
 
 **Back up every GitHub repository to Google Drive — code, issues, PRs, releases, wiki, labels, milestones — and restore with one click.**
 
@@ -324,6 +325,12 @@ Add either or both secrets to **Settings → Secrets and variables → Actions**
 - GitHub PAT scopes: `repo`, `workflow`, `read:org`, `read:user` — read-only for backup, no destructive permissions
 - Google Drive token scoped to `drive.file` in Actions, `drive.readonly` in the dashboard
 - Self-hosted Express server has no built-in auth — run locally or behind a reverse proxy
+
+---
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, project structure, and guidelines.
 
 ---
 
