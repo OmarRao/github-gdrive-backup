@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] — 2026-06-22
+
+### Added
+- Dark mode with persistent theme toggle
+- Keyboard shortcuts (D/B/R/W/P/S/?) with help modal
+- Toast notifications replacing all browser alerts
+- Restore preview modal with session and impact warning
+- Multi-account support (Settings → Accounts)
+- Retention policy UI (Settings → Retention)
+- Interactive onboarding wizard in Settings → Setup Guide
+- Backup diff view on Workflow Runs page (live Drive API + mock fallback)
+- Backup size chart on Reports page (live Drive API + mock fallback)
+- Search and status filter on Workflow Runs page
+- Search and date filter on Reports run table
+- Failure notification workflow (notify.yml) — updates docs/status.json
+- Weekly cleanup workflow (cleanup.yml) — auto-deletes old Drive sessions
+- Incremental backup mode via workflow_dispatch input
+- Live Backup Status badge in README via shields.io
+- CONTRIBUTING.md and GitHub Template repo setup
+- Mobile-responsive layout fixes
+
+### Changed
+- All dashboard icons replaced with stroke-based SVG primitives
+- All screenshots updated to reflect current feature set
+- docs/status.json now updated on both success (backup.yml) and failure (notify.yml)
+
+---
+
 ## [1.0.0] — 2026-06-15
 
 ### Added
