@@ -10,6 +10,25 @@ const INCLUDE = (process.env.BACKUP_INCLUDE || 'code,issues,pull_requests,releas
 const TMP = path.resolve(process.env.BACKUP_TMP_DIR || './tmp');
 const CONCURRENCY = parseInt(process.env.BACKUP_CONCURRENCY || '3', 10);
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function withRateLimitRetry(fn) {
+  try {
+    return await fn();
+  } catch (err) {
+    if (err.status === 403 || err.status === 429) {
+      const resetHeader = err.response && err.response.headers && err.response.headers['x-ratelimit-reset'];
+      const waitMs = resetHeader ? Math.max(0, (parseInt(resetHeader, 10) * 1000) - Date.now()) : 60000;
+      console.warn('GitHub rate limit hit, waiting...');
+      await sleep(waitMs);
+      return await fn();
+    }
+    throw err;
+  }
+}
+
 async function zipDirectory(srcDir, outFile) {
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(outFile);
@@ -48,19 +67,19 @@ async function backupRepo(gh, drive, repo, backupFolderId) {
     const metadata = { repo: repo.full_name, backed_up_at: new Date().toISOString() };
 
     if (INCLUDE.includes('issues')) {
-      metadata.issues = await gh.fetchIssues(owner.login, name);
+      metadata.issues = await withRateLimitRetry(() => gh.fetchIssues(owner.login, name));
     }
     if (INCLUDE.includes('pull_requests')) {
-      metadata.pull_requests = await gh.fetchPullRequests(owner.login, name);
+      metadata.pull_requests = await withRateLimitRetry(() => gh.fetchPullRequests(owner.login, name));
     }
     if (INCLUDE.includes('releases')) {
-      metadata.releases = await gh.fetchReleases(owner.login, name);
+      metadata.releases = await withRateLimitRetry(() => gh.fetchReleases(owner.login, name));
     }
     if (INCLUDE.includes('labels')) {
-      metadata.labels = await gh.fetchLabels(owner.login, name);
+      metadata.labels = await withRateLimitRetry(() => gh.fetchLabels(owner.login, name));
     }
     if (INCLUDE.includes('milestones')) {
-      metadata.milestones = await gh.fetchMilestones(owner.login, name);
+      metadata.milestones = await withRateLimitRetry(() => gh.fetchMilestones(owner.login, name));
     }
     if (INCLUDE.includes('wiki')) {
       const wikiDir = await gh.fetchWiki(owner.login, name, repoDir);
@@ -130,6 +149,7 @@ async function runBackup(options = {}) {
         results.push({ repo: batch[idx].full_name, status: 'failed', error: r.reason.message });
       }
     });
+    if (i + CONCURRENCY < repos.length) await sleep(200);
   }
 
   const summary = {

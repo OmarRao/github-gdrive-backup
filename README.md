@@ -24,6 +24,8 @@ The main overview — repository count, backup session count, time since last ru
 
 ![Dashboard](docs/screenshots/dashboard.svg)
 
+![Dashboard — Dark Mode](docs/screenshots/dashboard-dark.svg)
+
 ---
 
 ### Backup
