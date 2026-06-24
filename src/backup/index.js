@@ -34,8 +34,15 @@ async function backupRepo(gh, drive, repo, backupFolderId) {
       await gh.cloneRepo(repo, repoDir);
       const zipPath = `${repoDir}.zip`;
       await zipDirectory(repoDir, zipPath);
-      await drive.uploadFile(zipPath, repoFolder);
+      const localSize = fs.statSync(zipPath).size;
+      const uploaded = await drive.uploadFile(zipPath, repoFolder);
       fs.rmSync(zipPath, { force: true });
+      const driveSize = parseInt(uploaded.size, 10);
+      if (!driveSize || driveSize !== localSize) {
+        logger.error(`Verification failed for ${name}: local size ${localSize} bytes, Drive size ${driveSize || 0} bytes`);
+        throw new Error(`Upload verification failed: size mismatch for ${name}.zip`);
+      }
+      logger.info(`Verified ${name}.zip: ${localSize} bytes matches Drive`);
     }
 
     const metadata = { repo: repo.full_name, backed_up_at: new Date().toISOString() };
@@ -60,8 +67,15 @@ async function backupRepo(gh, drive, repo, backupFolderId) {
       if (wikiDir) {
         const wikiZip = `${repoDir}-wiki.zip`;
         await zipDirectory(wikiDir, wikiZip);
-        await drive.uploadFile(wikiZip, repoFolder);
+        const wikiLocalSize = fs.statSync(wikiZip).size;
+        const wikiUploaded = await drive.uploadFile(wikiZip, repoFolder);
         fs.rmSync(wikiZip, { force: true });
+        const wikiDriveSize = parseInt(wikiUploaded.size, 10);
+        if (!wikiDriveSize || wikiDriveSize !== wikiLocalSize) {
+          logger.error(`Verification failed for ${name} wiki: local size ${wikiLocalSize} bytes, Drive size ${wikiDriveSize || 0} bytes`);
+          throw new Error(`Upload verification failed: size mismatch for ${name}-wiki.zip`);
+        }
+        logger.info(`Verified ${name}-wiki.zip: ${wikiLocalSize} bytes matches Drive`);
         metadata.wiki_backed_up = true;
       }
     }
