@@ -87,3 +87,4 @@ jobs:
           name: restore-logs-${{ github.run_id }}
           path: logs/
           retention-days: 30
+          if-no-files-found: ignore
