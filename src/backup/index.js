@@ -18,6 +18,10 @@ async function withRateLimitRetry(fn) {
   try {
     return await fn();
   } catch (err) {
+    if (err.status === 401) {
+      fs.writeFileSync('/tmp/pat-expired', '1');
+      throw new Error('PAT_EXPIRED: GitHub token returned 401');
+    }
     if (err.status === 403 || err.status === 429) {
       const resetHeader = err.response && err.response.headers && err.response.headers['x-ratelimit-reset'];
       const waitMs = resetHeader ? Math.max(0, (parseInt(resetHeader, 10) * 1000) - Date.now()) : 60000;
@@ -130,9 +134,26 @@ async function runBackup(options = {}) {
 
   logger.info(`Backup session folder: ${sessionFolder}`);
 
-  const repos = options.repos
+  let repos = options.repos
     ? options.repos.map(r => ({ owner: { login: r.split('/')[0] }, name: r.split('/')[1] }))
     : await gh.listRepos(owner);
+
+  // Multi-org support
+  const orgsEnv = options.orgs || process.env.GITHUB_ORGS || '';
+  if (orgsEnv) {
+    const orgs = orgsEnv.split(',').map(o => o.trim()).filter(Boolean);
+    for (const org of orgs) {
+      let page = 1;
+      while (true) {
+        const orgRepos = await withRateLimitRetry(() =>
+          gh.octokit.repos.listForOrg({ org, per_page: 100, type: 'all', page }).then(r => r.data)
+        );
+        repos = repos.concat(orgRepos);
+        if (orgRepos.length < 100) break;
+        page++;
+      }
+    }
+  }
 
   logger.info(`Found ${repos.length} repositories`);
 

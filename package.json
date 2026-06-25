@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "Backup and restore all GitHub repositories and metadata to Google Drive",
   "main": "src/server/app.js",
+  "bin": {
+    "gh-gdrive-backup": "./src/cli.js"
+  },
   "scripts": {
     "start": "node src/server/app.js",
     "backup": "node src/backup/index.js",
@@ -22,7 +25,8 @@
     "googleapis": "^144.0.0",
     "multer": "^1.4.5-lts.1",
     "simple-git": "^3.27.0",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "@aws-sdk/client-s3": "^3.600.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"

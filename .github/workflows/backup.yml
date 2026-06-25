@@ -19,6 +19,14 @@ on:
         description: 'What to include (comma-separated: code,issues,pull_requests,releases,wiki,labels,milestones)'
         required: false
         default: 'code,issues,pull_requests,releases,wiki,labels,milestones'
+      orgs:
+        description: 'Comma-separated list of GitHub orgs to also back up (leave blank to skip)'
+        required: false
+        default: ''
+      storage_target:
+        description: 'Storage target: drive or s3'
+        required: false
+        default: 'drive'
 
 jobs:
   backup:
@@ -67,6 +75,8 @@ jobs:
           BACKUP_CONCURRENCY:        '3'
           BACKUP_TMP_DIR:            /tmp/gh-backup
           REPOS:                     ${{ github.event.inputs.repos }}
+          GITHUB_ORGS:               ${{ github.event.inputs.orgs }}
+          STORAGE_TARGET:            ${{ github.event.inputs.storage_target || 'drive' }}
         run: |
           if [ -n "$REPOS" ]; then
             node -e "
@@ -78,6 +88,43 @@ jobs:
           else
             node src/backup/index.js
           fi
+
+      - name: Check for PAT expiry
+        if: failure()
+        run: |
+          if [ -f /tmp/pat-expired ]; then
+            echo "PAT_EXPIRED=true" >> $GITHUB_ENV
+          fi
+
+      - name: Update status - token expired
+        if: failure() && env.PAT_EXPIRED == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const content = JSON.stringify({
+              status: 'token-expired',
+              last_run: new Date().toISOString(),
+              run_url: context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId
+            });
+            const encoded = Buffer.from(content).toString('base64');
+            let sha;
+            try {
+              const res = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: 'docs/status.json'
+              });
+              sha = res.data.sha;
+            } catch (_) {}
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              path: 'docs/status.json',
+              message: 'chore: update backup status [skip ci]',
+              content: encoded,
+              ...(sha ? { sha } : {})
+            });
 
       - name: Update status badge
         if: success()
