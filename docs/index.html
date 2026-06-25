@@ -683,6 +683,23 @@
     .shortcut-row:last-child { border-bottom:none; }
     kbd { background:var(--bg-hover); border:1px solid var(--border-mid); border-radius:5px; padding:2px 8px; font-family:monospace; font-size:12px; font-weight:700; color:var(--text); }
 
+    /* ── Compliance print ────────────────────────────────────────────────── */
+    #compliance-report-print { display: none; }
+    @media print {
+      .sidebar, .topbar, nav, .sidebar-overlay { display: none !important; }
+      .main { margin: 0 !important; padding: 0 !important; }
+      .page { display: none !important; }
+      #compliance-report-print {
+        display: block !important;
+        font-family: Georgia, serif; color: #000; padding: 32px;
+      }
+      #compliance-report-print h1 { font-size: 22px; margin-bottom: 8px; }
+      #compliance-report-print h2 { font-size: 16px; margin: 20px 0 6px; }
+      #compliance-report-print hr { border: none; border-top: 1px solid #ccc; margin: 16px 0; }
+      #compliance-report-print p  { margin: 4px 0; font-size: 13px; }
+      #toast-container, .modal-overlay { display: none !important; }
+    }
+
     /* ── Responsive ───────────────────────────────────────────────────────── */
     @media (max-width: 900px) {
       .two-col { grid-template-columns: 1fr; }
@@ -857,6 +874,22 @@
     <div id="dash-warn" class="notice notice-warn hidden">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
       <span>GitHub or Google Drive not connected — go to <strong>Settings</strong> to configure.</span>
+    </div>
+
+    <div id="dash-quota-warn" class="notice notice-warn hidden" style="justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+        <span id="dash-quota-warn-text">Google Drive storage is over 80% full.</span>
+      </div>
+      <button onclick="document.getElementById('dash-quota-warn').classList.add('hidden');localStorage.setItem('quota_warn_dismissed','1')"
+        style="background:none;border:none;cursor:pointer;color:inherit;font-size:18px;line-height:1;padding:0 4px">&times;</button>
+    </div>
+
+    <div id="dash-token-expired" class="notice hidden" style="background:#fef2f2;border-color:#fca5a5;color:#b91c1c;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+        <span>GitHub token has expired — update the <strong>GH_BACKUP_TOKEN</strong> secret.</span>
+      </div>
     </div>
 
     <div class="stats-grid">
@@ -1075,11 +1108,12 @@
 
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab(this,'tab-github')">GitHub</button>
-      <button class="tab-btn" onclick="switchTab(this,'tab-drive')">Google Drive</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-drive')">Storage</button>
       <button class="tab-btn" onclick="switchTab(this,'tab-secrets')">Actions Secrets</button>
       <button class="tab-btn" onclick="switchTab(this,'tab-setup')">Setup Guide</button>
       <button class="tab-btn" onclick="switchTab(this,'tab-accounts');renderAccounts()">Accounts</button>
       <button class="tab-btn" onclick="switchTab(this,'tab-retention')">Retention</button>
+      <button class="tab-btn" onclick="switchTab(this,'tab-access')">Access Control</button>
     </div>
 
     <!-- GitHub tab -->
@@ -1111,8 +1145,40 @@
       </div>
     </div>
 
-    <!-- Google Drive tab -->
+    <!-- Storage tab -->
     <div id="tab-drive" class="tab-panel">
+      <div class="card" style="margin-bottom:20px">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Storage Target</div>
+            <div class="card-subtitle">Choose where backups are written</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Storage Backend</label>
+          <select id="s-storage-target" class="form-input" style="max-width:200px" onchange="onStorageTargetChange(this.value)">
+            <option value="drive">Google Drive</option>
+            <option value="s3">AWS S3</option>
+          </select>
+        </div>
+        <div id="s3-config" class="hidden">
+          <div class="divider"></div>
+          <div class="form-group">
+            <label class="form-label">S3 Bucket Name</label>
+            <input type="text" id="s-aws-bucket" class="form-input" placeholder="my-backup-bucket" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">AWS Region</label>
+            <input type="text" id="s-aws-region" class="form-input" placeholder="us-east-1" style="max-width:200px" />
+          </div>
+          <div class="notice notice-info">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
+            <span>Set <code>AWS_ACCESS_KEY_ID</code> and <code>AWS_SECRET_ACCESS_KEY</code> as GitHub Actions secrets. Set <code>STORAGE_TARGET=s3</code> in the workflow dispatch input.</span>
+          </div>
+          <button class="btn btn-primary" onclick="saveS3Settings()">Save S3 Settings</button>
+        </div>
+      </div>
+
       <div class="card">
         <div class="card-header">
           <div>
@@ -1152,6 +1218,7 @@
 
         <!-- Disconnected -->
         <div id="drive-disconnected-ui">
+
           <div class="form-group">
             <div class="form-label">Google OAuth Client ID</div>
             <input type="text" id="s-google-client-id" class="form-input"
@@ -1179,7 +1246,8 @@
           <div id="drive-conn-result" class="mt-4"></div>
         </div>
       </div>
-    </div>
+      </div><!-- /card: Google Drive Connection -->
+    </div><!-- /tab-drive -->
 
     <!-- Secrets tab -->
     <div id="tab-secrets" class="tab-panel">
@@ -1347,6 +1415,39 @@
       </div>
     </div>
 
+    <!-- Access Control tab -->
+    <div id="tab-access" class="tab-panel">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Restore Allow-list</div>
+            <div class="card-subtitle">Only listed GitHub usernames may dispatch the restore workflow from this dashboard. Leave empty to allow all.</div>
+          </div>
+        </div>
+        <div id="access-current-user" class="notice notice-info mb-4 hidden">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
+          <span>Your GitHub username: <strong id="access-gh-username">—</strong> — <a href="#" onclick="addSelfToAllowlist();return false">Add me</a></span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Add GitHub Username</label>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="access-new-user" class="form-input" placeholder="github-username" style="flex:1" />
+            <button class="btn btn-primary" onclick="addToAllowlist()">Add</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Current Allow-list</label>
+          <div id="access-list" style="display:flex;flex-direction:column;gap:6px;min-height:32px">
+            <p class="muted" style="font-size:13px">Empty — all users permitted.</p>
+          </div>
+        </div>
+        <div class="notice notice-warn mt-4 hidden" id="access-empty-notice">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+          <span>Allow-list is now empty — all authenticated users can trigger restores.</span>
+        </div>
+      </div>
+    </div>
+
   </section>
 
 
@@ -1365,6 +1466,10 @@
         <button class="btn btn-secondary" onclick="exportReportCSV()">
           <svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
           Export CSV
+        </button>
+        <button class="btn btn-secondary" onclick="exportCompliancePDF()">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm-1 1.5L18.5 9H13V3.5zM8 17h8v1H8v-1zm0-3h8v1H8v-1zm0-3h5v1H8v-1z"/></svg>
+          Export Compliance Report
         </button>
       </div>
     </div>
@@ -1475,6 +1580,32 @@
       </div>
     </div>
   </section>
+
+  <!-- Compliance report — only visible in print -->
+  <div id="compliance-report-print">
+    <h1>GitHub Backup Compliance Report</h1>
+    <p><strong>Project:</strong> github-gdrive-backup</p>
+    <p><strong>Generated:</strong> <span id="cpr-date"></span></p>
+    <hr>
+    <h2>Configuration</h2>
+    <p><strong>Backup schedule:</strong> <span id="cpr-schedule">Daily at 02:00 UTC</span></p>
+    <p><strong>Retention policy:</strong> <span id="cpr-retention"></span></p>
+    <p><strong>Storage target:</strong> <span id="cpr-storage"></span></p>
+    <hr>
+    <h2>Last 90 Days — Run Summary</h2>
+    <p><strong>Total runs:</strong> <span id="cpr-total"></span></p>
+    <p><strong>Successful:</strong> <span id="cpr-success"></span></p>
+    <p><strong>Failed:</strong> <span id="cpr-failed"></span></p>
+    <p><strong>Success rate:</strong> <span id="cpr-rate"></span></p>
+    <hr>
+    <h2>Recent Runs</h2>
+    <table id="cpr-table" style="width:100%;border-collapse:collapse;font-size:12px">
+      <thead><tr><th style="text-align:left;border-bottom:1px solid #ccc;padding:4px 8px">Run</th><th style="text-align:left;border-bottom:1px solid #ccc;padding:4px 8px">Status</th><th style="text-align:left;border-bottom:1px solid #ccc;padding:4px 8px">Started</th><th style="text-align:left;border-bottom:1px solid #ccc;padding:4px 8px">Duration</th></tr></thead>
+      <tbody id="cpr-tbody"></tbody>
+    </table>
+    <hr>
+    <p style="font-size:11px;color:#666">This report was generated from live GitHub Actions data. Tokens are stored only in the browser and never transmitted to any server other than api.github.com.</p>
+  </div>
 
 </main>
 
@@ -1588,7 +1719,7 @@ function navTo(page) {
   if (page === 'backup')    { loadRepos(); updateBackupDriveBanner(); }
   if (page === 'restore')   loadSessions();
   if (page === 'runs')      loadRuns();
-  if (page === 'settings')  initSettings();
+  if (page === 'settings')  { initSettings(); initAccessTab(); }
   if (page === 'reports')   loadReports();
 }
 
@@ -2519,6 +2650,162 @@ function wizardReset() {
   wizardRender();
 }
 
+// ── Drive quota warning ───────────────────────────────────────────────────────
+async function checkDriveQuotaWarning() {
+  if (!driveToken) return;
+  if (localStorage.getItem('quota_warn_dismissed') === '1') return;
+  try {
+    const about = await driveFetch('/drive/v3/about?fields=storageQuota');
+    const q = about.storageQuota;
+    const used = parseInt(q.usage || 0), total = parseInt(q.limit || 0);
+    const pct = total ? Math.round(used / total * 100) : 0;
+    if (pct > 80) {
+      const gb = n => (n / 1024 / 1024 / 1024).toFixed(1);
+      document.getElementById('dash-quota-warn-text').textContent =
+        `Google Drive storage is over ${pct}% full — ${gb(used)} GB of ${gb(total)} GB used.`;
+      document.getElementById('dash-quota-warn').classList.remove('hidden');
+    }
+  } catch (_) {}
+}
+
+// ── PAT expiry banner ─────────────────────────────────────────────────────────
+async function checkTokenExpiredStatus() {
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/docs/status.json`);
+    if (!res.ok) return;
+    const s = await res.json();
+    if (s.status === 'token-expired') {
+      document.getElementById('dash-token-expired').classList.remove('hidden');
+    }
+  } catch (_) {}
+}
+
+// ── Storage target ────────────────────────────────────────────────────────────
+function onStorageTargetChange(val) {
+  const s3 = document.getElementById('s3-config');
+  if (val === 's3') s3.classList.remove('hidden');
+  else s3.classList.add('hidden');
+  localStorage.setItem('storage_target', val);
+}
+
+function saveS3Settings() {
+  const bucket = document.getElementById('s-aws-bucket').value.trim();
+  const region = document.getElementById('s-aws-region').value.trim();
+  localStorage.setItem('aws_bucket', bucket);
+  localStorage.setItem('aws_region', region);
+  showToast('S3 settings saved', 'success');
+}
+
+// ── Access control ────────────────────────────────────────────────────────────
+function getAllowlist() {
+  return JSON.parse(localStorage.getItem('restore_allowlist') || '[]');
+}
+
+function saveAllowlist(list) {
+  localStorage.setItem('restore_allowlist', JSON.stringify(list));
+}
+
+function renderAllowlist() {
+  const list = getAllowlist();
+  const el = document.getElementById('access-list');
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<p class="muted" style="font-size:13px">Empty — all users permitted.</p>';
+  } else {
+    el.innerHTML = list.map(u => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:7px">
+        <span style="flex:1;font-size:13px;font-weight:500;color:var(--text-2)">${u}</span>
+        <button class="btn btn-secondary" style="font-size:11px;padding:3px 10px" onclick="removeFromAllowlist('${u}')">Remove</button>
+      </div>`).join('');
+  }
+}
+
+function addToAllowlist() {
+  const input = document.getElementById('access-new-user');
+  const val = input.value.trim();
+  if (!val) return;
+  const list = getAllowlist();
+  if (!list.includes(val)) { list.push(val); saveAllowlist(list); }
+  input.value = '';
+  renderAllowlist();
+  showToast(`Added ${val} to allow-list`, 'success');
+}
+
+function addSelfToAllowlist() {
+  if (!ghUser) return;
+  const list = getAllowlist();
+  if (!list.includes(ghUser)) { list.push(ghUser); saveAllowlist(list); }
+  renderAllowlist();
+  showToast(`Added ${ghUser} to allow-list`, 'success');
+}
+
+function removeFromAllowlist(user) {
+  const list = getAllowlist().filter(u => u !== user);
+  saveAllowlist(list);
+  renderAllowlist();
+  if (!list.length) document.getElementById('access-empty-notice')?.classList.remove('hidden');
+  showToast(`Removed ${user} from allow-list`, 'info');
+}
+
+function initAccessTab() {
+  renderAllowlist();
+  if (ghUser) {
+    const el = document.getElementById('access-current-user');
+    const nameEl = document.getElementById('access-gh-username');
+    if (el) el.classList.remove('hidden');
+    if (nameEl) nameEl.textContent = ghUser;
+  }
+}
+
+// Patch doTriggerRestore to check allow-list
+const _origDoTriggerRestore = doTriggerRestore;
+async function doTriggerRestore() {
+  const list = getAllowlist();
+  if (list.length > 0) {
+    // Fetch current GH username fresh
+    let currentUser = ghUser;
+    try {
+      const u = await ghFetch('/user');
+      currentUser = u.login;
+    } catch (_) {}
+    if (!list.includes(currentUser)) {
+      showToast('Your GitHub username is not in the restore allow-list.', 'error');
+      return;
+    }
+  }
+  return _origDoTriggerRestore();
+}
+
+// ── Compliance PDF ────────────────────────────────────────────────────────────
+function exportCompliancePDF() {
+  const now = new Date();
+  document.getElementById('cpr-date').textContent = now.toISOString().slice(0, 19).replace('T', ' ') + ' UTC';
+  document.getElementById('cpr-retention').textContent = (localStorage.getItem('retention_days') || '0') + ' days';
+  document.getElementById('cpr-storage').textContent = localStorage.getItem('storage_target') || 'drive';
+
+  const done = reportRuns.filter(r => r.conclusion);
+  const succ = done.filter(r => r.conclusion === 'success');
+  const fail = done.filter(r => r.conclusion === 'failure');
+  const rate = done.length ? Math.round(succ.length / done.length * 100) : 0;
+  const cutoff = now.getTime() - 90 * 86400000;
+  const last90 = done.filter(r => new Date(r.created_at).getTime() >= cutoff);
+
+  document.getElementById('cpr-total').textContent = last90.length;
+  document.getElementById('cpr-success').textContent = last90.filter(r => r.conclusion === 'success').length;
+  document.getElementById('cpr-failed').textContent  = last90.filter(r => r.conclusion === 'failure').length;
+  document.getElementById('cpr-rate').textContent = rate + '%';
+
+  const tbody = document.getElementById('cpr-tbody');
+  tbody.innerHTML = last90.slice(0, 20).map(r => {
+    const dur = r.updated_at && r.created_at
+      ? (() => { const s = Math.round((new Date(r.updated_at) - new Date(r.created_at)) / 1000); return s > 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`; })()
+      : '—';
+    return `<tr><td style="padding:4px 8px;border-bottom:1px solid #eee">#${r.run_number}</td><td style="padding:4px 8px;border-bottom:1px solid #eee">${r.conclusion || r.status}</td><td style="padding:4px 8px;border-bottom:1px solid #eee">${new Date(r.created_at).toISOString().slice(0,16).replace('T',' ')}</td><td style="padding:4px 8px;border-bottom:1px solid #eee">${dur}</td></tr>`;
+  }).join('');
+
+  window.print();
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 updateGHStatus();
 updateDriveStatus();
@@ -2526,6 +2813,19 @@ loadDashboard();
 updateBackupDriveBanner();
 renderBarChart();
 wizardRender();
+checkDriveQuotaWarning();
+checkTokenExpiredStatus();
+
+// Init storage target selector
+(function() {
+  const target = localStorage.getItem('storage_target') || 'drive';
+  const sel = document.getElementById('s-storage-target');
+  if (sel) { sel.value = target; onStorageTargetChange(target); }
+  const bucket = localStorage.getItem('aws_bucket') || '';
+  const region = localStorage.getItem('aws_region') || '';
+  const b = document.getElementById('s-aws-bucket'); if (b) b.value = bucket;
+  const r = document.getElementById('s-aws-region'); if (r) r.value = region;
+})();
 
 // Load retention settings
 const retDays = document.getElementById('retention-days');
