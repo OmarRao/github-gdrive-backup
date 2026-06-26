@@ -27,10 +27,22 @@ on:
         description: 'Storage target: drive or s3'
         required: false
         default: 'drive'
+      runner:
+        description: 'Runner label'
+        required: false
+        default: 'ubuntu-latest'
+      gitlab_token:
+        description: 'GitLab personal access token (optional)'
+        required: false
+        default: ''
+      gitlab_host:
+        description: 'GitLab host URL'
+        required: false
+        default: 'https://gitlab.com'
 
 jobs:
   backup:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
     permissions:
       contents: write
 
@@ -77,6 +89,9 @@ jobs:
           REPOS:                     ${{ github.event.inputs.repos }}
           GITHUB_ORGS:               ${{ github.event.inputs.orgs }}
           STORAGE_TARGET:            ${{ github.event.inputs.storage_target || 'drive' }}
+          GITLAB_TOKEN:              ${{ github.event.inputs.gitlab_token }}
+          GITLAB_HOST:               ${{ github.event.inputs.gitlab_host || 'https://gitlab.com' }}
+          BACKUP_ENCRYPTION_KEY:     ${{ secrets.BACKUP_ENCRYPTION_KEY }}
         run: |
           if [ -n "$REPOS" ]; then
             node -e "
@@ -88,6 +103,18 @@ jobs:
           else
             node src/backup/index.js
           fi
+
+      - name: Run npm audit on backed-up Node repos
+        if: success()
+        continue-on-error: true
+        env:
+          BACKUP_TMP_DIR: /tmp/gh-backup
+        run: |
+          find /tmp/gh-backup -name "package.json" -not -path "*/node_modules/*" | head -20 | while read pj; do
+            dir=$(dirname "$pj")
+            repo=$(basename "$dir")
+            npm audit --json --prefix "$dir" > "/tmp/gh-backup/${repo}.audit.json" 2>/dev/null || true
+          done
 
       - name: Check for PAT expiry
         if: failure()
@@ -156,11 +183,55 @@ jobs:
               ...(sha ? { sha } : {})
             });
 
+      - name: Send webhook notification
+        if: always()
+        continue-on-error: true
+        env:
+          WEBHOOK_URL: ${{ secrets.BACKUP_WEBHOOK_URL }}
+          CONCLUSION: ${{ job.status }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -n "$WEBHOOK_URL" ]; then
+            curl -s -X POST "$WEBHOOK_URL" \
+              -H "Content-Type: application/json" \
+              -d "{\"event\":\"backup_complete\",\"status\":\"$CONCLUSION\",\"run_url\":\"$RUN_URL\",\"timestamp\":\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\"}"
+          fi
+
+      - name: Append audit log entry
+        if: always()
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const conclusion = context.job === 'backup' ? '${{ job.status }}' : 'unknown';
+            const runUrl = context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId;
+            const line = `${new Date().toISOString()} | backup | conclusion=${conclusion} | run=${runUrl}\n`;
+            let existing = '';
+            let sha;
+            try {
+              const res = await github.rest.repos.getContent({
+                owner: context.repo.owner, repo: context.repo.repo, path: 'docs/audit.log'
+              });
+              sha = res.data.sha;
+              existing = Buffer.from(res.data.content, 'base64').toString('utf8');
+            } catch (_) {}
+            const updated = existing + line;
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner, repo: context.repo.repo,
+              path: 'docs/audit.log',
+              message: 'chore: audit log [skip ci]',
+              content: Buffer.from(updated).toString('base64'),
+              ...(sha ? { sha } : {})
+            });
+
       - name: Upload log artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backup-logs-${{ github.run_id }}
-          path: logs/
+          path: |
+            logs/
+            /tmp/gh-backup/*.audit.json
           retention-days: 30
           if-no-files-found: ignore

@@ -350,3 +350,74 @@ MIT — see [LICENSE](LICENSE)
 [![Substack](https://img.shields.io/badge/Substack-omarrao-ff6719?logo=substack&logoColor=white)](https://substack.com/@omarrao)
 
 > Writing about data resilience, backup engineering, and practical cybersecurity at [omarrao.substack.com](https://omarrao.substack.com/)
+
+---
+
+## Docker
+
+Run the backup tool in a container:
+
+```bash
+docker run -e GITHUB_TOKEN=ghp_... \
+  -e GITHUB_USER=your-username \
+  -e GDRIVE_FOLDER_ID=your-folder-id \
+  -e GOOGLE_CLIENT_SECRET_PATH=/app/credentials/google-client-secret.json \
+  -e GOOGLE_TOKEN_PATH=/app/credentials/google-token.json \
+  -v /path/to/credentials:/app/credentials \
+  ghcr.io/omarrao/github-gdrive-backup:latest backup
+```
+
+The Docker image is published to GitHub Container Registry on each release. Pull the latest:
+
+```bash
+docker pull ghcr.io/omarrao/github-gdrive-backup:latest
+```
+
+---
+
+## Self-Hosted Runners
+
+All three workflows (backup, restore, cleanup) support self-hosted runners. When dispatching manually, set the **Runner label** input to your runner's label (e.g. `self-hosted` or `my-mac-mini`).
+
+Self-hosted runners are useful when you need:
+- Faster network access to your GitHub Enterprise instance
+- Pre-installed tools (e.g. `syft` for SBOM generation)
+- Custom credentials storage
+
+---
+
+## GitLab Source
+
+Back up GitLab projects alongside GitHub repos. Set these GitHub Actions secrets:
+
+| Secret | Value |
+|--------|-------|
+| `GITLAB_TOKEN` | GitLab personal access token with `read_api` and `read_repository` scopes |
+
+Optionally set `GITLAB_HOST` if you use a self-hosted GitLab instance (default: `https://gitlab.com`).
+
+When dispatching the backup workflow manually, enter your token in the **GitLab Token** input. GitLab repos are uploaded with a `gitlab-` filename prefix to the same Drive session folder.
+
+---
+
+## Backup Encryption
+
+Set the `BACKUP_ENCRYPTION_KEY` GitHub Actions secret to a 32-byte hex string (64 hex characters) to enable AES-256-CBC encryption of all backup zips.
+
+Generate a key:
+
+```bash
+openssl rand -hex 32
+```
+
+When encryption is enabled, backup files are stored as `.zip.enc` instead of `.zip`. The first 16 bytes of each encrypted file are the IV; the remainder is the ciphertext. The restore workflow automatically decrypts files when `BACKUP_ENCRYPTION_KEY` is set.
+
+---
+
+## Community
+
+See the [`community/`](community/) directory for ready-to-post submissions:
+
+- [`community/show-hn.md`](community/show-hn.md) — Show HN submission
+- [`community/awesome-selfhosted.md`](community/awesome-selfhosted.md) — awesome-selfhosted entry
+- [`community/product-hunt.md`](community/product-hunt.md) — Product Hunt launch copy
