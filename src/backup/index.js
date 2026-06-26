@@ -1,6 +1,8 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const { execSync } = require('child_process');
 const archiver = require('archiver');
 const GitHubClient = require('./github');
 const GoogleDriveClient = require('./gdrive');
@@ -45,6 +47,24 @@ async function zipDirectory(srcDir, outFile) {
   });
 }
 
+function computeSha256(filePath) {
+  const hash = crypto.createHash('sha256');
+  const data = fs.readFileSync(filePath);
+  hash.update(data);
+  return hash.digest('hex');
+}
+
+function encryptFile(inputPath, outputPath, keyHex) {
+  const key = Buffer.from(keyHex, 'hex');
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+  const input = fs.readFileSync(inputPath);
+  const encrypted = Buffer.concat([cipher.update(input), cipher.final()]);
+  // Prepend IV as first 16 bytes
+  const output = Buffer.concat([iv, encrypted]);
+  fs.writeFileSync(outputPath, output);
+}
+
 async function backupRepo(gh, drive, repo, backupFolderId) {
   const { owner, name } = repo;
   const repoDir = path.join(TMP, `${owner.login}-${name}-${Date.now()}`);
@@ -52,20 +72,53 @@ async function backupRepo(gh, drive, repo, backupFolderId) {
 
   const repoFolder = await drive.ensureFolder(name, backupFolderId);
 
+  let manifestEntry = null;
+
   try {
     if (INCLUDE.includes('code')) {
       await gh.cloneRepo(repo, repoDir);
       const zipPath = `${repoDir}.zip`;
       await zipDirectory(repoDir, zipPath);
+
+      // Compute SHA-256 of the zip
+      const sha256 = computeSha256(zipPath);
       const localSize = fs.statSync(zipPath).size;
-      const uploaded = await drive.uploadFile(zipPath, repoFolder);
-      fs.rmSync(zipPath, { force: true });
-      const driveSize = parseInt(uploaded.size, 10);
-      if (!driveSize || driveSize !== localSize) {
-        logger.error(`Verification failed for ${name}: local size ${localSize} bytes, Drive size ${driveSize || 0} bytes`);
-        throw new Error(`Upload verification failed: size mismatch for ${name}.zip`);
+
+      const encryptionKey = process.env.BACKUP_ENCRYPTION_KEY;
+      let uploadPath = zipPath;
+      let uploadFileName = `${name}.zip`;
+      let encrypted = false;
+
+      if (encryptionKey) {
+        const encPath = `${zipPath}.enc`;
+        encryptFile(zipPath, encPath, encryptionKey);
+        fs.rmSync(zipPath, { force: true });
+        uploadPath = encPath;
+        uploadFileName = `${name}.zip.enc`;
+        encrypted = true;
       }
-      logger.info(`Verified ${name}.zip: ${localSize} bytes matches Drive`);
+
+      const uploaded = await drive.uploadFile(uploadPath, repoFolder);
+      fs.rmSync(uploadPath, { force: true });
+
+      if (!encrypted) {
+        const driveSize = parseInt(uploaded.size, 10);
+        if (!driveSize || driveSize !== localSize) {
+          logger.error(`Verification failed for ${name}: local size ${localSize} bytes, Drive size ${driveSize || 0} bytes`);
+          throw new Error(`Upload verification failed: size mismatch for ${name}.zip`);
+        }
+        logger.info(`Verified ${name}.zip: ${localSize} bytes matches Drive`);
+      } else {
+        logger.info(`Uploaded encrypted ${name}.zip.enc (original zip size: ${localSize} bytes)`);
+      }
+
+      manifestEntry = {
+        repo: repo.full_name,
+        file: uploadFileName,
+        size: localSize,
+        sha256,
+        encrypted,
+      };
     }
 
     const metadata = { repo: repo.full_name, backed_up_at: new Date().toISOString() };
@@ -105,9 +158,67 @@ async function backupRepo(gh, drive, repo, backupFolderId) {
 
     await drive.uploadJson('metadata.json', metadata, repoFolder);
     logger.info(`✓ ${repo.full_name} backed up`);
-    return { repo: repo.full_name, status: 'success', driveFolder: repoFolder };
+    return {
+      repo: repo.full_name,
+      status: 'success',
+      driveFolder: repoFolder,
+      ...(manifestEntry || {}),
+    };
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
+  }
+}
+
+async function backupGitLabProject(drive, project, sessionFolder, gitlabToken, gitlabHost) {
+  const projectPath = project.path_with_namespace;
+  const repoName = project.path;
+  const safeDir = path.join(TMP, `gitlab-${repoName}-${Date.now()}`);
+  fs.mkdirSync(safeDir, { recursive: true });
+
+  const repoFolder = await drive.ensureFolder(`gitlab-${repoName}`, sessionFolder);
+
+  let manifestEntry = null;
+
+  try {
+    const cloneUrl = `https://oauth2:${gitlabToken}@${gitlabHost.replace(/^https?:\/\//, '')}/${projectPath}.git`;
+    execSync(`git clone --mirror "${cloneUrl}" "${safeDir}"`, { stdio: 'pipe' });
+
+    const zipPath = `${safeDir}.zip`;
+    await zipDirectory(safeDir, zipPath);
+
+    const sha256 = computeSha256(zipPath);
+    const localSize = fs.statSync(zipPath).size;
+
+    const encryptionKey = process.env.BACKUP_ENCRYPTION_KEY;
+    let uploadPath = zipPath;
+    let uploadFileName = `gitlab-${repoName}.zip`;
+    let encrypted = false;
+
+    if (encryptionKey) {
+      const encPath = `${zipPath}.enc`;
+      encryptFile(zipPath, encPath, encryptionKey);
+      fs.rmSync(zipPath, { force: true });
+      uploadPath = encPath;
+      uploadFileName = `gitlab-${repoName}.zip.enc`;
+      encrypted = true;
+    }
+
+    await drive.uploadFile(uploadPath, repoFolder);
+    fs.rmSync(uploadPath, { force: true });
+
+    logger.info(`✓ GitLab ${projectPath} backed up`);
+
+    manifestEntry = {
+      repo: `gitlab:${projectPath}`,
+      file: uploadFileName,
+      size: localSize,
+      sha256,
+      encrypted,
+    };
+
+    return { repo: `gitlab:${projectPath}`, status: 'success', driveFolder: repoFolder, ...manifestEntry };
+  } finally {
+    fs.rmSync(safeDir, { recursive: true, force: true });
   }
 }
 
@@ -130,7 +241,8 @@ async function runBackup(options = {}) {
   const drive = new GoogleDriveClient(auth);
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const sessionFolder = await drive.ensureFolder(`backup-${timestamp}`, rootFolderId);
+  const sessionName = `backup-${timestamp}`;
+  const sessionFolder = await drive.ensureFolder(sessionName, rootFolderId);
 
   logger.info(`Backup session folder: ${sessionFolder}`);
 
@@ -172,6 +284,81 @@ async function runBackup(options = {}) {
     });
     if (i + CONCURRENCY < repos.length) await sleep(200);
   }
+
+  // GitLab backup
+  const gitlabToken = process.env.GITLAB_TOKEN;
+  if (gitlabToken) {
+    const gitlabHost = process.env.GITLAB_HOST || 'https://gitlab.com';
+    const gitlabApiBase = `${gitlabHost}/api/v4`;
+    logger.info(`Starting GitLab backup from ${gitlabHost}`);
+
+    let glPage = 1;
+    let gitlabProjects = [];
+    while (true) {
+      let pageProjects = [];
+      try {
+        const { https, http } = await (async () => {
+          const mod = gitlabHost.startsWith('https') ? require('https') : require('http');
+          return { https: mod, http: mod };
+        })();
+        // Use built-in https/http to fetch GitLab projects
+        const pageData = await new Promise((resolve, reject) => {
+          const url = new URL(`${gitlabApiBase}/projects?membership=true&per_page=100&page=${glPage}`);
+          const reqModule = url.protocol === 'https:' ? require('https') : require('http');
+          const req = reqModule.get(url.toString(), { headers: { 'PRIVATE-TOKEN': gitlabToken } }, (res) => {
+            let body = '';
+            res.on('data', chunk => { body += chunk; });
+            res.on('end', () => {
+              try { resolve(JSON.parse(body)); } catch (e) { reject(e); }
+            });
+          });
+          req.on('error', reject);
+        });
+        pageProjects = Array.isArray(pageData) ? pageData : [];
+      } catch (glErr) {
+        logger.error(`GitLab API page ${glPage} fetch failed: ${glErr.message}`);
+        break;
+      }
+      gitlabProjects = gitlabProjects.concat(pageProjects);
+      if (pageProjects.length < 100) break;
+      glPage++;
+    }
+
+    logger.info(`Found ${gitlabProjects.length} GitLab projects`);
+
+    for (const project of gitlabProjects) {
+      try {
+        const glResult = await backupGitLabProject(drive, project, sessionFolder, gitlabToken, gitlabHost);
+        results.push(glResult);
+      } catch (glErr) {
+        logger.error(`GitLab project ${project.path_with_namespace} failed: ${glErr.message}`);
+        results.push({ repo: `gitlab:${project.path_with_namespace}`, status: 'failed', error: glErr.message });
+      }
+    }
+  }
+
+  // Build SHA-256 manifest
+  const manifestRepos = results
+    .filter(r => r.status === 'success' && r.file && r.sha256)
+    .map(r => ({
+      repo: r.repo,
+      file: r.file,
+      size: r.size,
+      sha256: r.sha256,
+      ...(r.encrypted !== undefined ? { encrypted: r.encrypted } : {}),
+    }));
+
+  const manifest = {
+    session: sessionName,
+    generated: new Date().toISOString(),
+    repos: manifestRepos,
+  };
+
+  const manifestPath = path.join(TMP, `manifest-${timestamp}.json`);
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  await drive.uploadFile(manifestPath, sessionFolder);
+  fs.rmSync(manifestPath, { force: true });
+  logger.info(`Manifest written with ${manifestRepos.length} entries`);
 
   const summary = {
     timestamp,

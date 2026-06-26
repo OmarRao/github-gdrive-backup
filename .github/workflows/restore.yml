@@ -21,10 +21,19 @@ on:
         default: 'true'
         type: choice
         options: ['true', 'false']
+      dry_run:
+        description: 'Perform a dry run without making changes'
+        required: false
+        default: 'false'
+        type: boolean
+      runner:
+        description: 'Runner label'
+        required: false
+        default: 'ubuntu-latest'
 
 jobs:
   restore:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
 
     steps:
       - name: Checkout
@@ -67,6 +76,8 @@ jobs:
           INPUT_REPOS:               ${{ github.event.inputs.repos }}
           INPUT_TARGET_OWNER:        ${{ github.event.inputs.target_owner }}
           INPUT_PRIVATE:             ${{ github.event.inputs.private }}
+          DRY_RUN:                   ${{ github.event.inputs.dry_run || 'false' }}
+          BACKUP_ENCRYPTION_KEY:     ${{ secrets.BACKUP_ENCRYPTION_KEY }}
         run: |
           node -e "
             const { runRestore } = require('./src/restore/index');
@@ -88,3 +99,31 @@ jobs:
           path: logs/
           retention-days: 30
           if-no-files-found: ignore
+
+      - name: Append audit log entry
+        if: always()
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const conclusion = context.job === 'restore' ? '${{ job.status }}' : 'unknown';
+            const runUrl = context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId;
+            const line = `${new Date().toISOString()} | restore | conclusion=${conclusion} | run=${runUrl}\n`;
+            let existing = '';
+            let sha;
+            try {
+              const res = await github.rest.repos.getContent({
+                owner: context.repo.owner, repo: context.repo.repo, path: 'docs/audit.log'
+              });
+              sha = res.data.sha;
+              existing = Buffer.from(res.data.content, 'base64').toString('utf8');
+            } catch (_) {}
+            const updated = existing + line;
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner, repo: context.repo.repo,
+              path: 'docs/audit.log',
+              message: 'chore: audit log [skip ci]',
+              content: Buffer.from(updated).toString('base64'),
+              ...(sha ? { sha } : {})
+            });

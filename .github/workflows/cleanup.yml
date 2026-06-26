@@ -9,10 +9,14 @@ on:
         description: 'Delete sessions older than N days'
         required: false
         default: '90'
+      runner:
+        description: 'Runner label'
+        required: false
+        default: 'ubuntu-latest'
 
 jobs:
   cleanup:
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
     permissions:
       contents: write
 
