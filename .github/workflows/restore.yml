@@ -103,7 +103,7 @@ jobs:
       - name: Append audit log entry
         if: always()
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
