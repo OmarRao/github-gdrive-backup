@@ -8,6 +8,125 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <script src="https://accounts.google.com/gsi/client" async></script>
+
+  <!-- Auth globals (classic script) — defined BEFORE the Firebase module so the module can call them -->
+  <script>
+    // Firebase config — replace with your project values from console.firebase.google.com
+    const FIREBASE_CONFIG = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "YOUR_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    window.DEMO_MODE = false;
+    window.currentUser = null;
+
+    // Show the full-screen login overlay; hide the app shell.
+    window.showLoginScreen = function () {
+      const ls = document.getElementById('login-screen');
+      if (ls) ls.style.display = 'flex';
+      document.body.classList.add('locked');
+      const nu = document.getElementById('nav-user');
+      if (nu) nu.style.display = 'none';
+    };
+
+    // Hide the login overlay, reveal the dashboard, optionally show the user's avatar in nav.
+    window.showDashboard = function (user) {
+      const ls = document.getElementById('login-screen');
+      if (ls) ls.style.display = 'none';
+      document.body.classList.remove('locked');
+      window.currentUser = user || null;
+      const nu = document.getElementById('nav-user');
+      if (nu) {
+        if (user) {
+          nu.style.display = 'flex';
+          const av = document.getElementById('nav-user-avatar');
+          const nm = document.getElementById('nav-user-name');
+          if (av) {
+            if (user.photoURL) { av.src = user.photoURL; av.style.display = 'block'; av.nextElementSibling.style.display = 'none'; }
+            else { av.style.display = 'none'; av.nextElementSibling.style.display = 'flex'; av.nextElementSibling.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase(); }
+          }
+          if (nm) nm.textContent = user.displayName || user.email || 'Signed in';
+        } else {
+          nu.style.display = 'none';
+        }
+      }
+      // Refresh the active page's data now that the shell is visible.
+      if (typeof loadDashboard === 'function') { try { loadDashboard(); } catch (e) {} }
+    };
+
+    // Demo mode — load sample data without any real auth or API calls.
+    window.enableDemoMode = function () {
+      window.DEMO_MODE = true;
+      const ls = document.getElementById('login-screen');
+      if (ls) ls.style.display = 'none';
+      document.body.classList.remove('locked');
+      const banner = document.getElementById('demo-banner');
+      if (banner) banner.style.display = 'flex';
+      const nu = document.getElementById('nav-user');
+      if (nu) {
+        nu.style.display = 'flex';
+        const av = document.getElementById('nav-user-avatar');
+        if (av) { av.style.display = 'none'; av.nextElementSibling.style.display = 'flex'; av.nextElementSibling.textContent = 'D'; }
+        const nm = document.getElementById('nav-user-name');
+        if (nm) nm.textContent = 'Demo User';
+      }
+      if (typeof loadDashboard === 'function') { try { loadDashboard(); } catch (e) {} }
+      if (typeof showToast === 'function') showToast('Demo mode enabled — showing sample data', 'info');
+    };
+
+    // Buttons that would hit real APIs call this guard while in demo mode.
+    window.demoGuard = function () {
+      if (window.DEMO_MODE) {
+        if (typeof showToast === 'function') showToast('Sign in to use live features', 'info');
+        return true;
+      }
+      return false;
+    };
+  </script>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js';
+    import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.0/firebase-auth.js';
+
+    // Only init Firebase if config is filled in
+    let auth = null;
+    if (FIREBASE_CONFIG.apiKey !== 'YOUR_API_KEY') {
+      const app = initializeApp(FIREBASE_CONFIG);
+      auth = getAuth(app);
+      onAuthStateChanged(auth, (user) => {
+        if (window.DEMO_MODE) return; // don't clobber demo mode
+        if (user) showDashboard(user);
+        else showLoginScreen();
+      });
+    } else {
+      // No Firebase config — show login screen with demo option only
+      if (!window.DEMO_MODE) showLoginScreen();
+    }
+
+    window.firebaseSignIn = async () => {
+      if (!auth) {
+        if (typeof showToast === 'function') showToast('Firebase not configured — use Try Demo, or fill in FIREBASE_CONFIG.', 'info');
+        return;
+      }
+      const provider = new GoogleAuthProvider();
+      try { await signInWithPopup(auth, provider); }
+      catch (e) { if (typeof showToast === 'function') showToast('Sign-in failed: ' + (e.message || e.code), 'error'); }
+    };
+
+    window.firebaseSignOut = async () => {
+      if (auth) await signOut(auth);
+      window.DEMO_MODE = false;
+      const banner = document.getElementById('demo-banner');
+      if (banner) banner.style.display = 'none';
+      showLoginScreen();
+    };
+  </script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -750,11 +869,152 @@
     }
 
     @media (max-width: 440px) {
-      .stats-grid { grid-template-columns: 1fr; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
     }
+
+    /* ── Page top accent bar (blue → purple) ──────────────────────────────── */
+    .top-accent-bar {
+      position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 250;
+      background: linear-gradient(90deg, #2563eb 0%, #7c3aed 100%);
+    }
+
+    /* ── Body lock while login overlay is shown ───────────────────────────── */
+    body.locked { overflow: hidden; }
+    body.locked .sidebar, body.locked .topbar, body.locked .main, body.locked #toast-container { filter: blur(2px); pointer-events: none; }
+
+    /* ── Login overlay ────────────────────────────────────────────────────── */
+    #login-screen {
+      position: fixed; inset: 0; z-index: 1000;
+      display: none; align-items: center; justify-content: center;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      padding: 24px;
+    }
+    .login-card {
+      background: #fff; border-radius: 16px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.4);
+      width: 100%; max-width: 400px; padding: 36px 32px;
+      text-align: center; animation: fadeUp .35s ease both;
+    }
+    .login-logo {
+      width: 60px; height: 60px; border-radius: 16px; margin: 0 auto 18px;
+      background: #eff6ff; display: flex; align-items: center; justify-content: center;
+    }
+    .login-logo svg { width: 34px; height: 34px; fill: #2563eb; }
+    .login-title { font-size: 24px; font-weight: 700; color: #0f172a; letter-spacing: -.4px; }
+    .login-tagline { font-size: 13.5px; color: #64748b; margin-top: 8px; line-height: 1.5; }
+    .login-divider { height: 1px; background: #e2e8f0; margin: 24px 0 20px; }
+    .login-btn-google {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
+      background: #fff; color: #3c4043; border: 1.5px solid #dadce0; border-radius: 8px;
+      padding: 11px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: inherit; transition: box-shadow .15s, background .15s;
+    }
+    .login-btn-google:hover { box-shadow: 0 2px 10px rgba(0,0,0,.14); background: #fafafa; }
+    .login-btn-google svg { width: 18px; height: 18px; }
+    .login-btn-demo {
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: transparent; color: #2563eb; border: 1.5px solid #2563eb; border-radius: 8px;
+      padding: 11px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+      font-family: inherit; margin-top: 12px; transition: background .15s;
+    }
+    .login-btn-demo:hover { background: #eff6ff; }
+    .login-footer {
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      font-size: 11.5px; color: #94a3b8; margin-top: 24px;
+    }
+    .login-footer svg { width: 12px; height: 12px; fill: #94a3b8; }
+
+    /* ── Demo banner ──────────────────────────────────────────────────────── */
+    #demo-banner {
+      display: none; align-items: center; gap: 10px;
+      background: #fffbeb; border-bottom: 1px solid #fde68a; color: #92400e;
+      padding: 10px 20px; font-size: 13px; font-weight: 500;
+      position: relative; z-index: 130;
+    }
+    #demo-banner svg { width: 16px; height: 16px; fill: none; stroke: #d97706; stroke-width: 1.6; flex-shrink: 0; }
+    #demo-banner .demo-banner-close { margin-left: auto; background: none; border: none; cursor: pointer; color: #92400e; font-size: 18px; line-height: 1; padding: 0 4px; }
+
+    /* ── Nav user (top-right) ─────────────────────────────────────────────── */
+    #nav-user {
+      display: none; align-items: center; gap: 8px;
+      padding: 6px 8px; border-radius: 20px; border: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+    #nav-user-avatar { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; display: none; }
+    #nav-user-fallback { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg,#2563eb,#7c3aed); color:#fff; font-weight:700; font-size:13px; display:flex; align-items:center; justify-content:center; }
+    #nav-user-name { font-size: 12.5px; font-weight: 600; color: var(--text-2); max-width: 120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    #nav-user .signout-link { font-size: 11.5px; font-weight: 600; color: var(--muted); cursor: pointer; padding: 2px 6px; border-radius: 6px; }
+    #nav-user .signout-link:hover { background: var(--bg-hover); color: var(--danger); }
+
+    /* ── Stat card enhancements ───────────────────────────────────────────── */
+    .stat-card { transition: transform .15s, box-shadow .15s; }
+    .stat-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .stat-trend { font-size: 10.5px; color: var(--muted); margin-top: 5px; font-weight: 500; }
+    .stat-trend.up { color: var(--success); }
+    .stat-trend.down { color: var(--danger); }
+
+    [data-theme="dark"] .card, [data-theme="dark"] .stat-card, [data-theme="dark"] .sparkline-card {
+      box-shadow: 0 1px 3px rgba(0,0,0,.3);
+    }
+
+    /* ── Empty state ──────────────────────────────────────────────────────── */
+    .empty-state { text-align: center; padding: 32px 16px; }
+    .empty-state svg { width: 56px; height: 56px; stroke: var(--muted-light); fill: none; stroke-width: 1.3; margin-bottom: 12px; }
+    .empty-state-text { font-size: 13.5px; color: var(--muted); margin-bottom: 14px; }
+
+    /* ── Toast progress bar + icon ────────────────────────────────────────── */
+    .toast { flex-direction: column; align-items: stretch; padding: 0; overflow: hidden; }
+    .toast-body { display: flex; align-items: center; gap: 10px; padding: 12px 16px; }
+    .toast-icon { font-size: 15px; flex-shrink: 0; }
+    .toast-progress { height: 3px; background: currentColor; opacity: .35; width: 100%; transform-origin: left; animation: toastShrink linear forwards; }
+    .toast.success .toast-progress { color: var(--primary); }
+    .toast.error .toast-progress { color: var(--danger); }
+    .toast.info .toast-progress { color: var(--accent); }
+    @keyframes toastShrink { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+    /* Accessible focus for theme toggle */
+    .theme-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   </style>
 </head>
-<body>
+<body class="locked">
+
+<!-- Top accent bar -->
+<div class="top-accent-bar"></div>
+
+<!-- ── Login overlay ───────────────────────────────────────────────────────── -->
+<div id="login-screen" style="display:none">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm0 10.99h7c-.53 4.12-3.28 7.79-7 8.94V12H5V6.3l7-3.11v8.8z"/></svg>
+    </div>
+    <div class="login-title">GitHub &rarr; Drive Backup</div>
+    <div class="login-tagline">Enterprise-grade repository backup, automated.</div>
+    <div class="login-divider"></div>
+    <button class="login-btn-google" onclick="window.firebaseSignIn()">
+      <svg viewBox="0 0 48 48">
+        <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+        <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+        <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+        <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+      </svg>
+      Continue with Google
+    </button>
+    <button class="login-btn-demo" onclick="window.enableDemoMode()">
+      Explore with sample data &rarr;
+    </button>
+    <div class="login-footer">
+      <svg viewBox="0 0 24 24"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10z"/></svg>
+      Secured by Firebase &middot; Your data never leaves your accounts
+    </div>
+  </div>
+</div>
+
+<!-- ── Demo mode banner ────────────────────────────────────────────────────── -->
+<div id="demo-banner">
+  <svg viewBox="0 0 24 24"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+  <span><strong>Demo Mode</strong> — viewing sample data. Sign in to connect your real GitHub and Google Drive accounts.</span>
+  <button class="demo-banner-close" onclick="window.firebaseSignOut()" title="Exit demo / sign in">&times;</button>
+</div>
 
 <!-- Mobile overlay -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="closeSidebar()"></div>
@@ -782,7 +1042,13 @@
       GH Backup
     </a>
     <div style="display:flex;align-items:center;gap:4px">
-      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode">
+      <div id="nav-user">
+        <img id="nav-user-avatar" alt="" referrerpolicy="no-referrer" />
+        <span id="nav-user-fallback">U</span>
+        <span id="nav-user-name">Signed in</span>
+        <span class="signout-link" onclick="window.firebaseSignOut()" title="Sign out">Sign Out</span>
+      </div>
+      <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode" tabindex="0">
         <svg id="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
       <button class="sidebar-close-btn" onclick="closeSidebar()">
@@ -925,6 +1191,7 @@
         <div>
           <div class="stat-value" id="stat-repos">—</div>
           <div class="stat-label">Repositories</div>
+          <div class="stat-trend" id="trend-repos"></div>
         </div>
       </div>
       <div class="stat-card">
@@ -934,6 +1201,7 @@
         <div>
           <div class="stat-value" id="stat-sessions">—</div>
           <div class="stat-label">Backup Sessions</div>
+          <div class="stat-trend" id="trend-sessions"></div>
         </div>
       </div>
       <div class="stat-card">
@@ -943,6 +1211,7 @@
         <div>
           <div class="stat-value" id="stat-last">—</div>
           <div class="stat-label">Last Backup <span id="sla-badge" class="hidden"></span></div>
+          <div class="stat-trend" id="trend-last"></div>
         </div>
       </div>
       <div class="stat-card">
@@ -952,6 +1221,7 @@
         <div>
           <div class="stat-value" id="stat-active">—</div>
           <div class="stat-label">Active Runs</div>
+          <div class="stat-trend" id="trend-active"></div>
         </div>
       </div>
     </div>
@@ -1020,6 +1290,16 @@
           </div>
         </div>
         <div class="divider"></div>
+        <div class="form-group">
+          <div class="form-label">GitHub Orgs (comma-separated)</div>
+          <input type="text" id="backup-orgs" class="form-input" placeholder="my-org, another-org (blank = personal account)" />
+          <div class="form-hint">Back up repositories across multiple organisations in one run.</div>
+        </div>
+        <div class="form-group">
+          <div class="form-label">GitLab Token (optional source)</div>
+          <input type="password" id="backup-gitlab-token" class="form-input" placeholder="glpat-… (leave blank for GitHub only)" autocomplete="new-password" />
+          <div class="form-hint">Provide a GitLab personal access token to also mirror GitLab projects.</div>
+        </div>
         <div class="form-group">
           <div class="form-label">Google Drive Folder ID</div>
           <input type="text" id="backup-folder-id" class="form-input"
@@ -1798,6 +2078,65 @@ const REPO_OWNER  = 'OmarRao';
 const REPO_NAME   = 'github-gdrive-backup';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
 
+// ── Demo data ──────────────────────────────────────────────────────────────────
+const DEMO = (() => {
+  const now = Date.now();
+  const ago = (ms) => new Date(now - ms).toISOString();
+  const H = 3600000, D = 86400000, M = 60000;
+
+  const repos = [
+    { name: 'webapp-frontend', full_name: 'acme/webapp-frontend', private: false, lang: 'React app',     commits: 1247, lastCommit: ago(2*H) },
+    { name: 'api-service',     full_name: 'acme/api-service',     private: true,  lang: 'Node.js API',    commits: 3891, lastCommit: ago(1*D) },
+    { name: 'mobile-app',      full_name: 'acme/mobile-app',      private: true,  lang: 'React Native',   commits: 2104, lastCommit: ago(3*D) },
+    { name: 'infrastructure',  full_name: 'acme/infrastructure',  private: true,  lang: 'Terraform/Ansible', commits: 567, lastCommit: ago(5*D) },
+    { name: 'data-pipeline',   full_name: 'acme/data-pipeline',   private: true,  lang: 'Python ETL',     commits: 891,  lastCommit: ago(12*D) },
+  ];
+
+  // 10 backup sessions over 10 days; session 9 (2 days ago) had data-pipeline fail.
+  const sessions = [];
+  for (let i = 0; i < 10; i++) {
+    const created = ago(i*D + 4*H);
+    const size = 180 + Math.round(Math.abs(Math.sin(i*1.7)) * 440); // 180–620 MB
+    const failed = (i === 2); // 2 days ago
+    sessions.push({
+      id: 'demo-session-' + i,
+      name: 'session-' + new Date(now - i*D).toISOString().slice(0,10),
+      createdTime: created,
+      repoCount: 5,
+      sizeMB: size,
+      status: failed ? 'failure' : 'success',
+      failedRepo: failed ? 'data-pipeline (401 error)' : null,
+    });
+  }
+
+  // 15 workflow runs: backup / cleanup / restore mix.
+  const kinds = ['Backup','Backup','Cleanup','Backup','Restore','Backup','Backup','Cleanup','Backup','Restore','Backup','Backup','Cleanup','Backup','Backup'];
+  const runs = kinds.map((k, i) => {
+    const created = ago(i*16*H + 2*H);
+    const failed = (i === 3); // ~2 days ago backup failure (data-pipeline 401)
+    const durS = 200 + (i*23) % 325; // 3m20s .. 8m45s-ish
+    return {
+      id: 9000 + i,
+      name: k + ' Workflow',
+      run_number: 312 - i,
+      status: 'completed',
+      conclusion: failed ? 'failure' : 'success',
+      event: i % 4 === 0 ? 'workflow_dispatch' : 'schedule',
+      created_at: created,
+      updated_at: new Date(now - (i*16*H + 2*H) + durS*1000).toISOString(),
+      html_url: 'https://github.com/' + REPO_OWNER + '/' + REPO_NAME + '/actions',
+    };
+  });
+
+  return {
+    repos, sessions, runs,
+    stats: { repos: 5, sessions: 47, lastBackup: ago(2*H), active: 0 },
+    reports: { total: 47, rate: '97.9%', failed: 1, streak: '8 days' },
+    quota: { usedGB: 14.2, totalGB: 100 },
+    slaHours: 26,
+  };
+})();
+
 // ── Mobile nav ───────────────────────────────────────────────────────────────
 function openSidebar() {
   document.getElementById('sidebar').classList.add('open');
@@ -2021,7 +2360,26 @@ function updateBackupDriveBanner() {
 }
 
 // ── Dashboard ─────────────────────────────────────────────────────────────────
+function setTrend(id, text, dir) {
+  const el = document.getElementById(id); if (!el) return;
+  el.textContent = text || '';
+  el.className = 'stat-trend' + (dir ? ' ' + dir : '');
+}
+
 async function loadDashboard() {
+  if (window.DEMO_MODE) {
+    document.getElementById('dash-warn').classList.add('hidden');
+    document.getElementById('stat-repos').textContent    = DEMO.stats.repos;
+    document.getElementById('stat-sessions').textContent = DEMO.stats.sessions;
+    document.getElementById('stat-last').textContent     = relTime(DEMO.stats.lastBackup) + ' ✅';
+    document.getElementById('stat-active').textContent   = DEMO.stats.active;
+    setTrend('trend-repos', '↑ +1 vs last week', 'up');
+    setTrend('trend-sessions', '↑ +12% vs last week', 'up');
+    setTrend('trend-last', 'Within SLA (26h)', 'up');
+    setTrend('trend-active', 'Idle', '');
+    renderRuns(DEMO.runs.slice(0, 8), document.getElementById('dash-runs'));
+    return;
+  }
   if (!ghToken) { document.getElementById('dash-warn').classList.remove('hidden'); }
   const runs  = await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?per_page=10`).catch(() => ({ workflow_runs:[] }));
   const allRuns = runs.workflow_runs || [];
@@ -2046,6 +2404,7 @@ async function loadDashboard() {
 // ── Backup ────────────────────────────────────────────────────────────────────
 async function loadRepos() {
   const el = document.getElementById('repo-list');
+  if (window.DEMO_MODE) { allRepos = DEMO.repos; renderRepoList(allRepos); return; }
   el.innerHTML = '<p class="muted" style="padding:12px">Loading…</p>';
   try {
     allRepos = await ghFetch(`/users/${ghUser || REPO_OWNER}/repos?per_page=100&type=all`);
@@ -2068,6 +2427,7 @@ function filterRepos(q) { renderRepoList(allRepos.filter(r => r.name.toLowerCase
 function toggleAll(v)   { document.querySelectorAll('.repo-cb').forEach(cb => cb.checked = v); }
 
 async function triggerBackup() {
+  if (window.demoGuard()) return;
   const result   = document.getElementById('backup-result');
   const folderId = document.getElementById('backup-folder-id').value.trim() || driveFolderID;
   const checked  = [...document.querySelectorAll('.repo-cb:checked')].map(c => c.value.split('/')[1]);
@@ -2093,6 +2453,19 @@ async function loadSessions() {
   const el     = document.getElementById('session-list');
   const badge  = document.getElementById('session-source-badge');
   const banner = document.getElementById('restore-drive-banner');
+  if (window.DEMO_MODE) {
+    banner.classList.add('hidden'); badge.textContent = '· Sample data';
+    populateSessionDropdown(DEMO.sessions);
+    el.innerHTML = DEMO.sessions.map(s => `
+      <div class="session-item" data-id="${s.id}" data-name="${s.name}" onclick="selectSession(this)">
+        <div class="session-icon">
+          <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
+        </div>
+        <span class="session-name">${s.name} <span class="run-num" style="font-weight:400">· ${s.repoCount} repos · ${s.sizeMB} MB</span></span>
+        <span class="session-date">${s.status === 'failure' ? '<span style="color:var(--danger)">1 failed</span> · ' : ''}${relTime(s.createdTime)}</span>
+      </div>`).join('');
+    return;
+  }
   if (driveToken && driveFolderID) {
     banner.classList.add('hidden'); badge.textContent = '· Google Drive';
     el.innerHTML = '<p class="muted" style="padding:12px">Loading from Drive…</p>';
@@ -2142,6 +2515,7 @@ function selectSession(el) {
 // ── Workflow Runs ─────────────────────────────────────────────────────────────
 async function loadRuns() {
   const el = document.getElementById('runs-list');
+  if (window.DEMO_MODE) { _allRuns = DEMO.runs; applyRunsFilter(); return; }
   el.innerHTML = '<p class="muted">Loading…</p>';
   try {
     const data = await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?per_page=30`);
@@ -2200,7 +2574,14 @@ function runBadge(status, conclusion) {
 }
 
 function renderRuns(runs, container) {
-  if (!runs.length) { container.innerHTML = '<p class="muted" style="padding:8px 0">No runs yet.</p>'; return; }
+  if (!runs.length) {
+    container.innerHTML = `<div class="empty-state">
+      <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 14"/></svg>
+      <div class="empty-state-text">No runs yet — trigger your first backup above.</div>
+      <button class="btn btn-primary" onclick="navTo('backup')" style="display:inline-flex">Go to Backup</button>
+    </div>`;
+    return;
+  }
   const isRunsPage = container.id === 'runs-list';
   container.innerHTML = runs.map(r => `
     <div class="run-item">
@@ -2222,6 +2603,25 @@ function showResult(id, type, msg) {
 let reportRuns = [];
 
 async function loadReports() {
+  if (window.DEMO_MODE) {
+    reportRuns = DEMO.runs.filter(r => r.name.includes('Backup'));
+    document.getElementById('rpt-total').textContent    = DEMO.reports.total;
+    document.getElementById('rpt-rate').textContent     = DEMO.reports.rate;
+    document.getElementById('rpt-failures').textContent = DEMO.reports.failed;
+    document.getElementById('rpt-streak').textContent   = DEMO.reports.streak;
+    renderRuns(reportRuns.slice(0, 8), document.getElementById('rpt-history'));
+    renderRuns(DEMO.runs.filter(r => r.name.includes('Restore')).slice(0, 8), document.getElementById('rpt-restores'));
+    renderSparklines();
+    const tbody = document.getElementById('rpt-table-body');
+    tbody.innerHTML = reportRuns.map(r => {
+      const s = Math.round((new Date(r.updated_at) - new Date(r.created_at)) / 1000);
+      const dur = s > 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`;
+      const key = r.conclusion || r.status;
+      const cls = { success:'badge-success', failure:'badge-failure' }[key] || 'badge-queued';
+      return `<tr><td style="font-weight:600">#${r.run_number}</td><td><span class="run-badge ${cls}">${key}</span></td><td class="col-trigger" style="color:var(--muted);font-size:12px">${r.event}</td><td style="color:var(--muted);font-size:12px">${relTime(r.created_at)}</td><td class="col-duration" style="color:var(--muted);font-size:12px">${dur}</td><td><a class="run-link" href="${r.html_url}" target="_blank">View →</a></td></tr>`;
+    }).join('');
+    return;
+  }
   try {
     const [backupData, restoreData] = await Promise.all([
       ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/workflows/backup.yml/runs?per_page=30`).catch(() => ({ workflow_runs: [] })),
@@ -2309,11 +2709,13 @@ function toggleTheme() {
 
 // ── Toasts ────────────────────────────────────────────────────────────────────
 function showToast(msg, type='info', duration=4000) {
+  const icon = { success: '✅', error: '❌', info: 'ℹ️' }[type] || 'ℹ️';
   const t = document.createElement('div');
   t.className = `toast ${type}`;
-  t.textContent = msg;
+  t.innerHTML = `<div class="toast-body"><span class="toast-icon">${icon}</span><span>${msg}</span></div>` +
+                `<div class="toast-progress" style="animation-duration:${duration}ms"></div>`;
   document.getElementById('toast-container').appendChild(t);
-  setTimeout(() => t.remove(), duration);
+  setTimeout(() => { t.style.transition = 'opacity .2s, transform .2s'; t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; setTimeout(() => t.remove(), 200); }, duration);
 }
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
@@ -2339,6 +2741,7 @@ document.addEventListener('keydown', e => {
 
 // ── Restore preview ───────────────────────────────────────────────────────────
 function showRestorePreview() {
+  if (window.demoGuard()) return;
   const session = selectedSession?.name
     || document.querySelector('.session-item.selected')?.dataset?.name
     || 'Selected session';
@@ -2436,6 +2839,7 @@ function saveRetentionSettings() {
 }
 
 async function triggerCleanup() {
+  if (window.demoGuard()) return;
   if (!ghToken) { showToast('Connect GitHub first', 'error'); return; }
   const days = localStorage.getItem('retention_days') || '90';
   try {

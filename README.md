@@ -16,11 +16,21 @@ Runs automatically every day at 02:00 UTC via GitHub Actions. A light-mode dashb
 
 ---
 
+## 📖 Documentation
+
+Full technical user guide: [USERGUIDE.md](docs/USERGUIDE.md)
+
+## 🚀 Demo
+
+Try it instantly at the **[Live Dashboard](https://omarrao.github.io/github-gdrive-backup/)** — click **"Explore with sample data →"** to enter **Demo Mode**. No sign-in required: the dashboard loads realistic sample repositories, backup sessions, workflow runs, and reports so you can explore every screen before connecting your own accounts. Sign in with Google (Firebase Authentication) to connect your real GitHub and Google Drive.
+
+---
+
 ## Screenshots
 
 ### Dashboard
 
-The main overview — repository count, backup session count, time since last run, and active workflow status. The hero banner shows feature badges and the sidebar provides instant navigation with live connection status indicators.
+A polished Firebase-authenticated login screen gates the dashboard, with Google Sign-In and a one-click Demo Mode. The main overview shows repository count, backup session count, time since last run, and active workflow status — each stat card now includes a trend indicator. A colored top accent bar, the signed-in user's avatar in the nav, and refreshed Inter typography round out the v2.1.0 visual overhaul.
 
 ![Dashboard](docs/screenshots/dashboard.svg)
 
@@ -54,9 +64,17 @@ Track backup success rates, consecutive-day streaks, failure counts, and full ru
 
 ### Settings
 
-Configure your GitHub Personal Access Token, connect Google Drive via OAuth, verify your backup folder ID, and review all required Actions secrets. Tokens are stored in `localStorage` only — never sent to any third party.
+Configure your GitHub Personal Access Token, connect Google Drive via OAuth, verify your backup folder ID, and review all required Actions secrets. The five Settings tabs — Google Drive, Storage, SLA, Access Control, and Security — cover quota monitoring, S3/Azure targets, SLA tracking, restore allow-lists, and encryption. Tokens are stored in `localStorage` only — never sent to any third party.
 
 ![Settings](docs/screenshots/settings.svg)
+
+---
+
+### Demo Mode
+
+Click **"Explore with sample data →"** on the login screen to enter Demo Mode — no authentication required. The dashboard is populated with realistic sample data (5 repositories, 47 backup sessions, workflow run history including a simulated failure) and a persistent banner reminds you that live actions are disabled until you sign in.
+
+![Demo Mode](docs/screenshots/demo-mode.svg)
 
 ---
 

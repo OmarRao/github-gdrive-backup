@@ -1,187 +1,83 @@
-<svg width="1100" height="680" viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, -apple-system, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500" font-family="Inter, system-ui, sans-serif">
   <defs>
-    <linearGradient id="brandGrad3" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1a7f37"/>
-      <stop offset="100%" stop-color="#0d5c27"/>
+    <linearGradient id="topbar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
     </linearGradient>
   </defs>
+  <rect x="0" y="0" width="900" height="500" fill="#f8fafc"/>
+  <rect x="0" y="0" width="900" height="4" fill="url(#topbar)"/>
+  <rect x="0" y="4" width="900" height="44" fill="#ffffff"/>
+  <text x="28" y="32" font-size="12" fill="#64748b">Backup</text>
+  <text x="100" y="32" font-size="14" font-weight="700" fill="#1e293b">Restore</text>
+  <text x="190" y="32" font-size="12" fill="#64748b">Reports</text>
+  <text x="265" y="32" font-size="12" fill="#64748b">Settings</text>
+  <circle cx="858" cy="26" r="12" fill="#2563eb"/>
+  <text x="858" y="30" text-anchor="middle" font-size="9" font-weight="700" fill="#ffffff">OR</text>
+  <line x1="0" y1="48" x2="900" y2="48" stroke="#e2e8f0"/>
 
-  <!-- Page background -->
-  <rect width="1100" height="680" fill="#f5f7fa"/>
+  <!-- LEFT: Backup Sessions -->
+  <rect x="28" y="68" width="400" height="404" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="48" y="98" font-size="14" font-weight="700" fill="#1e293b">Backup Sessions</text>
+  <text x="408" y="98" text-anchor="end" font-size="10" fill="#64748b">point-in-time</text>
+  <line x1="48" y1="110" x2="408" y2="110" stroke="#e2e8f0"/>
 
-  <!-- ── SIDEBAR ── -->
-  <rect x="0" y="0" width="240" height="680" fill="white" stroke="#e2e6ea" stroke-width="1"/>
+  <!-- session rows -->
+  <rect x="48" y="124" width="360" height="44" rx="8" fill="#eff6ff" stroke="#2563eb"/>
+  <circle cx="68" cy="146" r="5" fill="#16a34a"/>
+  <text x="84" y="143" font-size="12" font-weight="600" fill="#1e293b">2026-06-26 02:00</text>
+  <text x="84" y="159" font-size="10" fill="#64748b">5 repos · 412 MB</text>
+  <text x="396" y="150" text-anchor="end" font-size="10" font-weight="600" fill="#2563eb">selected</text>
 
-  <!-- Brand -->
-  <rect x="16" y="18" width="36" height="36" rx="8" fill="url(#brandGrad3)"/>
-  <text x="34" y="40" text-anchor="middle" font-size="15" font-weight="800" fill="white">G</text>
-  <text x="60" y="33" font-size="14" font-weight="700" fill="#111827">GH Backup</text>
-  <text x="60" y="47" font-size="10" fill="#6b7280">Resilience Tool</text>
+  <rect x="48" y="178" width="360" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <circle cx="68" cy="200" r="5" fill="#16a34a"/>
+  <text x="84" y="197" font-size="12" font-weight="600" fill="#1e293b">2026-06-25 02:00</text>
+  <text x="84" y="213" font-size="10" fill="#64748b">5 repos · 408 MB</text>
 
-  <line x1="16" y1="66" x2="224" y2="66" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="16" y="86" font-size="10" font-weight="600" fill="#9ca3af" letter-spacing="1">NAVIGATION</text>
+  <rect x="48" y="232" width="360" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <circle cx="68" cy="254" r="5" fill="#16a34a"/>
+  <text x="84" y="251" font-size="12" font-weight="600" fill="#1e293b">2026-06-24 02:00</text>
+  <text x="84" y="267" font-size="10" fill="#64748b">5 repos · 401 MB</text>
 
-  <!-- Dashboard -->
-  <g transform="translate(16, 103) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>
-  </g>
-  <text x="48" y="116" font-size="13" fill="#374151">Dashboard</text>
+  <rect x="48" y="286" width="360" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <circle cx="68" cy="308" r="5" fill="#dc2626"/>
+  <text x="84" y="305" font-size="12" font-weight="600" fill="#1e293b">2026-06-23 02:00</text>
+  <text x="84" y="321" font-size="10" fill="#64748b">4 repos · 388 MB · 1 failed</text>
 
-  <!-- Backup -->
-  <g transform="translate(16, 139) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-  </g>
-  <text x="48" y="152" font-size="13" fill="#374151">Backup</text>
+  <rect x="48" y="340" width="360" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <circle cx="68" cy="362" r="5" fill="#16a34a"/>
+  <text x="84" y="359" font-size="12" font-weight="600" fill="#1e293b">2026-06-22 02:00</text>
+  <text x="84" y="375" font-size="10" fill="#64748b">5 repos · 395 MB</text>
 
-  <!-- Restore (active) -->
-  <rect x="8" y="162" width="224" height="36" rx="6" fill="#eff6ff"/>
-  <g transform="translate(16, 171) scale(0.75)" stroke="#2563eb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-  </g>
-  <text x="48" y="184" font-size="13" font-weight="600" fill="#2563eb">Restore</text>
+  <!-- RIGHT: Restore Options -->
+  <rect x="452" y="68" width="420" height="404" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="472" y="98" font-size="14" font-weight="700" fill="#1e293b">Restore Options</text>
+  <line x1="472" y1="110" x2="852" y2="110" stroke="#e2e8f0"/>
 
-  <!-- Workflow Runs -->
-  <g transform="translate(16, 207) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-  </g>
-  <text x="48" y="220" font-size="13" fill="#374151">Workflow Runs</text>
+  <!-- session dropdown -->
+  <text x="472" y="136" font-size="11" font-weight="600" fill="#64748b">Session</text>
+  <rect x="472" y="146" width="380" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="486" y="168" font-size="12" fill="#1e293b">2026-06-26 02:00 (5 repos)</text>
+  <path d="M832 159 l6 6 l6 -6" stroke="#64748b" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
 
-  <!-- Reports -->
-  <g transform="translate(16, 243) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 20V8h4v12M10 20V4h4v16M17 20v-6h4v6"/>
-  </g>
-  <text x="48" y="256" font-size="13" fill="#374151">Reports</text>
+  <!-- Dry-run toggle ON -->
+  <text x="472" y="212" font-size="12" font-weight="600" fill="#1e293b">Dry-run</text>
+  <text x="472" y="228" font-size="10" fill="#64748b">Simulate restore without writing</text>
+  <rect x="800" y="202" width="52" height="28" rx="14" fill="#16a34a"/>
+  <circle cx="838" cy="216" r="11" fill="#ffffff"/>
+  <text x="784" y="220" text-anchor="end" font-size="10" font-weight="700" fill="#16a34a">ON</text>
 
-  <!-- Settings -->
-  <g transform="translate(16, 279) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-  </g>
-  <text x="48" y="292" font-size="13" fill="#374151">Settings</text>
-
-  <!-- Status pills -->
-  <line x1="16" y1="558" x2="224" y2="558" stroke="#e2e6ea" stroke-width="1"/>
-  <rect x="16" y="568" width="138" height="22" rx="11" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <circle cx="30" cy="579" r="4" fill="#16a34a"/>
-  <text x="40" y="583" font-size="11" fill="#15803d">GitHub: OmarRao</text>
-  <rect x="16" y="596" width="128" height="22" rx="11" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <circle cx="30" cy="607" r="4" fill="#16a34a"/>
-  <text x="40" y="611" font-size="11" fill="#15803d">Drive: connected</text>
-
-  <!-- Author -->
-  <line x1="16" y1="628" x2="224" y2="628" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="16" y="644" font-size="12" font-weight="600" fill="#111827">Omar Rao</text>
-  <text x="16" y="657" font-size="10" fill="#6b7280">Engineer - Data Resilience</text>
-  <rect x="16" y="662" width="54" height="14" rx="3" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
-  <text x="43" y="672" text-anchor="middle" font-size="9" fill="#2563eb">LinkedIn</text>
-  <rect x="76" y="662" width="52" height="14" rx="3" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <text x="102" y="672" text-anchor="middle" font-size="9" fill="#15803d">Substack</text>
-
-  <!-- ── MAIN CONTENT ── -->
-  <text x="276" y="40" font-size="20" font-weight="700" fill="#111827">Restore Drive to GitHub</text>
-  <text x="276" y="58" font-size="13" fill="#6b7280">Browse backup sessions from Google Drive and restore them to new GitHub repositories.</text>
-
-  <!-- Left card: Backup Sessions -->
-  <rect x="276" y="76" width="390" height="580" rx="10" fill="white" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="296" y="104" font-size="14" font-weight="700" fill="#111827">Backup Sessions</text>
-  <text x="296" y="120" font-size="11" fill="#6b7280">Google Drive</text>
-  <line x1="276" y1="130" x2="666" y2="130" stroke="#e2e6ea" stroke-width="1"/>
-
-  <!-- Session 1 (selected) -->
-  <rect x="276" y="130" width="4" height="66" fill="#2563eb"/>
-  <rect x="280" y="130" width="386" height="66" fill="#eff6ff"/>
-  <!-- folder icon -->
-  <rect x="296" y="144" width="22" height="18" rx="3" fill="#2563eb" opacity="0.2"/>
-  <rect x="296" y="140" width="12" height="6" rx="2" fill="#2563eb" opacity="0.4"/>
-  <rect x="296" y="144" width="22" height="18" rx="2" fill="none" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="328" y="155" font-size="11" font-weight="600" fill="#1d4ed8">backup-2026-06-16T02-00-00-000Z</text>
-  <text x="328" y="170" font-size="10" fill="#6b7280">2026-06-16 02:00 UTC  -  12 repos  -  847 MB</text>
-  <line x1="276" y1="196" x2="666" y2="196" stroke="#e2e6ea" stroke-width="1"/>
-
-  <!-- Session 2 -->
-  <rect x="296" y="208" width="22" height="18" rx="2" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
-  <text x="328" y="219" font-size="11" font-weight="500" fill="#111827">backup-2026-06-15T02-00-00-000Z</text>
-  <text x="328" y="234" font-size="10" fill="#6b7280">2026-06-15 02:00 UTC  -  12 repos  -  831 MB</text>
-  <line x1="276" y1="248" x2="666" y2="248" stroke="#f3f4f6" stroke-width="1"/>
-
-  <!-- Session 3 -->
-  <rect x="296" y="260" width="22" height="18" rx="2" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
-  <text x="328" y="271" font-size="11" font-weight="500" fill="#111827">backup-2026-06-14T02-00-00-000Z</text>
-  <text x="328" y="286" font-size="10" fill="#6b7280">2026-06-14 02:00 UTC  -  12 repos  -  829 MB</text>
-  <line x1="276" y1="300" x2="666" y2="300" stroke="#f3f4f6" stroke-width="1"/>
-
-  <!-- Session 4 -->
-  <rect x="296" y="312" width="22" height="18" rx="2" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
-  <text x="328" y="323" font-size="11" font-weight="500" fill="#111827">backup-2026-06-13T02-00-00-000Z</text>
-  <text x="328" y="338" font-size="10" fill="#6b7280">2026-06-13 02:00 UTC  -  11 repos  -  802 MB</text>
-  <line x1="276" y1="352" x2="666" y2="352" stroke="#f3f4f6" stroke-width="1"/>
-
-  <!-- Session 5 -->
-  <rect x="296" y="364" width="22" height="18" rx="2" fill="#f3f4f6" stroke="#d1d5db" stroke-width="1"/>
-  <text x="328" y="375" font-size="11" font-weight="500" fill="#111827">backup-2026-06-12T02-00-00-000Z</text>
-  <text x="328" y="390" font-size="10" fill="#6b7280">2026-06-12 02:00 UTC  -  11 repos  -  798 MB</text>
-
-  <!-- Right card: Restore Options -->
-  <rect x="682" y="76" width="402" height="580" rx="10" fill="white" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="702" y="104" font-size="14" font-weight="700" fill="#111827">Restore Options</text>
-  <text x="702" y="120" font-size="11" fill="#6b7280">Configure the restore destination and settings</text>
-  <line x1="682" y1="130" x2="1084" y2="130" stroke="#e2e6ea" stroke-width="1"/>
-
-  <!-- Selected session notice -->
-  <rect x="702" y="144" width="362" height="40" rx="6" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
-  <text x="714" y="159" font-size="11" font-weight="600" fill="#1d4ed8">Selected Session</text>
-  <text x="714" y="174" font-size="11" fill="#2563eb">backup-2026-06-16T02-00-00-000Z</text>
-
-  <!-- Repos to restore -->
-  <text x="702" y="210" font-size="12" font-weight="600" fill="#374151">Repositories to Restore</text>
-  <text x="702" y="226" font-size="11" fill="#6b7280">Leave blank to restore all repositories</text>
-  <rect x="702" y="234" width="362" height="34" rx="6" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="718" y="255" font-size="12" fill="#9ca3af">e.g. analyzer, r3vp</text>
+  <!-- Repositories field -->
+  <text x="472" y="266" font-size="11" font-weight="600" fill="#64748b">Repositories</text>
+  <rect x="472" y="276" width="380" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="486" y="298" font-size="12" fill="#1e293b">webapp-frontend, api-service</text>
 
   <!-- Target owner -->
-  <text x="702" y="290" font-size="12" font-weight="600" fill="#374151">Target Owner</text>
-  <text x="702" y="306" font-size="11" fill="#6b7280">GitHub username or org to restore repos under</text>
-  <rect x="702" y="314" width="362" height="34" rx="6" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="718" y="335" font-size="12" fill="#374151">OmarRao</text>
+  <text x="472" y="338" font-size="11" font-weight="600" fill="#64748b">Target Owner</text>
+  <rect x="472" y="348" width="380" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="486" y="370" font-size="12" fill="#1e293b">veeam-restore-org</text>
 
-  <!-- Private checkbox -->
-  <rect x="702" y="362" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="705" y1="369" x2="709" y2="373" stroke="white" stroke-width="1.5"/>
-  <line x1="709" y1="373" x2="715" y2="366" stroke="white" stroke-width="1.5"/>
-  <text x="724" y="373" font-size="12" fill="#111827">Restore as private repositories</text>
-
-  <line x1="702" y1="392" x2="1064" y2="392" stroke="#e2e6ea" stroke-width="1"/>
-
-  <!-- Warning notice -->
-  <rect x="702" y="404" width="362" height="48" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1"/>
-  <text x="714" y="422" font-size="11" font-weight="600" fill="#92400e">Caution</text>
-  <text x="714" y="438" font-size="11" fill="#92400e">Restoring will create new repos. Existing repos</text>
-  <text x="714" y="450" font-size="11" fill="#92400e">with the same name will not be overwritten.</text>
-
-  <!-- Restore button -->
-  <rect x="702" y="468" width="362" height="40" rx="8" fill="#ea580c"/>
-  <text x="883" y="492" text-anchor="middle" font-size="13" font-weight="600" fill="white">Trigger Restore Workflow</text>
-
-  <!-- Restore Preview Modal overlay -->
-  <rect width="1100" height="680" fill="rgba(0,0,0,0.35)"/>
-  <rect x="300" y="140" width="500" height="300" rx="12" fill="white" stroke="#e2e6ea" stroke-width="1"/>
-  <!-- Modal header -->
-  <rect x="300" y="140" width="500" height="52" rx="12" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
-  <rect x="300" y="166" width="500" height="26" fill="#f9fafb"/>
-  <text x="550" y="171" text-anchor="middle" font-size="15" font-weight="700" fill="#111827">Confirm Restore</text>
-  <text x="780" y="171" font-size="18" fill="#9ca3af" text-anchor="middle">×</text>
-  <!-- Modal body -->
-  <text x="320" y="216" font-size="12" font-weight="600" fill="#374151">Session</text>
-  <text x="320" y="234" font-size="12" fill="#6b7280">backup-2026-06-16T02-00-00-000Z</text>
-  <text x="320" y="262" font-size="12" font-weight="600" fill="#374151">Target Owner</text>
-  <text x="320" y="280" font-size="12" fill="#6b7280">OmarRao</text>
-  <text x="320" y="308" font-size="12" font-weight="600" fill="#374151">Impact</text>
-  <text x="320" y="326" font-size="12" fill="#6b7280">12 repositories will be created as private repos</text>
-  <!-- Warning -->
-  <rect x="320" y="344" width="460" height="36" rx="6" fill="#fffbeb" stroke="#fcd34d" stroke-width="1"/>
-  <text x="340" y="366" font-size="11" fill="#92400e">This action cannot be undone. Existing repos will not be overwritten.</text>
-  <!-- Modal actions -->
-  <rect x="320" y="394" width="120" height="34" rx="7" fill="white" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="380" y="415" text-anchor="middle" font-size="13" fill="#374151">Cancel</text>
-  <rect x="460" y="394" width="160" height="34" rx="7" fill="#ea580c"/>
-  <text x="540" y="415" text-anchor="middle" font-size="13" font-weight="600" fill="white">Confirm Restore</text>
+  <!-- Trigger button amber -->
+  <rect x="472" y="408" width="380" height="44" rx="8" fill="#d97706"/>
+  <text x="662" y="435" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">Trigger Restore Workflow</text>
 </svg>

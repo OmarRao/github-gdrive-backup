@@ -1,220 +1,80 @@
-<svg width="1100" height="680" viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, -apple-system, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500" font-family="Inter, system-ui, sans-serif">
   <defs>
-    <linearGradient id="brandGrad2" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#1a7f37"/>
-      <stop offset="100%" stop-color="#0d5c27"/>
+    <linearGradient id="topbar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
     </linearGradient>
   </defs>
+  <rect x="0" y="0" width="900" height="500" fill="#f8fafc"/>
+  <rect x="0" y="0" width="900" height="4" fill="url(#topbar)"/>
+  <!-- header -->
+  <rect x="0" y="4" width="900" height="44" fill="#ffffff"/>
+  <text x="28" y="32" font-size="14" font-weight="700" fill="#1e293b">Backup</text>
+  <text x="118" y="32" font-size="12" fill="#64748b">Restore</text>
+  <text x="195" y="32" font-size="12" fill="#64748b">Reports</text>
+  <text x="270" y="32" font-size="12" fill="#64748b">Settings</text>
+  <circle cx="858" cy="26" r="12" fill="#2563eb"/>
+  <text x="858" y="30" text-anchor="middle" font-size="9" font-weight="700" fill="#ffffff">OR</text>
+  <line x1="0" y1="48" x2="900" y2="48" stroke="#e2e8f0"/>
 
-  <!-- Page background -->
-  <rect width="1100" height="680" fill="#f5f7fa"/>
+  <!-- LEFT card: Select Repositories -->
+  <rect x="28" y="68" width="400" height="404" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="48" y="98" font-size="14" font-weight="700" fill="#1e293b">Select Repositories</text>
+  <line x1="48" y1="110" x2="408" y2="110" stroke="#e2e8f0"/>
+  <!-- checkbox rows -->
+  <g font-size="12" fill="#1e293b">
+    <rect x="48" y="132" width="18" height="18" rx="4" fill="#2563eb"/>
+    <path d="M52 141 l3 3 l6 -7" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="78" y="146">webapp-frontend</text>
 
-  <!-- ── SIDEBAR ── -->
-  <rect x="0" y="0" width="240" height="680" fill="white" stroke="#e2e6ea" stroke-width="1"/>
+    <rect x="48" y="170" width="18" height="18" rx="4" fill="#2563eb"/>
+    <path d="M52 179 l3 3 l6 -7" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="78" y="184">api-service</text>
 
-  <!-- Brand -->
-  <rect x="16" y="18" width="36" height="36" rx="8" fill="url(#brandGrad2)"/>
-  <text x="34" y="40" text-anchor="middle" font-size="15" font-weight="800" fill="white">G</text>
-  <text x="60" y="33" font-size="14" font-weight="700" fill="#111827">GH Backup</text>
-  <text x="60" y="47" font-size="10" fill="#6b7280">Resilience Tool</text>
+    <rect x="48" y="208" width="18" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="78" y="222">mobile-app</text>
 
-  <!-- Dark mode toggle (moon icon) -->
-  <g transform="translate(212, 22) scale(0.6)">
-    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="48" y="246" width="18" height="18" rx="4" fill="#2563eb"/>
+    <path d="M52 255 l3 3 l6 -7" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="78" y="260">infrastructure</text>
+
+    <rect x="48" y="284" width="18" height="18" rx="4" fill="#ffffff" stroke="#cbd5e1"/>
+    <text x="78" y="298">data-pipeline</text>
+  </g>
+  <line x1="48" y1="324" x2="408" y2="324" stroke="#e2e8f0"/>
+  <text x="48" y="348" font-size="11" fill="#64748b">3 of 5 repositories selected</text>
+
+  <!-- RIGHT card: Backup Options -->
+  <rect x="452" y="68" width="420" height="404" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="472" y="98" font-size="14" font-weight="700" fill="#1e293b">Backup Options</text>
+  <line x1="472" y1="110" x2="852" y2="110" stroke="#e2e8f0"/>
+
+  <g font-size="11" fill="#1e293b">
+    <rect x="472" y="126" width="16" height="16" rx="4" fill="#2563eb"/>
+    <path d="M476 134 l3 3 l5 -6" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="498" y="139">Include issues &amp; PRs</text>
+
+    <rect x="660" y="126" width="16" height="16" rx="4" fill="#2563eb"/>
+    <path d="M664 134 l3 3 l5 -6" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="686" y="139">Include wikis</text>
   </g>
 
-  <line x1="16" y1="66" x2="224" y2="66" stroke="#e2e6ea" stroke-width="1"/>
+  <!-- GitHub Orgs field -->
+  <text x="472" y="172" font-size="11" font-weight="600" fill="#64748b">GitHub Orgs (comma-separated)</text>
+  <rect x="472" y="182" width="380" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="486" y="204" font-size="12" fill="#1e293b">veeam-eng, veeam-cloud, veeam-labs</text>
 
-  <text x="16" y="86" font-size="10" font-weight="600" fill="#9ca3af" letter-spacing="1">NAVIGATION</text>
+  <!-- GitLab Token -->
+  <text x="472" y="244" font-size="11" font-weight="600" fill="#64748b">GitLab Token</text>
+  <rect x="472" y="254" width="380" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="486" y="276" font-size="12" fill="#64748b">••••••••••••••••••••</text>
 
-  <!-- Dashboard -->
-  <g transform="translate(16, 103) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>
-  </g>
-  <text x="48" y="116" font-size="13" fill="#374151">Dashboard</text>
-
-  <!-- Backup (active) -->
-  <rect x="8" y="124" width="224" height="36" rx="6" fill="#eff6ff"/>
-  <g transform="translate(16, 133) scale(0.75)" stroke="#2563eb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-  </g>
-  <text x="48" y="146" font-size="13" font-weight="600" fill="#2563eb">Backup</text>
-
-  <!-- Restore -->
-  <g transform="translate(16, 169) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-  </g>
-  <text x="48" y="182" font-size="13" fill="#374151">Restore</text>
-
-  <!-- Workflow Runs -->
-  <g transform="translate(16, 205) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-  </g>
-  <text x="48" y="218" font-size="13" fill="#374151">Workflow Runs</text>
-
-  <!-- Reports -->
-  <g transform="translate(16, 241) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 20V8h4v12M10 20V4h4v16M17 20v-6h4v6"/>
-  </g>
-  <text x="48" y="254" font-size="13" fill="#374151">Reports</text>
-
-  <!-- Settings -->
-  <g transform="translate(16, 277) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-  </g>
-  <text x="48" y="290" font-size="13" fill="#374151">Settings</text>
-
-  <!-- Status pills -->
-  <line x1="16" y1="558" x2="224" y2="558" stroke="#e2e6ea" stroke-width="1"/>
-  <rect x="16" y="568" width="138" height="22" rx="11" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <circle cx="30" cy="579" r="4" fill="#16a34a"/>
-  <text x="40" y="583" font-size="11" fill="#15803d">GitHub: OmarRao</text>
-  <rect x="16" y="596" width="128" height="22" rx="11" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <circle cx="30" cy="607" r="4" fill="#16a34a"/>
-  <text x="40" y="611" font-size="11" fill="#15803d">Drive: connected</text>
-
-  <!-- Author -->
-  <line x1="16" y1="628" x2="224" y2="628" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="16" y="644" font-size="12" font-weight="600" fill="#111827">Omar Rao</text>
-  <text x="16" y="657" font-size="10" fill="#6b7280">Engineer - Data Resilience</text>
-  <rect x="16" y="662" width="54" height="14" rx="3" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
-  <text x="43" y="672" text-anchor="middle" font-size="9" fill="#2563eb">LinkedIn</text>
-  <rect x="76" y="662" width="52" height="14" rx="3" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <text x="102" y="672" text-anchor="middle" font-size="9" fill="#15803d">Substack</text>
-
-  <!-- ── MAIN CONTENT ── -->
-  <!-- Page header -->
-  <text x="276" y="40" font-size="20" font-weight="700" fill="#111827">Backup GitHub to Drive</text>
-  <text x="276" y="58" font-size="13" fill="#6b7280">Select repositories and configure backup options, then trigger the workflow.</text>
-
-  <!-- Drive connected notice -->
-  <rect x="276" y="68" width="808" height="36" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <circle cx="298" cy="86" r="5" fill="#16a34a"/>
-  <text x="312" y="90" font-size="12" font-weight="500" fill="#15803d">Google Drive connected - backing up to folder: 1abc2def3ghi4jkl5mno6pqr...xyz</text>
-
-  <!-- Left card: Select Repositories -->
-  <rect x="276" y="116" width="380" height="540" rx="10" fill="white" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="296" y="144" font-size="14" font-weight="700" fill="#111827">Select Repositories</text>
-  <text x="296" y="160" font-size="11" fill="#6b7280">Choose which repos to include in this backup</text>
-  <line x1="276" y1="170" x2="656" y2="170" stroke="#e2e6ea" stroke-width="1"/>
-
-  <!-- Search input -->
-  <rect x="296" y="180" width="340" height="34" rx="6" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="314" y="201" font-size="12" fill="#9ca3af">Search repositories...</text>
-
-  <!-- Select all -->
-  <rect x="296" y="224" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="299" y1="231" x2="303" y2="235" stroke="white" stroke-width="1.5"/>
-  <line x1="303" y1="235" x2="309" y2="228" stroke="white" stroke-width="1.5"/>
-  <text x="318" y="235" font-size="11" fill="#374151">Select all (6)</text>
-  <line x1="276" y1="246" x2="656" y2="246" stroke="#f3f4f6" stroke-width="1"/>
-
-  <!-- Repo rows -->
-  <!-- 1: analyzer -->
-  <rect x="296" y="256" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="299" y1="263" x2="303" y2="267" stroke="white" stroke-width="1.5"/>
-  <line x1="303" y1="267" x2="309" y2="260" stroke="white" stroke-width="1.5"/>
-  <text x="318" y="267" font-size="12" font-weight="500" fill="#111827">analyzer</text>
-  <rect x="580" y="254" width="46" height="18" rx="9" fill="#faf5ff" stroke="#e9d5ff" stroke-width="1"/>
-  <text x="603" y="266" text-anchor="middle" font-size="10" fill="#7c3aed">private</text>
-  <line x1="296" y1="278" x2="636" y2="278" stroke="#f3f4f6" stroke-width="1"/>
-
-  <!-- 2: github-gdrive-backup -->
-  <rect x="296" y="288" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="299" y1="295" x2="303" y2="299" stroke="white" stroke-width="1.5"/>
-  <line x1="303" y1="299" x2="309" y2="292" stroke="white" stroke-width="1.5"/>
-  <text x="318" y="299" font-size="12" font-weight="500" fill="#111827">github-gdrive-backup</text>
-  <rect x="570" y="286" width="52" height="18" rx="9" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <text x="596" y="298" text-anchor="middle" font-size="10" fill="#15803d">public</text>
-  <line x1="296" y1="310" x2="636" y2="310" stroke="#f3f4f6" stroke-width="1"/>
-
-  <!-- 3: r3vp -->
-  <rect x="296" y="320" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="299" y1="327" x2="303" y2="331" stroke="white" stroke-width="1.5"/>
-  <line x1="303" y1="331" x2="309" y2="324" stroke="white" stroke-width="1.5"/>
-  <text x="318" y="331" font-size="12" font-weight="500" fill="#111827">r3vp</text>
-  <rect x="580" y="318" width="46" height="18" rx="9" fill="#faf5ff" stroke="#e9d5ff" stroke-width="1"/>
-  <text x="603" y="330" text-anchor="middle" font-size="10" fill="#7c3aed">private</text>
-  <line x1="296" y1="342" x2="636" y2="342" stroke="#f3f4f6" stroke-width="1"/>
-
-  <!-- 4: secure-scope -->
-  <rect x="296" y="352" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="299" y1="359" x2="303" y2="363" stroke="white" stroke-width="1.5"/>
-  <line x1="303" y1="363" x2="309" y2="356" stroke="white" stroke-width="1.5"/>
-  <text x="318" y="363" font-size="12" font-weight="500" fill="#111827">secure-scope</text>
-  <rect x="570" y="350" width="52" height="18" rx="9" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <text x="596" y="362" text-anchor="middle" font-size="10" fill="#15803d">public</text>
-  <line x1="296" y1="374" x2="636" y2="374" stroke="#f3f4f6" stroke-width="1"/>
-
-  <!-- 5: data-pipeline -->
-  <rect x="296" y="384" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="299" y1="391" x2="303" y2="395" stroke="white" stroke-width="1.5"/>
-  <line x1="303" y1="395" x2="309" y2="388" stroke="white" stroke-width="1.5"/>
-  <text x="318" y="395" font-size="12" font-weight="500" fill="#111827">data-pipeline</text>
-  <rect x="570" y="382" width="52" height="18" rx="9" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
-  <text x="596" y="394" text-anchor="middle" font-size="10" fill="#15803d">public</text>
-  <line x1="296" y1="406" x2="636" y2="406" stroke="#f3f4f6" stroke-width="1"/>
-
-  <!-- 6: infra-scripts -->
-  <rect x="296" y="416" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="299" y1="423" x2="303" y2="427" stroke="white" stroke-width="1.5"/>
-  <line x1="303" y1="427" x2="309" y2="420" stroke="white" stroke-width="1.5"/>
-  <text x="318" y="427" font-size="12" font-weight="500" fill="#111827">infra-scripts</text>
-  <rect x="580" y="414" width="46" height="18" rx="9" fill="#faf5ff" stroke="#e9d5ff" stroke-width="1"/>
-  <text x="603" y="426" text-anchor="middle" font-size="10" fill="#7c3aed">private</text>
-
-  <!-- Right card: Backup Options -->
-  <rect x="672" y="116" width="412" height="540" rx="10" fill="white" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="692" y="144" font-size="14" font-weight="700" fill="#111827">Backup Options</text>
-  <text x="692" y="160" font-size="11" fill="#6b7280">Configure what data to include in the backup</text>
-  <line x1="672" y1="170" x2="1084" y2="170" stroke="#e2e6ea" stroke-width="1"/>
-
-  <text x="692" y="196" font-size="12" font-weight="600" fill="#374151">Include in Backup</text>
-
-  <!-- Checkboxes -->
-  <rect x="692" y="206" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="695" y1="213" x2="699" y2="217" stroke="white" stroke-width="1.5"/>
-  <line x1="699" y1="217" x2="705" y2="210" stroke="white" stroke-width="1.5"/>
-  <text x="714" y="217" font-size="12" fill="#111827">Source code (ZIP archives)</text>
-
-  <rect x="692" y="230" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="695" y1="237" x2="699" y2="241" stroke="white" stroke-width="1.5"/>
-  <line x1="699" y1="241" x2="705" y2="234" stroke="white" stroke-width="1.5"/>
-  <text x="714" y="241" font-size="12" fill="#111827">Issues</text>
-
-  <rect x="692" y="254" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="695" y1="261" x2="699" y2="265" stroke="white" stroke-width="1.5"/>
-  <line x1="699" y1="265" x2="705" y2="258" stroke="white" stroke-width="1.5"/>
-  <text x="714" y="265" font-size="12" fill="#111827">Pull requests</text>
-
-  <rect x="692" y="278" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="695" y1="285" x2="699" y2="289" stroke="white" stroke-width="1.5"/>
-  <line x1="699" y1="289" x2="705" y2="282" stroke="white" stroke-width="1.5"/>
-  <text x="714" y="289" font-size="12" fill="#111827">Releases</text>
-
-  <rect x="692" y="302" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="695" y1="309" x2="699" y2="313" stroke="white" stroke-width="1.5"/>
-  <line x1="699" y1="313" x2="705" y2="306" stroke="white" stroke-width="1.5"/>
-  <text x="714" y="313" font-size="12" fill="#111827">Wiki</text>
-
-  <rect x="692" y="326" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="695" y1="333" x2="699" y2="337" stroke="white" stroke-width="1.5"/>
-  <line x1="699" y1="337" x2="705" y2="330" stroke="white" stroke-width="1.5"/>
-  <text x="714" y="337" font-size="12" fill="#111827">Labels</text>
-
-  <rect x="692" y="350" width="14" height="14" rx="3" fill="#2563eb"/>
-  <line x1="695" y1="357" x2="699" y2="361" stroke="white" stroke-width="1.5"/>
-  <line x1="699" y1="361" x2="705" y2="354" stroke="white" stroke-width="1.5"/>
-  <text x="714" y="361" font-size="12" fill="#111827">Milestones</text>
-
-  <line x1="692" y1="378" x2="1064" y2="378" stroke="#e2e6ea" stroke-width="1"/>
-
-  <!-- Drive folder input -->
-  <text x="692" y="400" font-size="12" font-weight="600" fill="#374151">Google Drive Folder ID</text>
-  <rect x="692" y="410" width="372" height="34" rx="6" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="708" y="431" font-size="12" fill="#6b7280">1abc2def3ghi4jkl5mno6pqrstuvwxyz</text>
+  <!-- Drive folder ID -->
+  <text x="472" y="316" font-size="11" font-weight="600" fill="#64748b">Google Drive Folder ID</text>
+  <rect x="472" y="326" width="380" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="486" y="348" font-size="12" fill="#1e293b">1A2b3C4d5E6f7G8h9I0jKlMnOpQr</text>
 
   <!-- Trigger button -->
-  <rect x="692" y="462" width="372" height="40" rx="8" fill="#16a34a"/>
-  <text x="878" y="486" text-anchor="middle" font-size="13" font-weight="600" fill="white">Trigger Backup Workflow</text>
+  <rect x="472" y="398" width="380" height="44" rx="8" fill="#16a34a"/>
+  <text x="662" y="425" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">Trigger Backup Workflow</text>
 </svg>

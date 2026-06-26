@@ -1,247 +1,80 @@
-<svg viewBox="0 0 1100 680" xmlns="http://www.w3.org/2000/svg" font-family="Inter, -apple-system, sans-serif">
-  <!-- Background -->
-  <rect width="1100" height="680" fill="#f5f7fa"/>
-
-  <!-- Sidebar -->
-  <rect width="256" height="680" fill="#ffffff" rx="0"/>
-  <rect x="256" width="1" height="680" fill="#e5e7eb"/>
-
-  <!-- Brand -->
-  <rect x="20" y="18" width="34" height="34" rx="8" fill="url(#brandGrad)"/>
-  <path d="M28 35 Q37 27 44 35 M32 40 L32 31 M37 40 L37 31" stroke="white" stroke-width="2" fill="none" stroke-linecap="round"/>
-  <text x="63" y="32" font-size="14" font-weight="700" fill="#111827">GH Backup</text>
-  <text x="63" y="46" font-size="11" fill="#6b7280">Dashboard</text>
-
-  <!-- Nav items -->
-  <!-- Dashboard -->
-  <rect x="12" y="76" width="232" height="40" rx="8" fill="transparent"/>
-  <g transform="translate(20, 88) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/>
-  </g>
-  <text x="52" y="101" font-size="13" fill="#6b7280">Dashboard</text>
-
-  <!-- Backup -->
-  <rect x="12" y="120" width="232" height="40" rx="8" fill="transparent"/>
-  <g transform="translate(20, 132) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-  </g>
-  <text x="52" y="145" font-size="13" fill="#6b7280">Backup</text>
-
-  <!-- Restore -->
-  <rect x="12" y="164" width="232" height="40" rx="8" fill="transparent"/>
-  <g transform="translate(20, 176) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-  </g>
-  <text x="52" y="189" font-size="13" fill="#6b7280">Restore</text>
-
-  <!-- Workflow Runs -->
-  <rect x="12" y="208" width="232" height="40" rx="8" fill="transparent"/>
-  <g transform="translate(20, 220) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-  </g>
-  <text x="52" y="233" font-size="13" fill="#6b7280">Workflow Runs</text>
-
-  <!-- Reports — active -->
-  <rect x="12" y="252" width="232" height="40" rx="8" fill="#eff6ff"/>
-  <rect x="12" y="252" width="3" height="40" rx="1.5" fill="#2563eb"/>
-  <g transform="translate(20, 264) scale(0.75)" stroke="#2563eb" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 20V8h4v12M10 20V4h4v16M17 20v-6h4v6"/>
-  </g>
-  <text x="52" y="277" font-size="13" font-weight="600" fill="#2563eb">Reports</text>
-
-  <!-- Settings -->
-  <rect x="12" y="296" width="232" height="40" rx="8" fill="transparent"/>
-  <g transform="translate(20, 308) scale(0.75)" stroke="#9ca3af" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
-  </g>
-  <text x="52" y="321" font-size="13" fill="#6b7280">Settings</text>
-
-  <!-- Connection status -->
-  <rect x="12" y="600" width="232" height="66" rx="8" fill="#f9fafb"/>
-  <circle cx="26" cy="616" r="5" fill="#1a7f37"/>
-  <text x="36" y="620" font-size="11" font-weight="600" fill="#374151">GitHub</text>
-  <text x="36" y="633" font-size="10" fill="#6b7280">omarrao · 42 repos</text>
-  <circle cx="26" cy="651" r="5" fill="#1a7f37"/>
-  <text x="36" y="655" font-size="11" font-weight="600" fill="#374151">Google Drive</text>
-  <text x="36" y="668" font-size="10" fill="#6b7280">Connected</text>
-
-  <!-- Main content area -->
-  <!-- Page header -->
-  <text x="284" y="46" font-size="22" font-weight="700" fill="#111827">Reports</text>
-  <text x="284" y="64" font-size="13" fill="#6b7280">Backup and restore history, success rates, and run details</text>
-
-  <!-- Export button -->
-  <rect x="984" y="28" width="100" height="36" rx="8" fill="#f3f4f6" stroke="#e5e7eb"/>
-  <text x="1034" y="51" font-size="12" font-weight="500" fill="#374151" text-anchor="middle">Export CSV</text>
-
-  <!-- Stat cards row -->
-  <!-- Total Backups — green bars icon -->
-  <rect x="284" y="82" width="184" height="96" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <rect x="296" y="94" width="38" height="38" rx="9" fill="#dcfce7"/>
-  <g transform="translate(304, 102) scale(0.75)" stroke="#1a7f37" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <rect x="2" y="3" width="20" height="5" rx="1.5"/><rect x="2" y="10" width="20" height="5" rx="1.5"/><rect x="2" y="17" width="20" height="5" rx="1.5"/>
-  </g>
-  <text x="344" y="110" font-size="11" fill="#6b7280">Total Backups</text>
-  <text x="344" y="132" font-size="28" font-weight="700" fill="#111827">147</text>
-  <text x="344" y="148" font-size="11" fill="#1a7f37">+12 this month</text>
-
-  <!-- Success Rate — blue checkmark icon -->
-  <rect x="484" y="82" width="184" height="96" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <rect x="496" y="94" width="38" height="38" rx="9" fill="#eff6ff"/>
-  <g transform="translate(504, 102) scale(0.75)" stroke="#2563eb" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <polyline points="20 6 9 17 4 12"/>
-  </g>
-  <text x="544" y="110" font-size="11" fill="#6b7280">Success Rate</text>
-  <text x="544" y="132" font-size="28" font-weight="700" fill="#111827">97.3%</text>
-  <text x="544" y="148" font-size="11" fill="#2563eb">4 failures total</text>
-
-  <!-- Failed Runs — amber X icon -->
-  <rect x="684" y="82" width="184" height="96" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <rect x="696" y="94" width="38" height="38" rx="9" fill="#fffbeb"/>
-  <g transform="translate(704, 102) scale(0.75)" stroke="#d97706" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-  </g>
-  <text x="744" y="110" font-size="11" fill="#6b7280">Failed Runs</text>
-  <text x="744" y="132" font-size="28" font-weight="700" fill="#111827">4</text>
-  <text x="744" y="148" font-size="11" fill="#d97706">All resolved</text>
-
-  <!-- Current Streak — purple star icon -->
-  <rect x="884" y="82" width="184" height="96" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <rect x="896" y="94" width="38" height="38" rx="9" fill="#faf5ff"/>
-  <g transform="translate(904, 102) scale(0.75)" stroke="#7c3aed" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-  </g>
-  <text x="944" y="110" font-size="11" fill="#6b7280">Current Streak</text>
-  <text x="944" y="132" font-size="28" font-weight="700" fill="#111827">23 days</text>
-  <text x="944" y="148" font-size="11" fill="#7c3aed">Personal best: 41</text>
-
-  <!-- Bar chart card -->
-  <rect x="284" y="192" width="784" height="120" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="302" y="214" font-size="13" font-weight="600" fill="#111827">Backup Activity — Last 14 Days</text>
-  <!-- Chart bars (14 days, varying heights representing daily backup counts) -->
-  <!-- Day labels -->
-  <text x="318" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 10</text>
-  <text x="372" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 11</text>
-  <text x="426" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 12</text>
-  <text x="480" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 13</text>
-  <text x="534" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 14</text>
-  <text x="588" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 15</text>
-  <text x="642" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 16</text>
-  <text x="696" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 17</text>
-  <text x="750" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 18</text>
-  <text x="804" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 19</text>
-  <text x="858" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 20</text>
-  <text x="912" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 21</text>
-  <text x="966" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 22</text>
-  <text x="1020" y="306" font-size="9" fill="#9ca3af" text-anchor="middle">Jun 23</text>
-  <!-- Bars (success=blue, failure=red) -->
-  <rect x="308" y="248" width="20" height="50" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="362" y="255" width="20" height="43" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="416" y="260" width="20" height="38" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="470" y="245" width="20" height="53" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="524" y="252" width="20" height="30" rx="3" fill="#dc2626" opacity="0.8"/>
-  <rect x="578" y="250" width="20" height="48" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="632" y="243" width="20" height="55" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="686" y="248" width="20" height="50" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="740" y="256" width="20" height="42" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="794" y="249" width="20" height="49" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="848" y="253" width="20" height="45" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="902" y="246" width="20" height="52" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="956" y="251" width="20" height="47" rx="3" fill="#2563eb" opacity="0.8"/>
-  <rect x="1010" y="244" width="20" height="54" rx="3" fill="#2563eb" opacity="0.8"/>
-  <!-- Chart baseline -->
-  <line x1="296" y1="298" x2="1068" y2="298" stroke="#e5e7eb" stroke-width="1"/>
-
-  <!-- Two-column layout: Backup History | Restore History — starts at y=336 -->
-  <!-- Backup History card -->
-  <rect x="284" y="336" width="388" height="160" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="302" y="356" font-size="13" font-weight="600" fill="#111827">Backup History</text>
-  <text x="302" y="370" font-size="10" fill="#6b7280">Last 30 runs</text>
-  <rect x="284" y="378" width="388" height="24" fill="#f9fafb"/>
-  <text x="302" y="394" font-size="10" font-weight="600" fill="#6b7280">DATE</text>
-  <text x="410" y="394" font-size="10" font-weight="600" fill="#6b7280">REPOS</text>
-  <text x="480" y="394" font-size="10" font-weight="600" fill="#6b7280">DURATION</text>
-  <text x="580" y="394" font-size="10" font-weight="600" fill="#6b7280">STATUS</text>
-  <line x1="284" y1="402" x2="672" y2="402" stroke="#f3f4f6"/>
-  <text x="302" y="416" font-size="10" fill="#374151">Jun 17, 02:00</text><text x="410" y="416" font-size="10" fill="#374151">42</text><text x="480" y="416" font-size="10" fill="#374151">4m 12s</text>
-  <rect x="578" y="407" width="46" height="16" rx="8" fill="#dcfce7"/><text x="601" y="419" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-  <line x1="284" y1="426" x2="672" y2="426" stroke="#f3f4f6"/>
-  <text x="302" y="440" font-size="10" fill="#374151">Jun 16, 02:00</text><text x="410" y="440" font-size="10" fill="#374151">42</text><text x="480" y="440" font-size="10" fill="#374151">3m 58s</text>
-  <rect x="578" y="431" width="46" height="16" rx="8" fill="#dcfce7"/><text x="601" y="443" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-  <line x1="284" y1="450" x2="672" y2="450" stroke="#f3f4f6"/>
-  <text x="302" y="464" font-size="10" fill="#374151">Jun 14, 02:00</text><text x="410" y="464" font-size="10" fill="#374151">41</text><text x="480" y="464" font-size="10" fill="#374151">—</text>
-  <rect x="578" y="455" width="46" height="16" rx="8" fill="#fef2f2"/><text x="601" y="467" font-size="9" font-weight="600" fill="#991b1b" text-anchor="middle">failed</text>
-  <line x1="284" y1="474" x2="672" y2="474" stroke="#f3f4f6"/>
-  <text x="302" y="488" font-size="10" fill="#374151">Jun 13, 02:00</text><text x="410" y="488" font-size="10" fill="#374151">41</text><text x="480" y="488" font-size="10" fill="#374151">4m 03s</text>
-  <rect x="578" y="479" width="46" height="16" rx="8" fill="#dcfce7"/><text x="601" y="491" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-
-  <!-- Restore History card -->
-  <rect x="688" y="336" width="380" height="160" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="706" y="356" font-size="13" font-weight="600" fill="#111827">Restore History</text>
-  <text x="706" y="370" font-size="10" fill="#6b7280">Last 10 runs</text>
-  <rect x="688" y="378" width="380" height="24" fill="#f9fafb"/>
-  <text x="706" y="394" font-size="10" font-weight="600" fill="#6b7280">DATE</text>
-  <text x="818" y="394" font-size="10" font-weight="600" fill="#6b7280">SESSION</text>
-  <text x="938" y="394" font-size="10" font-weight="600" fill="#6b7280">STATUS</text>
-  <line x1="688" y1="402" x2="1068" y2="402" stroke="#f3f4f6"/>
-  <text x="706" y="416" font-size="10" fill="#374151">Jun 10, 14:32</text><text x="818" y="416" font-size="10" fill="#374151">Jun 10 02:00</text>
-  <rect x="936" y="407" width="46" height="16" rx="8" fill="#dcfce7"/><text x="959" y="419" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-  <line x1="688" y1="426" x2="1068" y2="426" stroke="#f3f4f6"/>
-  <text x="706" y="440" font-size="10" fill="#374151">May 28, 09:15</text><text x="818" y="440" font-size="10" fill="#374151">May 28 02:00</text>
-  <rect x="936" y="431" width="46" height="16" rx="8" fill="#dcfce7"/><text x="959" y="443" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-  <line x1="688" y1="450" x2="1068" y2="450" stroke="#f3f4f6"/>
-  <text x="706" y="464" font-size="10" fill="#374151">May 15, 11:47</text><text x="818" y="464" font-size="10" fill="#374151">May 15 02:00</text>
-  <rect x="936" y="455" width="46" height="16" rx="8" fill="#dcfce7"/><text x="959" y="467" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-  <line x1="688" y1="474" x2="1068" y2="474" stroke="#f3f4f6"/>
-  <text x="706" y="488" font-size="10" fill="#374151">Apr 22, 16:05</text><text x="818" y="488" font-size="10" fill="#374151">Apr 21 02:00</text>
-  <rect x="936" y="479" width="46" height="16" rx="8" fill="#dcfce7"/><text x="959" y="491" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-
-  <!-- Run Details full-width table — starts at y=506 -->
-  <rect x="284" y="506" width="784" height="166" rx="10" fill="#ffffff" stroke="#e5e7eb"/>
-  <text x="302" y="526" font-size="13" font-weight="600" fill="#111827">Run Details</text>
-  <!-- Search input -->
-  <rect x="820" y="511" width="230" height="26" rx="6" fill="#f9fafb" stroke="#e2e6ea" stroke-width="1"/>
-  <text x="836" y="528" font-size="10" fill="#9ca3af">Search runs...</text>
-  <!-- Table header -->
-  <rect x="284" y="536" width="784" height="24" fill="#f9fafb"/>
-  <text x="302" y="552" font-size="10" font-weight="600" fill="#6b7280">RUN</text>
-  <text x="360" y="552" font-size="10" font-weight="600" fill="#6b7280">TYPE</text>
-  <text x="420" y="552" font-size="10" font-weight="600" fill="#6b7280">TRIGGER</text>
-  <text x="510" y="552" font-size="10" font-weight="600" fill="#6b7280">STARTED</text>
-  <text x="620" y="552" font-size="10" font-weight="600" fill="#6b7280">DURATION</text>
-  <text x="710" y="552" font-size="10" font-weight="600" fill="#6b7280">REPOS</text>
-  <text x="775" y="552" font-size="10" font-weight="600" fill="#6b7280">STATUS</text>
-  <text x="866" y="552" font-size="10" font-weight="600" fill="#6b7280">LINK</text>
-  <!-- Row 1 -->
-  <line x1="284" y1="560" x2="1068" y2="560" stroke="#f3f4f6"/>
-  <text x="302" y="574" font-size="10" fill="#374151">#7892</text><text x="360" y="574" font-size="10" fill="#374151">backup</text><text x="420" y="574" font-size="10" fill="#374151">schedule</text><text x="510" y="574" font-size="10" fill="#374151">Jun 17, 02:00</text><text x="620" y="574" font-size="10" fill="#374151">4m 12s</text><text x="710" y="574" font-size="10" fill="#374151">42</text>
-  <rect x="773" y="565" width="46" height="16" rx="8" fill="#dcfce7"/><text x="796" y="577" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-  <text x="866" y="574" font-size="10" fill="#2563eb">#7892</text>
-  <!-- Row 2 -->
-  <line x1="284" y1="584" x2="1068" y2="584" stroke="#f3f4f6"/>
-  <text x="302" y="598" font-size="10" fill="#374151">#7891</text><text x="360" y="598" font-size="10" fill="#374151">backup</text><text x="420" y="598" font-size="10" fill="#374151">schedule</text><text x="510" y="598" font-size="10" fill="#374151">Jun 16, 02:00</text><text x="620" y="598" font-size="10" fill="#374151">3m 58s</text><text x="710" y="598" font-size="10" fill="#374151">42</text>
-  <rect x="773" y="589" width="46" height="16" rx="8" fill="#dcfce7"/><text x="796" y="601" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-  <text x="866" y="598" font-size="10" fill="#2563eb">#7891</text>
-  <!-- Row 3 -->
-  <line x1="284" y1="608" x2="1068" y2="608" stroke="#f3f4f6"/>
-  <text x="302" y="622" font-size="10" fill="#374151">#7890</text><text x="360" y="622" font-size="10" fill="#374151">restore</text><text x="420" y="622" font-size="10" fill="#374151">manual</text><text x="510" y="622" font-size="10" fill="#374151">Jun 10, 14:32</text><text x="620" y="622" font-size="10" fill="#374151">2m 44s</text><text x="710" y="622" font-size="10" fill="#374151">12</text>
-  <rect x="773" y="613" width="46" height="16" rx="8" fill="#dcfce7"/><text x="796" y="625" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-  <text x="866" y="622" font-size="10" fill="#2563eb">#7890</text>
-  <!-- Row 4 -->
-  <line x1="284" y1="632" x2="1068" y2="632" stroke="#f3f4f6"/>
-  <text x="302" y="646" font-size="10" fill="#374151">#7879</text><text x="360" y="646" font-size="10" fill="#374151">backup</text><text x="420" y="646" font-size="10" fill="#374151">schedule</text><text x="510" y="646" font-size="10" fill="#374151">Jun 14, 02:00</text><text x="620" y="646" font-size="10" fill="#374151">—</text><text x="710" y="646" font-size="10" fill="#374151">41</text>
-  <rect x="773" y="637" width="46" height="16" rx="8" fill="#fef2f2"/><text x="796" y="649" font-size="9" font-weight="600" fill="#991b1b" text-anchor="middle">failed</text>
-  <text x="866" y="646" font-size="10" fill="#2563eb">#7879</text>
-  <!-- Row 5 -->
-  <line x1="284" y1="656" x2="1068" y2="656" stroke="#f3f4f6"/>
-  <text x="302" y="669" font-size="10" fill="#374151">#7878</text><text x="360" y="669" font-size="10" fill="#374151">backup</text><text x="420" y="669" font-size="10" fill="#374151">manual</text><text x="510" y="669" font-size="10" fill="#374151">Jun 13, 09:17</text><text x="620" y="669" font-size="10" fill="#374151">4m 03s</text><text x="710" y="669" font-size="10" fill="#374151">42</text>
-  <rect x="773" y="660" width="46" height="16" rx="8" fill="#dcfce7"/><text x="796" y="672" font-size="9" font-weight="600" fill="#166534" text-anchor="middle">success</text>
-  <text x="866" y="669" font-size="10" fill="#2563eb">#7878</text>
-
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500" font-family="Inter, system-ui, sans-serif">
   <defs>
-    <linearGradient id="brandGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#1a7f37"/>
-      <stop offset="100%" stop-color="#0d5e27"/>
+    <linearGradient id="topbar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
     </linearGradient>
   </defs>
+  <rect x="0" y="0" width="900" height="500" fill="#f8fafc"/>
+  <rect x="0" y="0" width="900" height="4" fill="url(#topbar)"/>
+  <rect x="0" y="4" width="900" height="44" fill="#ffffff"/>
+  <text x="28" y="32" font-size="12" fill="#64748b">Backup</text>
+  <text x="100" y="32" font-size="12" fill="#64748b">Restore</text>
+  <text x="177" y="32" font-size="14" font-weight="700" fill="#1e293b">Reports</text>
+  <text x="265" y="32" font-size="12" fill="#64748b">Settings</text>
+  <circle cx="858" cy="26" r="12" fill="#2563eb"/>
+  <text x="858" y="30" text-anchor="middle" font-size="9" font-weight="700" fill="#ffffff">OR</text>
+  <line x1="0" y1="48" x2="900" y2="48" stroke="#e2e8f0"/>
+
+  <!-- stat cards row -->
+  <rect x="28" y="64" width="200" height="74" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="46" y="90" font-size="11" fill="#64748b">Total Backups</text>
+  <text x="46" y="120" font-size="24" font-weight="700" fill="#1e293b">47</text>
+
+  <rect x="240" y="64" width="200" height="74" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="258" y="90" font-size="11" fill="#64748b">Success Rate</text>
+  <text x="258" y="120" font-size="24" font-weight="700" fill="#16a34a">97.9%</text>
+
+  <rect x="452" y="64" width="200" height="74" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="470" y="90" font-size="11" fill="#64748b">Failed</text>
+  <text x="470" y="120" font-size="24" font-weight="700" fill="#dc2626">1</text>
+
+  <rect x="664" y="64" width="208" height="74" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="682" y="90" font-size="11" fill="#64748b">Streak</text>
+  <text x="682" y="120" font-size="24" font-weight="700" fill="#1e293b">8 days</text>
+
+  <!-- Bar chart card -->
+  <rect x="28" y="152" width="540" height="232" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="48" y="180" font-size="13" font-weight="700" fill="#1e293b">Backup Size Over Time</text>
+  <line x1="48" y1="350" x2="548" y2="350" stroke="#e2e8f0"/>
+  <g fill="#2563eb">
+    <rect x="62" y="280" width="40" height="70" rx="4"/>
+    <rect x="122" y="250" width="40" height="100" rx="4"/>
+    <rect x="182" y="220" width="40" height="130" rx="4"/>
+    <rect x="242" y="240" width="40" height="110" rx="4"/>
+    <rect x="302" y="200" width="40" height="150" rx="4"/>
+    <rect x="362" y="210" width="40" height="140" rx="4"/>
+    <rect x="422" y="185" width="40" height="165" rx="4"/>
+    <rect x="482" y="195" width="40" height="155" rx="4" fill="#7c3aed"/>
+  </g>
+  <g font-size="9" fill="#64748b" text-anchor="middle">
+    <text x="82" y="366">Mon</text>
+    <text x="142" y="366">Tue</text>
+    <text x="202" y="366">Wed</text>
+    <text x="262" y="366">Thu</text>
+    <text x="322" y="366">Fri</text>
+    <text x="382" y="366">Sat</text>
+    <text x="442" y="366">Sun</text>
+    <text x="502" y="366">Mon</text>
+  </g>
+
+  <!-- sparkline cards -->
+  <rect x="584" y="152" width="288" height="70" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="600" y="176" font-size="11" fill="#64748b">Size</text>
+  <text x="600" y="206" font-size="16" font-weight="700" fill="#1e293b">412 MB</text>
+  <polyline points="720,205 740,200 760,208 780,190 800,195 820,182 840,178 860,185" fill="none" stroke="#2563eb" stroke-width="2"/>
+
+  <rect x="584" y="232" width="288" height="70" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="600" y="256" font-size="11" fill="#64748b">Duration</text>
+  <text x="600" y="286" font-size="16" font-weight="700" fill="#1e293b">3m 42s</text>
+  <polyline points="720,288 740,280 760,285 780,278 800,272 820,276 840,268 860,264" fill="none" stroke="#16a34a" stroke-width="2"/>
+
+  <rect x="584" y="312" width="288" height="70" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="600" y="336" font-size="11" fill="#64748b">Success Rate</text>
+  <text x="600" y="366" font-size="16" font-weight="700" fill="#16a34a">97.9%</text>
+  <polyline points="720,368 740,362 760,366 780,358 800,360 820,352 840,350 860,348" fill="none" stroke="#7c3aed" stroke-width="2"/>
+
+  <!-- Export button -->
+  <rect x="28" y="404" width="844" height="44" rx="8" fill="#2563eb"/>
+  <text x="450" y="431" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">Export Compliance Report</text>
 </svg>
