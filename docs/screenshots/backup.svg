@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500" font-family="Inter, system-ui, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
   <defs>
     <linearGradient id="topbar" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0" stop-color="#2563eb"/>
@@ -75,6 +75,6 @@
   <text x="486" y="348" font-size="12" fill="#1e293b">1A2b3C4d5E6f7G8h9I0jKlMnOpQr</text>
 
   <!-- Trigger button -->
-  <rect x="472" y="398" width="380" height="44" rx="8" fill="#16a34a"/>
-  <text x="662" y="425" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">Trigger Backup Workflow</text>
+  <rect x="472" y="398" width="380" height="44" rx="8" fill="#4ade80"/>
+  <text x="662" y="425" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">Trigger Backup Workflow</text>
 </svg>
