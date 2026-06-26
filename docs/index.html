@@ -79,6 +79,18 @@
         const nm = document.getElementById('nav-user-name');
         if (nm) nm.textContent = 'Demo User';
       }
+      // Show connected status in demo mode
+      const ghStatus = document.getElementById('gh-status');
+      const ghText = document.getElementById('gh-status-text');
+      const drStatus = document.getElementById('drive-status');
+      const drText = document.getElementById('drive-status-text');
+      if (ghStatus) { ghStatus.className = 'status-pill status-ok'; }
+      if (ghText) ghText.textContent = 'GitHub: connected';
+      if (drStatus) { drStatus.className = 'status-pill status-ok'; }
+      if (drText) drText.textContent = 'Drive: connected';
+      // Hide the not-connected warning banner
+      const dashWarn = document.getElementById('dash-warn');
+      if (dashWarn) dashWarn.classList.add('hidden');
       if (typeof loadDashboard === 'function') { try { loadDashboard(); } catch (e) {} }
       if (typeof showToast === 'function') showToast('Demo mode enabled — showing sample data', 'info');
     };
@@ -395,7 +407,7 @@
     /* ── Stats grid ───────────────────────────────────────────────────────── */
     .stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      grid-template-columns: repeat(4, 1fr);
       gap: 16px; margin-bottom: 24px;
     }
     .stat-card {
@@ -1061,13 +1073,7 @@
       </div>
       GH Backup
     </a>
-    <div style="display:flex;align-items:center;gap:4px">
-      <div id="nav-user">
-        <img id="nav-user-avatar" alt="" referrerpolicy="no-referrer" />
-        <span id="nav-user-fallback">U</span>
-        <span id="nav-user-name">Signed in</span>
-        <span class="signout-link" onclick="window.firebaseSignOut()" title="Sign out">Sign Out</span>
-      </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-left:auto">
       <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode" tabindex="0">
         <svg id="theme-icon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
       </button>
@@ -1075,6 +1081,14 @@
         <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
       </button>
     </div>
+  </div>
+
+  <!-- User identity row — shown below brand when signed in or in demo -->
+  <div id="nav-user" style="display:none;align-items:center;gap:10px;padding:10px 16px 8px;border-bottom:1px solid rgba(255,255,255,0.07)">
+    <img id="nav-user-avatar" alt="" referrerpolicy="no-referrer" style="width:30px;height:30px;border-radius:50%;object-fit:cover;display:none;" />
+    <span id="nav-user-fallback" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">U</span>
+    <span id="nav-user-name" style="font-size:13px;font-weight:600;color:#e2e8f0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Signed in</span>
+    <span class="signout-link" onclick="window.firebaseSignOut()" title="Sign out" style="font-size:11.5px;color:#64748b;cursor:pointer;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);">Sign out</span>
   </div>
 
   <ul class="sidebar-nav">
