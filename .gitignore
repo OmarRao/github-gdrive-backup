@@ -1,6 +1,10 @@
 node_modules/
 .env
 credentials/
+OAuth/
 tmp/
 logs/
 *.zip
+*.json.enc
+client_secret*.json
+google-token*.json
