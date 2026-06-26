@@ -6,7 +6,7 @@
   <title>GitHub → Google Drive Backup</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://accounts.google.com/gsi/client" async></script>
 
   <!-- Auth globals (classic script) — defined BEFORE the Firebase module so the module can call them -->
@@ -40,29 +40,18 @@
       if (ls) ls.style.display = 'none';
       document.body.classList.remove('locked');
       window.currentUser = user || null;
-      const nu = document.getElementById('nav-user');
-      if (nu) {
-        if (user) {
-          nu.style.display = 'flex';
-          const av = document.getElementById('nav-user-avatar');
-          const nm = document.getElementById('nav-user-name');
-          // Top-right bar
-          const tub = document.getElementById('top-user-bar');
-          const tun = document.getElementById('top-user-name');
-          const tav = document.getElementById('top-user-avatar');
-          const tfall = document.getElementById('top-user-fallback');
-          if (tub) tub.style.display = 'flex';
-          if (tun) tun.textContent = user.displayName || user.email || 'User';
-          if (tav && user.photoURL) { tav.src = user.photoURL; tav.style.display = 'block'; if(tfall) tfall.style.display = 'none'; }
-          else if (tfall) { tfall.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase(); }
-          if (av) {
-            if (user.photoURL) { av.src = user.photoURL; av.style.display = 'block'; av.nextElementSibling.style.display = 'none'; }
-            else { av.style.display = 'none'; av.nextElementSibling.style.display = 'flex'; av.nextElementSibling.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase(); }
-          }
-          if (nm) nm.textContent = user.displayName || user.email || 'Signed in';
-        } else {
-          nu.style.display = 'none';
-        }
+      // Top-right user bar
+      const tub = document.getElementById('top-user-bar');
+      const tun = document.getElementById('top-user-name');
+      const tav = document.getElementById('top-user-avatar');
+      const tfall = document.getElementById('top-user-fallback');
+      if (user) {
+        if (tub) tub.style.display = 'flex';
+        if (tun) tun.textContent = user.displayName || user.email || 'User';
+        if (tav && user.photoURL) { tav.src = user.photoURL; tav.style.display = 'block'; if (tfall) tfall.style.display = 'none'; }
+        else if (tfall) { tfall.textContent = (user.displayName || user.email || 'U').charAt(0).toUpperCase(); }
+      } else {
+        if (tub) tub.style.display = 'none';
       }
       // Refresh the active page's data now that the shell is visible.
       if (typeof loadDashboard === 'function') { try { loadDashboard(); } catch (e) {} }
@@ -80,17 +69,9 @@
       const sidebar = document.getElementById('sidebar');
       if (main) main.style.marginTop = '44px';
       if (sidebar) sidebar.style.paddingTop = '48px';
-      const nu = document.getElementById('nav-user');
-      if (nu) {
-        nu.style.display = 'flex';
-        const av = document.getElementById('nav-user-avatar');
-        if (av) { av.style.display = 'none'; av.nextElementSibling.style.display = 'flex'; av.nextElementSibling.textContent = 'D'; }
-        const nm = document.getElementById('nav-user-name');
-        if (nm) nm.textContent = 'Demo User';
-      }
       // Show top-right user bar
       const tub = document.getElementById('top-user-bar');
-      if (tub) { tub.style.display = 'flex'; }
+      if (tub) tub.style.display = 'flex';
       const tun = document.getElementById('top-user-name');
       if (tun) tun.textContent = 'Demo User';
       // Show connected status in demo mode
@@ -230,7 +211,7 @@
     body {
       min-height: 100vh; padding-top: 4px;
       background: var(--bg); color: var(--text);
-      font-family: 'Futura', 'Nunito', 'Century Gothic', 'Trebuchet MS', sans-serif;
+      font-family: 'Barlow', 'Futura', 'Century Gothic', sans-serif;
       font-size: 14px; line-height: 1.6; -webkit-font-smoothing: antialiased;
     }
 
@@ -619,7 +600,7 @@
     }
     .badge-queued      { background: #f3f4f6; color: var(--muted);   border-color: var(--border); }
     .badge-in_progress { background: #dbeafe; color: #1e40af;         border-color: #bfdbfe; }
-    .badge-success     { background: #14532d; color: #bbf7d0;         border-color: #166534; }
+    .badge-success     { background: #006228; color: #d1fae5;         border-color: #00B336; }
     .badge-failure     { background: #7f1d1d; color: #fecaca;         border-color: #991b1b; }
     .badge-cancelled   { background: #f3f4f6; color: var(--muted);   border-color: var(--border); }
 
@@ -1099,13 +1080,6 @@
     </div>
   </div>
 
-  <!-- User identity row — shown below brand when signed in or in demo -->
-  <div id="nav-user" style="display:none;align-items:center;gap:10px;padding:10px 16px 8px;border-bottom:1px solid rgba(255,255,255,0.07)">
-    <img id="nav-user-avatar" alt="" referrerpolicy="no-referrer" style="width:30px;height:30px;border-radius:50%;object-fit:cover;display:none;" />
-    <span id="nav-user-fallback" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">U</span>
-    <span id="nav-user-name" style="font-size:13px;font-weight:600;color:#e2e8f0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Signed in</span>
-    <span class="signout-link" onclick="window.firebaseSignOut()" title="Sign out" style="font-size:11.5px;color:#64748b;cursor:pointer;padding:3px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.08);">Sign out</span>
-  </div>
 
   <ul class="sidebar-nav">
     <li class="nav-section-label">Navigation</li>
@@ -1190,16 +1164,14 @@
 <!-- ── Main ──────────────────────────────────────────────────────────────── -->
 <main class="main">
 
-  <!-- ── Top-right user bar ──────────────────────────────────────────────── -->
-  <div id="top-user-bar" style="display:none; position:fixed; top:4px; right:20px; z-index:600; align-items:center; gap:10px; background:rgba(255,255,255,0.95); backdrop-filter:blur(8px); border:1px solid #e2e8f0; border-radius:99px; padding:5px 14px 5px 8px; box-shadow:0 2px 8px rgba(0,0,0,0.08);">
-    <span id="top-user-fallback" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">D</span>
-    <img id="top-user-avatar" alt="" referrerpolicy="no-referrer" style="width:28px;height:28px;border-radius:50%;object-fit:cover;display:none;" />
-    <span id="top-user-name" style="font-size:13px;font-weight:600;color:#1e293b;">Demo User</span>
-    <span onclick="window.firebaseSignOut()" style="font-size:12px;font-weight:600;color:#64748b;cursor:pointer;padding:3px 8px;border-radius:6px;border:1px solid #e2e8f0;transition:color 0.15s;" onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#64748b'">Sign out</span>
-  </div>
-
   <!-- ── Dashboard ────────────────────────────────────────────────────── -->
   <section id="page-dashboard" class="page active">
+    <div id="top-user-bar" style="display:none;justify-content:flex-end;align-items:center;gap:10px;margin-bottom:16px;">
+      <span id="top-user-fallback" style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">D</span>
+      <img id="top-user-avatar" alt="" referrerpolicy="no-referrer" style="width:30px;height:30px;border-radius:50%;object-fit:cover;display:none;" />
+      <span id="top-user-name" style="font-size:13.5px;font-weight:600;color:var(--text);">Demo User</span>
+      <span onclick="window.firebaseSignOut()" style="font-size:12px;font-weight:600;color:var(--text-2);cursor:pointer;padding:4px 12px;border-radius:6px;border:1px solid var(--border);">Sign out</span>
+    </div>
     <div class="page-hero">
       <div class="hero-label">Dashboard</div>
       <h1>GitHub &rarr; Google Drive Backup</h1>
