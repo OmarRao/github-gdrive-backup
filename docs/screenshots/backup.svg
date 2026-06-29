@@ -62,7 +62,7 @@
   <!-- GitHub Orgs field -->
   <text x="472" y="172" font-size="11" font-weight="600" fill="#64748b">GitHub Orgs (comma-separated)</text>
   <rect x="472" y="182" width="380" height="34" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
-  <text x="486" y="204" font-size="12" fill="#1e293b">veeam-eng, veeam-cloud, veeam-labs</text>
+  <text x="486" y="204" font-size="12" fill="#1e293b">my-org, my-cloud, my-labs</text>
 
   <!-- GitLab Token -->
   <text x="472" y="244" font-size="11" font-weight="600" fill="#64748b">GitLab Token</text>
