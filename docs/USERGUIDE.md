@@ -624,6 +624,16 @@ Enable GitHub **secret scanning** and **push protection** on your fork. While th
 
 Watch the upstream **`OmarRao/github-gdrive-backup`** repository's **Security Advisories** and keep your fork reasonably current with upstream fixes. Subscribe to releases so you learn about security-relevant changes. Periodically review and rotate `GH_BACKUP_TOKEN`, the Google token, and any cloud keys; short-lived credentials limit the blast radius of any single exposure.
 
+### 10.7 SBOM Generation
+
+Enable Software Bill of Materials generation by passing `include_sbom=true` when dispatching `backup.yml`. The SBOM step runs [`anchore/sbom-action@v0`](https://github.com/anchore/sbom-action) and produces an SPDX-format SBOM uploaded as a workflow artifact.
+
+```bash
+gh workflow run backup.yml -f include_sbom=true
+```
+
+The step is gated with `if: success() && github.event.inputs.include_sbom == 'true'` so it is always skipped in scheduled runs and only activates on explicit manual dispatch. SBOM artifacts are retained for 30 days alongside the run logs.
+
 | Control | Where | Status |
 |---|---|---|
 | Encrypted Actions secrets | GitHub repo settings | Implemented |
@@ -632,6 +642,7 @@ Watch the upstream **`OmarRao/github-gdrive-backup`** repository's **Security Ad
 | Manifest integrity hashes | Session manifests | Implemented |
 | Branch protection | GitHub repo settings | Recommended |
 | Secret scanning / push protection | GitHub repo settings | Recommended |
+| SBOM generation (SPDX) | `backup.yml` — `include_sbom=true` | Optional |
 
 ---
 
@@ -733,32 +744,78 @@ Self-hosted runners carry additional responsibility: you patch the host, you sec
 
 For regulated environments, a backup is only as good as your ability to *prove* it happened. The reporting layer turns operational history into auditable evidence, and the dashboard can export that evidence in formats auditors expect.
 
-### 14.1 Compliance PDF Export
+### 14.1 Compliance CSV Export
 
-From the **Reports** tab, the **Compliance PDF export** produces a formatted report suitable for an evidence package: it summarizes success rate, recent sessions, SLA adherence, and audit-log highlights over a chosen period. This single document is designed to be attached to an audit response demonstrating that backups ran, were retained, and met your stated objectives.
+From the **Reports** tab, the **Export CSV** button downloads the full run history as a comma-separated file: columns include timestamp, session ID, run status, repository count, duration, storage target, and the GitHub run URL. This CSV is the primary evidence artifact for audit submissions.
 
 ![Reports](screenshots/reports.svg)
 
-### 14.2 Audit Log
+Retain CSV exports according to your framework's record-keeping requirements. Consider feeding them into a SIEM for tamper-evidence and long-term log aggregation.
 
-The audit log (described in [9.4](#94-audit-log)) is the backbone of compliance reporting. Because every significant action and run outcome is timestamped and exportable to **CSV**, you can reconstruct an exact operational timeline. Retain exports according to your framework's record-keeping requirements, and consider feeding them into a centralized log store for tamper-evidence and long-term retention.
+### 14.2 Session Diff & Reporting
 
-### 14.3 Supported Frameworks (SOX, HIPAA, ISO 27001, SOC 2)
+The **Session Diff** view in the Reports tab lets you compare any two backup sessions side by side. Select Session A (older) and Session B (newer), then click **Compare**:
 
-The reporting and security features map onto common control families found in major frameworks. The table below shows how project capabilities support each; treat it as a mapping aid, not a certification — your auditor determines sufficiency.
+![Session Diff](screenshots/reports-diff.svg)
+
+The comparison table shows:
+- **Added** repositories (present in B, absent in A) — highlighted in green
+- **Removed** repositories (present in A, absent in B) — highlighted in red
+- **Changed** repositories with exact byte delta and percentage change
+- **Unchanged** repositories for completeness
+
+Use Session Diff as a routine sanity check after major code pushes, and as an investigation tool when the anomaly detection banner fires.
+
+### 14.3 Audit Log
+
+The audit log lives in `docs/audit.log` (appended by workflows) and is surfaced in the **Reports** tab. It records:
+- Every scheduled and manual backup run outcome
+- Restore workflow executions
+- Monthly auto-restore dry-run results (from `monthly-restore-test.yml`)
+- SLA breach events
+
+Entries are searchable in the UI and exportable to CSV. The log is also a key audit artifact for the frameworks below.
+
+### 14.4 Supported Frameworks (SOX, HIPAA, ISO 27001, SOC 2)
 
 | Framework | Relevant project capability |
 |---|---|
-| **SOX** | Audit log, retention policy, change control via branch protection, evidence PDF |
-| **HIPAA** | AES-256-CBC encryption at rest, access control allow-list, integrity verification |
-| **ISO 27001** | Backup/restore procedures, SLA tracking, secret management, periodic key rotation |
-| **SOC 2** | Availability (SLA tracker), confidentiality (encryption), monitoring (audit log/reports) |
+| **SOX** | Audit log, GFS retention, change control via branch protection, CSV export |
+| **HIPAA** | AES-256-CBC encryption at rest, access control allow-list, integrity verification, SBOM |
+| **ISO 27001** | Backup/restore procedures, SLA tracking, monthly restore test, PAT rotation reminder |
+| **SOC 2** | Availability (SLA tracker + hourly check), confidentiality (encryption), monitoring (audit log + anomaly detection) |
 
-To strengthen evidence, combine the Compliance PDF (point-in-time summary) with periodic CSV audit-log exports (continuous record) and documentation of your retention and SLA settings. Together these demonstrate not just that controls exist, but that they operate effectively over time — which is precisely what SOC 2 Type II and ISO 27001 surveillance audits look for.
+Combine the periodic CSV audit-log exports (continuous record) with SLA and retention settings documentation and the monthly restore test audit entries — together these demonstrate not just that controls exist, but that they operate effectively over time.
 
 ---
 
-## 15. Troubleshooting
+## 15. PWA & Offline Support
+
+The dashboard is a **Progressive Web App (PWA)**. Two files enable this:
+
+- **`docs/manifest.json`** — declares the app name, icons, theme color (`#166534`), and `display: standalone` so it opens in its own window without browser chrome.
+- **`docs/sw.js`** — a cache-first service worker that caches the app shell (`/github-gdrive-backup/` and `/github-gdrive-backup/index.html`) on install.
+
+![PWA Install](screenshots/pwa-install.svg)
+
+**Installing the PWA:**
+
+Most modern browsers (Chrome, Edge, Safari on iOS) show an **Install** prompt in the address bar or menu when they detect a valid manifest + service worker. On the dashboard, you can also look for the install prompt that appears automatically in the browser bar. After installation, the app:
+- Opens in a standalone window with no browser UI
+- Loads instantly from cache even without a network connection
+- Serves the cached shell for any navigation miss (so you can view reports offline)
+
+**Service worker cache strategy:**
+1. On first load, the shell URLs are pre-cached.
+2. On fetch, the service worker checks the cache first; on a cache hit it responds immediately.
+3. On a navigate miss (no cache entry), it falls back to the cached shell — preventing blank screens offline.
+4. On update (new deployment), old caches are deleted and the new shell is cached during the activate phase.
+
+**Cache invalidation:** update the `CACHE_NAME` constant in `docs/sw.js` (e.g. `gh-backup-v2`) after major UI changes to force all clients to re-cache on next load.
+
+---
+
+## 16. Troubleshooting
 
 Most issues fall into a handful of categories: authentication, permissions, storage, and scheduling. The table below maps common symptoms to likely causes and fixes.
 
@@ -771,7 +828,13 @@ Most issues fall into a handful of categories: authentication, permissions, stor
 | Dashboard live buttons do nothing | In Demo Mode (yellow banner shown) | Sign in and enter tokens in Settings |
 | SLA badge red despite recent runs | Runs failing or schedule delayed | Check Workflow Runs / Reports for failures |
 | S3 uploads fail | Missing AWS keys or `STORAGE_TARGET` not set | Set AWS secrets and `STORAGE_TARGET=s3` |
-| Drive uploads start failing | Drive quota exhausted | Shorten retention, move to S3, or upgrade storage |
+| Azure Blob uploads fail | Missing connection string or wrong container name | Set `AZURE_STORAGE_CONNECTION_STRING` and `AZURE_CONTAINER_NAME` |
+| B2 uploads fail | Wrong endpoint or credentials | Verify `B2_ENDPOINT` format (e.g. `https://s3.us-west-004.backblazeb2.com`) and key scopes |
+| Drive uploads start failing | Drive quota exhausted | Shorten retention, move to S3/B2, or upgrade storage |
+| Teams / email notifications not firing | Secrets absent or wrong format | Verify `TEAMS_WEBHOOK_URL` / `SENDGRID_API_KEY` in repo secrets |
+| PAT rotation reminder not sending | `PAT_EXPIRY_DATE` secret not set | Set `PAT_EXPIRY_DATE` as `YYYY-MM-DD` |
+| PWA not installable | Missing `manifest.json` or `sw.js` not registered | Confirm the `<link rel="manifest">` tag in `docs/index.html` and `sw.js` is at the correct path |
+| Anomaly banner shown unexpectedly | Large repo added or removed since last session | Use Session Diff to identify the repo causing size change |
 
 When diagnosing, start with the **Workflow Runs** view and open the failing run's logs (or `gh run view <id> --log`). The first error line is almost always the real cause; later lines are cascade effects. For local reproduction, run the same job in Docker (see [Section 12](#12-docker-usage)) with identical environment variables. If the dashboard behaves unexpectedly, check the browser console and confirm whether you are in Demo Mode — the yellow banner and the "Sign in to use live features" toast are the giveaways.
 
@@ -779,7 +842,7 @@ For persistent or unexplained failures, verify each secret's presence from **Set
 
 ---
 
-## 16. FAQ
+## 17. FAQ
 
 **Is my GitHub token ever sent to a server you control?**
 No. The dashboard is a static site with no backend. Your PAT and Drive token live only in browser `localStorage` and are sent only to `api.github.com` and `googleapis.com`. Workflow secrets live in GitHub's encrypted secret store and are decrypted only inside the runner.
@@ -800,10 +863,28 @@ Use the **Restore** tab to pick a session by timestamp (point-in-time recovery),
 Encrypted archives (`.zip.enc`) are unrecoverable without `BACKUP_ENCRYPTION_KEY`. Store the key redundantly in a vault. Unencrypted backups are unaffected.
 
 **Does this support storage other than Google Drive?**
-Amazon S3 is supported via `STORAGE_TARGET=s3` and AWS keys. Azure Blob is documented as optional/aspirational — confirm support in your fork before relying on it.
+Yes — Amazon S3 (`STORAGE_TARGET=s3`), Azure Blob Storage (`STORAGE_TARGET=azure`), and Backblaze B2 (`STORAGE_TARGET=b2`) are all implemented. See [Section 8.2](#82-s3--azure-blob--backblaze-b2) for required secrets.
 
 **Are Slack and email notifications available?**
-They are optional/aspirational integrations. The fully implemented monitoring surfaces are the in-dashboard **audit log**, **reports**, and the **SLA tracker**.
+Yes — set `TEAMS_WEBHOOK_URL` for MS Teams Adaptive Cards and `SENDGRID_API_KEY` for HTML email digests via `notify.yml`. Legacy Slack support via `SLACK_WEBHOOK_URL` is also present.
+
+**What is the Session Diff feature?**
+It lets you compare any two backup sessions side by side in the Reports tab, showing added, removed, and changed repositories with exact byte deltas. Useful for spotting unexpected growth or missing repos after a change.
+
+**What does the anomaly detection banner mean?**
+When the current backup session's total size deviates more than 20% from the 7-day rolling average, an amber warning banner appears on the dashboard. Use Session Diff to investigate which repository changed unexpectedly.
+
+**Can I install the dashboard as an app?**
+Yes — the dashboard is a PWA. Modern browsers will offer an Install prompt. After installation it launches in a standalone window and serves cached content offline. See [Section 15](#15-pwa--offline-support).
+
+**What is GFS retention?**
+Grandfather-Father-Son is a tiered retention policy: keep the last 7 daily sessions, the last 4 weekly sessions, and the last 12 monthly sessions. It gives strong rollback granularity without paying for a full flat 365-day window. Select it via `retention_policy=gfs` when dispatching `cleanup.yml`.
+
+**How do I get notified before my PAT expires?**
+Set the `PAT_EXPIRY_DATE` secret to your PAT's expiry date in `YYYY-MM-DD` format. The `pat-check.yml` workflow runs every Monday and sends a Teams card + email when the PAT is ≤7 days from expiry.
+
+**What is the monthly auto-restore test?**
+`monthly-restore-test.yml` fires on the 1st of each month and runs a dry-run restore (`DRY_RUN=true`). The result is appended to `docs/audit.log` and posted to Teams — providing automated evidence that backups are actually restorable.
 
 **How much does it cost to run?**
 The dashboard (GitHub Pages) and Actions minutes are typically free for personal use. Costs scale with repository size, backup frequency, retention window, and your storage plan (Drive or S3).
@@ -878,7 +959,7 @@ The dashboard is now installable as a Progressive Web App:
 
 ---
 
-## 17. Version History
+## 18. Version History
 
 | Version | Date | Highlights |
 |---|---|---|
