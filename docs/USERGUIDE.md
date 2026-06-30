@@ -471,23 +471,31 @@ Set `STORAGE_TARGET` to choose your storage backend. The same session/owner key 
 
 **Azure Blob** uses `@azure/storage-blob` (lazy-loaded only when `STORAGE_TARGET=azure`). The container is created automatically on first use if it does not exist. **Backblaze B2** reuses `@aws-sdk/client-s3` with your B2 S3-compatible endpoint — no additional SDK install required beyond the existing AWS SDK dependency.
 
-### 8.3 Retention Policy
+### 8.3 Retention Policy (Simple & GFS)
 
-The `cleanup.yml` workflow enforces retention by deleting sessions older than your configured window. You set the window from the **Settings → Retention** tab (for example, "keep 30 days" or "keep the last N sessions"). Cleanup runs on its own schedule and respects the same storage target as backups, so it prunes Drive (or S3) accordingly.
+`cleanup.yml` supports two retention modes selected via the `retention_policy` workflow input:
 
-```yaml
-# cleanup.yml (illustrative) — keep last 30 days
-on:
-  schedule:
-    - cron: "30 3 * * *"   # daily, after backups settle
-jobs:
-  prune:
-    runs-on: ubuntu-latest
-    env:
-      RETENTION_DAYS: "30"
+**Simple retention** (default if you set `retention_policy=simple`) deletes any session older than your configured `RETENTION_DAYS`. This is the easiest option for individuals.
+
+**GFS — Grandfather-Father-Son** (default: `retention_policy=gfs`) applies a tiered policy that balances granularity with storage cost:
+
+| Tier | How many kept | Which sessions |
+|---|---|---|
+| Daily | 7 | The 7 most recent daily sessions |
+| Weekly | 4 | The most recent session per calendar week, for 4 weeks |
+| Monthly | 12 | The most recent session per calendar month, for 12 months |
+
+GFS is the recommended default for production use. It keeps last week's sessions at full granularity for quick rollback, provides weekly rollback points for the last month, and monthly archives going back a year — all at a fraction of the storage cost of a flat 365-day rolling window.
+
+To dispatch with a specific policy:
+
+```bash
+gh workflow run cleanup.yml -f retention_policy=gfs
+# or
+gh workflow run cleanup.yml -f retention_policy=simple
 ```
 
-Choose a retention window that satisfies your recovery objectives and any compliance requirements (see [Section 14](#14-compliance--reporting)). Longer windows increase storage cost; shorter windows reduce your point-in-time recovery range.
+Choose a policy that satisfies your recovery objectives and compliance requirements (see [Section 14](#14-compliance--reporting)).
 
 ### 8.4 Drive Quota Monitoring
 
@@ -497,46 +505,90 @@ Because Google Drive has a finite quota, the system surfaces capacity awareness 
 
 ## 9. Notifications & Monitoring
 
-Knowing that backups succeeded — and being alerted promptly when they do not — is essential for a backup system you can trust. The dashboard provides built-in monitoring; outbound notifications (Slack, email) are optional integrations.
+Knowing that backups succeeded — and being alerted promptly when they do not — is essential for a backup system you can trust. The dashboard provides built-in monitoring; all outbound notification channels are fully implemented and activated by setting the corresponding secret.
 
 ### 9.1 Slack Webhook
 
-Slack notifications are an **optional/aspirational** integration. When configured with an incoming webhook URL, the backup and restore workflows can post a summary message (status, repo count, duration) to a channel of your choice on completion. This keeps a team informed without anyone needing to open the dashboard.
+Set `SLACK_WEBHOOK_URL` as a GitHub Actions secret to receive plain-text Slack messages on backup failure. If the secret is absent, the step is skipped automatically.
 
 ```yaml
-# Illustrative Slack notification step (optional)
 - name: Notify Slack
-  if: always()
+  if: failure()
   run: |
     curl -X POST -H 'Content-type: application/json' \
-      --data "{\"text\":\"Backup ${{ job.status }} — ${{ github.run_id }}\"}" \
+      --data "{\"text\":\"Backup FAILED — ${{ github.run_id }}\"}" \
       "${{ secrets.SLACK_WEBHOOK_URL }}"
 ```
 
-If no `SLACK_WEBHOOK_URL` is set, the step is skipped and runs proceed normally.
+### 9.2 Email Digest (SendGrid)
 
-### 9.2 Email Digest
+Set `SENDGRID_API_KEY` to activate the HTML email digest that fires in `notify.yml` after every backup run. The email includes a status table (repo count, run URL, duration, conclusion), delivered via the SendGrid REST API — no SMTP server required. The step is skipped automatically when the secret is absent.
 
-An **email digest** — a periodic summary of backup health, recent failures, and SLA status — is likewise an **optional/aspirational** feature. Where enabled, it would deliver a daily or weekly rollup so stakeholders who do not watch the dashboard still receive evidence of healthy operation. Treat this as a roadmap/extension point and verify availability in your fork before depending on it.
+```bash
+gh secret set SENDGRID_API_KEY --body "SG...."
+```
 
-### 9.3 Webhook Events
+The digest email uses the `From` address `backup@noreply.example.com` and the recipient address comes from `NOTIFY_EMAIL` if set, otherwise falls back to `GH_USER`'s primary email on GitHub.
 
-For deeper integration, the system can emit **webhook events** on key lifecycle transitions (backup started, backup completed, restore completed, cleanup completed). Downstream consumers — a monitoring platform, a ChatOps bot, or a custom dashboard — can subscribe to these events. As with Slack and email, treat custom webhook fan-out as an optional extension you wire up to your environment.
+### 9.3 MS Teams Webhook
 
-### 9.4 Audit Log
+Set `TEAMS_WEBHOOK_URL` to receive an Adaptive Card in a Teams channel after each run. Green cards indicate success; red cards indicate failure. The card body includes the conclusion, workflow run URL, repository count, and a direct link to the run logs.
 
-The **audit log** is fully implemented and lives in the **Reports** tab. It records significant actions and run outcomes with timestamps, making it easy to answer "what happened and when." Entries are searchable in the UI and exportable to CSV for retention or ingestion into a SIEM. The audit log is also a key input to compliance evidence (see [Section 14](#14-compliance--reporting)).
+```bash
+gh secret set TEAMS_WEBHOOK_URL --body "https://your-tenant.webhook.office.com/..."
+```
 
-### 9.5 SLA Tracker
+The step uses `continue-on-error: true` so a Teams outage never blocks a backup run.
 
-The **SLA tracker** turns "is my backup current?" into a single visual signal. The **Last Backup** stat card carries an **SLA badge** whose color reflects freshness against the threshold you set in **Settings → SLA**. Green means within SLA, amber means approaching the limit, and red means the most recent successful backup is older than allowed. This makes drift — caused by failed runs or delayed schedules — immediately obvious.
+### 9.4 PAT Rotation Reminder
 
-| Indicator | Meaning |
+`pat-check.yml` runs every **Monday at 08:00 UTC**. Set the `PAT_EXPIRY_DATE` secret (format `YYYY-MM-DD`) to your PAT's expiry date:
+
+```bash
+gh secret set PAT_EXPIRY_DATE --body "2026-09-30"
+```
+
+Behavior:
+- **≤7 days remaining** — posts an amber warning Adaptive Card to Teams + sends a SendGrid email.
+- **Already expired** — posts a red critical card to Teams + sends a SendGrid email.
+- **Secret absent** — workflow exits cleanly with no error.
+
+This ensures you are never caught off-guard by a silent auth failure from an expired PAT.
+
+### 9.5 SLA Breach Alerts
+
+`sla-check.yml` runs **every hour**. It reads `docs/status.json` from the repository, checks the `last_run` timestamp, and compares it against the `SLA_HOURS` secret (default: `26` hours — one hour of grace beyond the 24-hour daily window).
+
+```bash
+gh secret set SLA_HOURS --body "26"
+```
+
+If the backup age exceeds the threshold, it posts a red Teams Adaptive Card and sends a SendGrid email alert. All notification steps use `continue-on-error: true`. This also tracks the **SLA badge** displayed on the dashboard stat card.
+
+| Dashboard indicator | Meaning |
 |---|---|
 | Green badge | Last successful backup within SLA window |
 | Amber badge | Approaching the SLA threshold |
 | Red badge | SLA breached — backup is stale |
 | Active Runs > 0 | A backup/restore is currently executing |
+
+### 9.6 Audit Log
+
+The **audit log** lives in the **Reports** tab and records every significant action and run outcome with timestamps. Entries are searchable in the UI and exportable to CSV for retention or ingestion into a SIEM. The `monthly-restore-test.yml` workflow appends its dry-run results to `docs/audit.log` automatically. See [14.3](#143-audit-log) for compliance use.
+
+### 9.7 Anomaly Detection
+
+The dashboard checks `docs/status.json` on load and compares the current session's total backup size against the 7-day rolling average. If the deviation exceeds **20%**, an amber dismissible banner appears at the top of the dashboard:
+
+![Dashboard — Anomaly Alert](screenshots/dashboard-anomaly.svg)
+
+In Demo Mode, the banner is always shown so evaluators can see the feature in action. To resolve a real anomaly, inspect the **Session Diff** view (see [14.2](#142-session-diff--reporting)) to identify which repositories grew or shrank unexpectedly.
+
+### 9.8 Monthly Auto-Restore Test
+
+`monthly-restore-test.yml` fires on the **1st of every month at 03:00 UTC**. It runs `src/restore/index.js` with `DRY_RUN=true` against the most recent backup session. The result (`success` or `failure`) is appended to `docs/audit.log` and a Teams Adaptive Card is posted.
+
+This gives you automated evidence that your backups are actually restorable — a critical control for SOC 2 availability and ISO 27001 backup verification requirements.
 
 ---
 
