@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="topbar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+    <linearGradient id="loginbg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f172a"/>
+      <stop offset="1" stop-color="#1e293b"/>
+    </linearGradient>
+  </defs>
+
+  <!-- LEFT: login screen -->
+  <rect x="0" y="0" width="450" height="500" fill="url(#loginbg)"/>
+  <rect x="95" y="100" width="260" height="310" rx="12" fill="#ffffff"/>
+  <circle cx="225" cy="155" r="27" fill="#2563eb"/>
+  <path d="M225 140 l15 6 v10 c0 10 -7 16 -15 19 c-8 -3 -15 -9 -15 -19 v-10 z" fill="#ffffff"/>
+  <path d="M218 156 l5 5 l9 -9" stroke="#2563eb" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="225" y="204" text-anchor="middle" font-size="15" font-weight="700" fill="#1e293b">GitHub → Drive Backup</text>
+  <text x="225" y="224" text-anchor="middle" font-size="10" fill="#64748b">Cybersecurity, Privacy &amp; Resilience</text>
+  <!-- Google button -->
+  <rect x="120" y="248" width="210" height="38" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="155" y="272" font-size="12" font-weight="600" fill="#1e293b">Continue with Google</text>
+  <!-- Demo button -->
+  <rect x="120" y="296" width="210" height="38" rx="8" fill="#ffffff" stroke="#2563eb"/>
+  <text x="225" y="320" text-anchor="middle" font-size="12" font-weight="600" fill="#2563eb">Explore with sample data →</text>
+  <!-- Copyright -->
+  <text x="225" y="390" text-anchor="middle" font-size="9" fill="#94a3b8">© Omar Rao · All rights reserved</text>
+
+  <!-- RIGHT: PWA install prompt overlay -->
+  <rect x="450" y="0" width="450" height="500" fill="#f8fafc"/>
+  <rect x="450" y="0" width="450" height="4" fill="url(#topbar)"/>
+  <rect x="450" y="4" width="450" height="44" fill="#ffffff"/>
+  <text x="470" y="32" font-size="14" font-weight="700" fill="#1e293b">Dashboard</text>
+  <line x1="450" y1="48" x2="900" y2="48" stroke="#e2e8f0"/>
+
+  <!-- PWA install card -->
+  <rect x="480" y="80" width="390" height="200" rx="12" fill="#ffffff" stroke="#4ade80" stroke-width="2"/>
+  <rect x="480" y="80" width="390" height="4" rx="2" fill="#4ade80"/>
+
+  <!-- App icon -->
+  <rect x="510" y="112" width="52" height="52" rx="12" fill="#166534"/>
+  <text x="536" y="145" text-anchor="middle" font-size="22" font-weight="800" fill="#4ade80">G</text>
+
+  <text x="578" y="130" font-size="15" font-weight="700" fill="#1e293b">Install GH Backup</text>
+  <text x="578" y="148" font-size="11" fill="#64748b">Add to your home screen for</text>
+  <text x="578" y="162" font-size="11" fill="#64748b">quick access — works offline.</text>
+
+  <line x1="500" y1="182" x2="850" y2="182" stroke="#e2e8f0"/>
+
+  <g font-size="11" fill="#64748b">
+    <circle cx="516" cy="206" r="4" fill="#4ade80"/>
+    <text x="530" y="210">Works offline — cached app shell</text>
+    <circle cx="516" cy="226" r="4" fill="#4ade80"/>
+    <text x="530" y="230">Standalone window, no browser chrome</text>
+    <circle cx="516" cy="246" r="4" fill="#4ade80"/>
+    <text x="530" y="250">Installs in one click — no app store needed</text>
+  </g>
+
+  <rect x="500" y="260" width="172" height="36" rx="8" fill="#4ade80"/>
+  <text x="586" y="282" text-anchor="middle" font-size="13" font-weight="700" fill="#166534">Install App</text>
+  <rect x="682" y="260" width="168" height="36" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="766" y="282" text-anchor="middle" font-size="13" fill="#64748b">Not now</text>
+
+  <!-- manifest.json label -->
+  <rect x="480" y="310" width="390" height="56" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="500" y="332" font-size="11" font-weight="600" fill="#64748b">manifest.json · sw.js</text>
+  <text x="500" y="352" font-size="11" fill="#94a3b8">PWA install prompt + offline cache via service worker</text>
+</svg>

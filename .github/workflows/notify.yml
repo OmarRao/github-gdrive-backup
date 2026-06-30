@@ -7,18 +7,86 @@ on:
 
 jobs:
   notify:
-    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
     runs-on: ubuntu-latest
     steps:
       - name: Notify Slack on failure
+        if: ${{ github.event.workflow_run.conclusion == 'failure' }}
         continue-on-error: true
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
         run: |
-          curl -s -X POST "$SLACK_WEBHOOK_URL" \
-            -H 'Content-type: application/json' \
-            --data "{\"text\":\"GitHub backup failed: $RUN_URL\"}"
+          if [ -n "$SLACK_WEBHOOK_URL" ]; then
+            curl -s -X POST "$SLACK_WEBHOOK_URL" \
+              -H 'Content-type: application/json' \
+              --data "{\"text\":\"GitHub backup failed: $RUN_URL\"}"
+          fi
+
+      - name: Send MS Teams Adaptive Card
+        continue-on-error: true
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_NAME: ${{ github.event.workflow_run.name }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_AT: ${{ github.event.workflow_run.updated_at }}
+        run: |
+          if [ -z "$TEAMS_WEBHOOK_URL" ]; then exit 0; fi
+          if [ "$CONCLUSION" = "success" ]; then
+            COLOR="Good"; EMOJI="✅"
+          else
+            COLOR="Attention"; EMOJI="❌"
+          fi
+          curl -s -X POST "$TEAMS_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"type\": \"message\",
+              \"attachments\": [{
+                \"contentType\": \"application/vnd.microsoft.card.adaptive\",
+                \"content\": {
+                  \"\$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",
+                  \"type\": \"AdaptiveCard\",
+                  \"version\": \"1.4\",
+                  \"body\": [
+                    {\"type\":\"TextBlock\",\"text\":\"$EMOJI GitHub → Drive Backup: $CONCLUSION\",\"weight\":\"Bolder\",\"size\":\"Medium\",\"color\":\"$COLOR\"},
+                    {\"type\":\"TextBlock\",\"text\":\"**Workflow:** $RUN_NAME\",\"wrap\":true},
+                    {\"type\":\"TextBlock\",\"text\":\"**Completed:** $RUN_AT\",\"wrap\":true},
+                    {\"type\":\"ActionSet\",\"actions\":[{\"type\":\"Action.OpenUrl\",\"title\":\"View Run\",\"url\":\"$RUN_URL\"}]}
+                  ]
+                }
+              }]
+            }"
+
+      - name: Send email digest via SendGrid
+        continue-on-error: true
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_AT: ${{ github.event.workflow_run.updated_at }}
+        run: |
+          if [ -z "$SENDGRID_API_KEY" ]; then exit 0; fi
+          if [ "$CONCLUSION" = "success" ]; then
+            SUBJECT="✅ Backup completed successfully"
+            COLOR="#166534"
+            EMOJI="✅"
+          else
+            SUBJECT="❌ Backup FAILED — action required"
+            COLOR="#dc2626"
+            EMOJI="❌"
+          fi
+          curl -s -X POST "https://api.sendgrid.com/v3/mail/send" \
+            -H "Authorization: Bearer $SENDGRID_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"personalizations\": [{\"to\": [{\"email\": \"omarsrao@gmail.com\"}]}],
+              \"from\": {\"email\": \"omarsrao@gmail.com\", \"name\": \"GH Backup\"},
+              \"subject\": \"$SUBJECT\",
+              \"content\": [{
+                \"type\": \"text/html\",
+                \"value\": \"<div style='font-family:Segoe UI,sans-serif;max-width:600px;margin:auto'><h2 style='color:$COLOR'>$EMOJI GitHub Backup $CONCLUSION</h2><table style='width:100%;border-collapse:collapse'><tr><td style='padding:8px;border-bottom:1px solid #e2e8f0'><strong>Status</strong></td><td style='padding:8px;border-bottom:1px solid #e2e8f0'>$CONCLUSION</td></tr><tr><td style='padding:8px;border-bottom:1px solid #e2e8f0'><strong>Completed</strong></td><td style='padding:8px;border-bottom:1px solid #e2e8f0'>$RUN_AT</td></tr><tr><td style='padding:8px'><strong>Run link</strong></td><td style='padding:8px'><a href='$RUN_URL'>View on GitHub Actions</a></td></tr></table><hr style='margin:24px 0;border:none;border-top:1px solid #e2e8f0'><p style='color:#94a3b8;font-size:12px'>&copy; Omar Rao &middot; Cybersecurity, Privacy and Resilience Expert</p></div>\"
+              }]
+            }"
 
       - name: Update status badge
         uses: actions/github-script@v7

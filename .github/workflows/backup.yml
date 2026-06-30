@@ -24,9 +24,14 @@ on:
         required: false
         default: ''
       storage_target:
-        description: 'Storage target: drive or s3'
+        description: 'Storage target: drive, s3, azure, or b2'
         required: false
         default: 'drive'
+      include_sbom:
+        description: 'Generate SBOM for this repo (true/false)'
+        required: false
+        default: 'false'
+        type: boolean
       runner:
         description: 'Runner label'
         required: false
@@ -116,12 +121,47 @@ jobs:
             npm audit --json --prefix "$dir" > "/tmp/gh-backup/${repo}.audit.json" 2>/dev/null || true
           done
 
+      - name: Generate SBOM
+        if: success() && github.event.inputs.include_sbom == 'true'
+        uses: anchore/sbom-action@v0
+        with:
+          format: spdx-json
+          artifact-name: sbom-${{ github.run_id }}.spdx.json
+
       - name: Check for PAT expiry
         if: failure()
         run: |
           if [ -f /tmp/pat-expired ]; then
             echo "PAT_EXPIRED=true" >> $GITHUB_ENV
           fi
+
+      - name: Alert on PAT expiry via Teams
+        if: failure() && env.PAT_EXPIRED == 'true'
+        continue-on-error: true
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$TEAMS_WEBHOOK_URL" ]; then exit 0; fi
+          curl -s -X POST "$TEAMS_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"type\": \"message\",
+              \"attachments\": [{
+                \"contentType\": \"application/vnd.microsoft.card.adaptive\",
+                \"content\": {
+                  \"\$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",
+                  \"type\": \"AdaptiveCard\",
+                  \"version\": \"1.4\",
+                  \"body\": [
+                    {\"type\":\"TextBlock\",\"text\":\"🔑 GitHub PAT Has Expired\",\"weight\":\"Bolder\",\"size\":\"Medium\",\"color\":\"Attention\"},
+                    {\"type\":\"TextBlock\",\"text\":\"Backups are failing because the GitHub Personal Access Token (GH_BACKUP_TOKEN) has expired.\",\"wrap\":true},
+                    {\"type\":\"TextBlock\",\"text\":\"Renew: GitHub → Settings → Developer Settings → Personal Access Tokens\",\"wrap\":true,\"color\":\"Accent\"},
+                    {\"type\":\"ActionSet\",\"actions\":[{\"type\":\"Action.OpenUrl\",\"title\":\"View Failed Run\",\"url\":\"$RUN_URL\"}]}
+                  ]
+                }
+              }]
+            }"
 
       - name: Update status - token expired
         if: failure() && env.PAT_EXPIRED == 'true'

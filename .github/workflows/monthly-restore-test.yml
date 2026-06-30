@@ -1,0 +1,112 @@
+name: Monthly Restore Integrity Test
+
+on:
+  schedule:
+    # Runs 1st of every month at 03:00 UTC
+    - cron: '0 3 1 * *'
+  workflow_dispatch:
+
+jobs:
+  restore-test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Write Google credentials
+        env:
+          GOOGLE_CLIENT_SECRET_JSON: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_TOKEN_JSON: ${{ secrets.GOOGLE_TOKEN }}
+        run: |
+          mkdir -p credentials
+          printf '%s' "$GOOGLE_CLIENT_SECRET_JSON" > credentials/google-client-secret.json
+          printf '%s' "$GOOGLE_TOKEN_JSON"         > credentials/google-token.json
+
+      - name: Run dry-run restore test
+        id: restore_test
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN:              ${{ secrets.GH_BACKUP_TOKEN }}
+          GDRIVE_FOLDER_ID:          ${{ secrets.GDRIVE_FOLDER_ID }}
+          GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
+          GOOGLE_TOKEN_PATH:         ./credentials/google-token.json
+          DRY_RUN:                   'true'
+          RESTORE_TMP_DIR:           /tmp/gh-restore-test
+        run: |
+          echo "Starting monthly dry-run restore integrity test..."
+          node src/restore/index.js
+          echo "RESTORE_RESULT=success" >> $GITHUB_ENV
+
+      - name: Mark result on failure
+        if: steps.restore_test.outcome == 'failure'
+        run: echo "RESTORE_RESULT=failure" >> $GITHUB_ENV
+
+      - name: Append restore-test audit entry
+        if: always()
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const result = process.env.RESTORE_RESULT || 'unknown';
+            const runUrl = context.serverUrl + '/' + context.repo.owner + '/' + context.repo.repo + '/actions/runs/' + context.runId;
+            const line = `${new Date().toISOString()} | monthly-restore-test | result=${result} | dry_run=true | run=${runUrl}\n`;
+            let existing = '';
+            let sha;
+            try {
+              const res = await github.rest.repos.getContent({
+                owner: context.repo.owner, repo: context.repo.repo, path: 'docs/audit.log'
+              });
+              sha = res.data.sha;
+              existing = Buffer.from(res.data.content, 'base64').toString('utf8');
+            } catch (_) {}
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner, repo: context.repo.repo,
+              path: 'docs/audit.log',
+              message: 'chore: monthly restore test audit [skip ci]',
+              content: Buffer.from(existing + line).toString('base64'),
+              ...(sha ? { sha } : {})
+            });
+        env:
+          RESTORE_RESULT: ${{ env.RESTORE_RESULT }}
+
+      - name: Notify result
+        if: always()
+        continue-on-error: true
+        env:
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          RESTORE_RESULT: ${{ env.RESTORE_RESULT }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          if [ -z "$TEAMS_WEBHOOK_URL" ]; then exit 0; fi
+          COLOR=$([ "$RESTORE_RESULT" = "success" ] && echo "Good" || echo "Attention")
+          EMOJI=$([ "$RESTORE_RESULT" = "success" ] && echo "✅" || echo "🚨")
+          curl -s -X POST "$TEAMS_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"type\": \"message\",
+              \"attachments\": [{
+                \"contentType\": \"application/vnd.microsoft.card.adaptive\",
+                \"content\": {
+                  \"\$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",
+                  \"type\": \"AdaptiveCard\",
+                  \"version\": \"1.4\",
+                  \"body\": [
+                    {\"type\":\"TextBlock\",\"text\":\"$EMOJI Monthly Restore Integrity Test\",\"weight\":\"Bolder\",\"size\":\"Medium\",\"color\":\"$COLOR\"},
+                    {\"type\":\"TextBlock\",\"text\":\"Dry-run restore result: **$RESTORE_RESULT**\",\"wrap\":true},
+                    {\"type\":\"TextBlock\",\"text\":\"[View Run]($RUN_URL)\",\"wrap\":true}
+                  ]
+                }
+              }]
+            }"

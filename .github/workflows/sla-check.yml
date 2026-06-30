@@ -1,0 +1,86 @@
+name: SLA Breach Check
+
+on:
+  schedule:
+    # Runs every hour
+    - cron: '0 * * * *'
+  workflow_dispatch:
+
+jobs:
+  sla-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check SLA and alert on breach
+        continue-on-error: true
+        env:
+          SLA_HOURS: ${{ secrets.SLA_HOURS }}
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+        run: |
+          SLA_THRESHOLD="${SLA_HOURS:-26}"
+
+          # Read last_run from docs/status.json
+          if [ ! -f docs/status.json ]; then
+            echo "docs/status.json not found — cannot check SLA."
+            exit 0
+          fi
+
+          LAST_RUN=$(python3 -c "import json,sys; d=json.load(open('docs/status.json')); print(d.get('last_run',''))")
+          STATUS=$(python3 -c "import json,sys; d=json.load(open('docs/status.json')); print(d.get('status',''))")
+
+          if [ -z "$LAST_RUN" ]; then
+            echo "No last_run in status.json — skipping."
+            exit 0
+          fi
+
+          NOW_TS=$(date +%s)
+          LAST_TS=$(date -d "$LAST_RUN" +%s 2>/dev/null || date -j -f "%Y-%m-%dT%H:%M:%SZ" "$LAST_RUN" +%s 2>/dev/null || echo 0)
+          HOURS_AGO=$(( (NOW_TS - LAST_TS) / 3600 ))
+
+          echo "Last backup: $LAST_RUN ($HOURS_AGO hours ago). SLA threshold: $SLA_THRESHOLD hours."
+
+          if [ "$HOURS_AGO" -gt "$SLA_THRESHOLD" ]; then
+            echo "SLA BREACH — last backup was $HOURS_AGO hours ago (threshold: $SLA_THRESHOLD hours)."
+
+            if [ -n "$TEAMS_WEBHOOK_URL" ]; then
+              curl -s -X POST "$TEAMS_WEBHOOK_URL" \
+                -H "Content-Type: application/json" \
+                -d "{
+                  \"type\": \"message\",
+                  \"attachments\": [{
+                    \"contentType\": \"application/vnd.microsoft.card.adaptive\",
+                    \"content\": {
+                      \"\$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",
+                      \"type\": \"AdaptiveCard\",
+                      \"version\": \"1.4\",
+                      \"body\": [
+                        {\"type\":\"TextBlock\",\"text\":\"🚨 Backup SLA Breach\",\"weight\":\"Bolder\",\"size\":\"Medium\",\"color\":\"Attention\"},
+                        {\"type\":\"TextBlock\",\"text\":\"No successful backup in **$HOURS_AGO hours** (SLA: $SLA_THRESHOLD hours).\",\"wrap\":true},
+                        {\"type\":\"TextBlock\",\"text\":\"Last run: $LAST_RUN — Status: $STATUS\",\"wrap\":true,\"color\":\"Warning\"},
+                        {\"type\":\"TextBlock\",\"text\":\"Check GitHub Actions immediately.\",\"wrap\":true}
+                      ]
+                    }
+                  }]
+                }"
+            fi
+
+            if [ -n "$SENDGRID_API_KEY" ]; then
+              curl -s -X POST "https://api.sendgrid.com/v3/mail/send" \
+                -H "Authorization: Bearer $SENDGRID_API_KEY" \
+                -H "Content-Type: application/json" \
+                -d "{
+                  \"personalizations\": [{\"to\": [{\"email\": \"omarsrao@gmail.com\"}]}],
+                  \"from\": {\"email\": \"omarsrao@gmail.com\", \"name\": \"GH Backup\"},
+                  \"subject\": \"🚨 Backup SLA Breach — $HOURS_AGO hours since last run\",
+                  \"content\": [{
+                    \"type\": \"text/html\",
+                    \"value\": \"<h2 style='color:#dc2626'>Backup SLA Breach</h2><p>No successful backup has run in <strong>$HOURS_AGO hours</strong> (SLA threshold: $SLA_THRESHOLD hours).</p><p><strong>Last run:</strong> $LAST_RUN<br><strong>Status:</strong> $STATUS</p><p>Please check <a href='https://github.com/OmarRao/github-gdrive-backup/actions'>GitHub Actions</a> immediately.</p>\"
+                  }]
+                }"
+            fi
+          else
+            echo "SLA OK — backup is within the $SLA_THRESHOLD-hour threshold."
+          fi

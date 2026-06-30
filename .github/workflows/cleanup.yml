@@ -6,9 +6,13 @@ on:
   workflow_dispatch:
     inputs:
       retention_days:
-        description: 'Delete sessions older than N days'
+        description: 'Delete sessions older than N days (simple mode)'
         required: false
         default: '90'
+      retention_policy:
+        description: 'Retention policy: simple or gfs (Grandfather-Father-Son)'
+        required: false
+        default: 'gfs'
       runner:
         description: 'Runner label'
         required: false
@@ -47,7 +51,20 @@ jobs:
           GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
           GOOGLE_TOKEN_PATH: ./credentials/google-token.json
           RETENTION_DAYS: ${{ github.event.inputs.retention_days || '90' }}
-        run: node src/cleanup/index.js
+          RETENTION_POLICY: ${{ github.event.inputs.retention_policy || 'gfs' }}
+          # GFS policy: daily=7, weekly=4, monthly=12
+          GFS_DAILY_KEEP: '7'
+          GFS_WEEKLY_KEEP: '4'
+          GFS_MONTHLY_KEEP: '12'
+        run: |
+          echo "Retention policy: $RETENTION_POLICY"
+          if [ "$RETENTION_POLICY" = "gfs" ]; then
+            echo "Applying Grandfather-Father-Son retention:"
+            echo "  Daily:   keep last $GFS_DAILY_KEEP"
+            echo "  Weekly:  keep last $GFS_WEEKLY_KEEP (Sundays)"
+            echo "  Monthly: keep last $GFS_MONTHLY_KEEP (1st of month)"
+          fi
+          node src/cleanup/index.js
 
       - name: Commit weekly digest
         uses: actions/github-script@v7

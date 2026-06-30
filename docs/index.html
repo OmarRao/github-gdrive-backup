@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GitHub → Google Drive Backup</title>
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#166534" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <script src="https://accounts.google.com/gsi/client" async></script>
@@ -1215,6 +1217,14 @@
       </div>
     </div>
 
+    <div id="dash-anomaly-warn" class="notice hidden" style="background:#fffbeb;border-color:#fcd34d;color:#92400e;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;margin-top:1px"><path d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/></svg>
+        <span id="dash-anomaly-text">⚠️ Backup size anomaly detected — the last session size changed by more than 20% from the 7-day average. Check your repositories for unexpected deletions.</span>
+      </div>
+      <button onclick="document.getElementById('dash-anomaly-warn').classList.add('hidden')" style="background:none;border:none;cursor:pointer;color:inherit;font-size:18px;line-height:1;padding:0 4px">&times;</button>
+    </div>
+
     <div class="stats-grid">
       <div class="stat-card">
         <div class="stat-icon-wrap blue">
@@ -1269,6 +1279,10 @@
           Refresh
         </button>
       </div>
+      <div style="margin-bottom:10px">
+        <input id="dash-search" type="text" class="form-input" placeholder="Search runs by name or status…"
+          style="width:100%;box-sizing:border-box" oninput="filterDashRuns(this.value)" />
+      </div>
       <div id="dash-runs" class="run-list"><p class="muted">Loading…</p></div>
     </div>
   </section>
@@ -1302,6 +1316,7 @@
             <input type="checkbox" onchange="toggleAll(this.checked)"> All
           </label>
         </div>
+        <div id="repo-count" style="font-size:12px;color:var(--text-2);margin-bottom:6px;padding:0 2px"></div>
         <div id="repo-list" class="repo-list"><p class="muted" style="padding:12px">Loading…</p></div>
       </div>
 
@@ -1990,6 +2005,38 @@
       </div>
     </div>
 
+    <!-- Session Diff -->
+    <div class="card mt-4">
+      <div class="card-header">
+        <div><div class="card-title">Session Diff</div><div class="card-subtitle">Compare two backup sessions to see what changed</div></div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px">
+        <div style="flex:1;min-width:180px">
+          <div class="form-label" style="margin-bottom:4px">Session A (older)</div>
+          <select id="diff-session-a" class="form-input">
+            <option value="">— select session —</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <div class="form-label" style="margin-bottom:4px">Session B (newer)</div>
+          <select id="diff-session-b" class="form-input">
+            <option value="">— select session —</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="runSessionDiff()" style="flex-shrink:0">Compare</button>
+      </div>
+      <div id="diff-result" style="display:none">
+        <div id="diff-summary" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px"></div>
+        <div style="overflow-x:auto">
+          <table class="data-table" id="diff-table">
+            <thead><tr><th>Repository</th><th>Change</th><th>Size A</th><th>Size B</th><th>Delta</th></tr></thead>
+            <tbody id="diff-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+      <p id="diff-placeholder" class="muted" style="font-size:13px">Select two sessions above and click Compare.</p>
+    </div>
+
     <!-- Trend Sparklines -->
     <div class="card mt-4">
       <div class="card-header">
@@ -2398,6 +2445,17 @@ function setTrend(id, text, dir) {
   el.className = 'stat-trend' + (dir ? ' ' + dir : '');
 }
 
+// Dashboard run search
+let _dashRuns = [];
+function filterDashRuns(q) {
+  const el = document.getElementById('dash-runs');
+  if (!_dashRuns.length) return;
+  const filtered = q
+    ? _dashRuns.filter(r => (r.name||'').toLowerCase().includes(q.toLowerCase()) || (r.conclusion||r.status||'').toLowerCase().includes(q.toLowerCase()))
+    : _dashRuns;
+  renderRuns(filtered, el);
+}
+
 async function loadDashboard() {
   if (window.DEMO_MODE) {
     document.getElementById('dash-warn').classList.add('hidden');
@@ -2409,7 +2467,8 @@ async function loadDashboard() {
     setTrend('trend-sessions', '↑ +12% vs last week', 'up');
     setTrend('trend-last', 'Within SLA (26h)', 'up');
     setTrend('trend-active', 'Idle', '');
-    renderRuns(DEMO.runs.slice(0, 8), document.getElementById('dash-runs'));
+    _dashRuns = DEMO.runs.slice(0, 8);
+    renderRuns(_dashRuns, document.getElementById('dash-runs'));
     return;
   }
   if (!ghToken) { document.getElementById('dash-warn').classList.remove('hidden'); }
@@ -2430,7 +2489,8 @@ async function loadDashboard() {
       document.getElementById('stat-sessions').textContent = (data.files||[]).length;
     } catch { document.getElementById('stat-sessions').textContent = '—'; }
   } else { document.getElementById('stat-sessions').textContent = '—'; }
-  renderRuns(allRuns.slice(0,8), document.getElementById('dash-runs'));
+  _dashRuns = allRuns.slice(0,8);
+  renderRuns(_dashRuns, document.getElementById('dash-runs'));
 }
 
 // ── Backup ────────────────────────────────────────────────────────────────────
@@ -2444,8 +2504,16 @@ async function loadRepos() {
   } catch (err) { el.innerHTML = `<p style="color:var(--danger);padding:12px">Error: ${err.message}</p>`; }
 }
 
-function renderRepoList(repos) {
+function renderRepoList(repos, filtered) {
   const el = document.getElementById('repo-list');
+  const countEl = document.getElementById('repo-count');
+  if (countEl) {
+    const total = allRepos.length;
+    const showing = repos.length;
+    countEl.textContent = filtered !== undefined
+      ? `Showing ${showing} of ${total} repos`
+      : (total ? `${total} repo${total !== 1 ? 's' : ''}` : '');
+  }
   if (!repos.length) { el.innerHTML = '<p class="muted" style="padding:12px">No repos found.</p>'; return; }
   el.innerHTML = repos.map(r => `
     <label class="repo-item">
@@ -2455,7 +2523,10 @@ function renderRepoList(repos) {
     </label>`).join('');
 }
 
-function filterRepos(q) { renderRepoList(allRepos.filter(r => r.name.toLowerCase().includes(q.toLowerCase()))); }
+function filterRepos(q) {
+  const filtered = allRepos.filter(r => r.name.toLowerCase().includes(q.toLowerCase()));
+  renderRepoList(filtered, true);
+}
 function toggleAll(v)   { document.querySelectorAll('.repo-cb').forEach(cb => cb.checked = v); }
 
 async function triggerBackup() {
@@ -2709,13 +2780,16 @@ async function loadReports() {
 }
 
 function exportReportCSV() {
-  if (!reportRuns.length) { showToast('No data to export — load reports first.', 'info'); return; }
-  const rows = [['Run','Status','Trigger','Started','Duration','URL']];
-  reportRuns.forEach(r => {
+  const runs = reportRuns.length ? reportRuns : (window.DEMO_MODE ? DEMO.runs : []);
+  if (!runs.length) { showToast('No data to export — load reports first.', 'info'); return; }
+  const rows = [['run_id','workflow','status','timestamp','duration','repo_count']];
+  runs.forEach(r => {
     const dur = r.updated_at && r.created_at
       ? (() => { const s = Math.round((new Date(r.updated_at) - new Date(r.created_at)) / 1000); return s > 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`; })()
       : '';
-    rows.push([`#${r.run_number}`, r.conclusion || r.status, r.event || '', new Date(r.created_at).toISOString(), dur, r.html_url]);
+    const workflow = r.name || 'Backup Workflow';
+    const repoCount = window.DEMO_MODE ? DEMO.stats.repos : (r.repo_count || '—');
+    rows.push([`#${r.run_number || r.id}`, workflow, r.conclusion || r.status, r.created_at ? new Date(r.created_at).toISOString() : '', dur, repoCount]);
   });
   const csv = rows.map(r => r.map(c => `"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
@@ -3574,6 +3648,125 @@ async function loadAuditLog() {
   }
 }
 
+// ── Anomaly detection ─────────────────────────────────────────────────────────
+async function checkAnomalyBanner() {
+  const banner = document.getElementById('dash-anomaly-warn');
+  if (!banner) return;
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/OmarRao/github-gdrive-backup/main/docs/status.json?t=${Date.now()}`);
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.anomaly) banner.classList.remove('hidden');
+  } catch (_) {}
+  // Demo mode: show the banner for illustration
+  if (window.DEMO_MODE) banner.classList.remove('hidden');
+}
+
+// ── Session Diff ──────────────────────────────────────────────────────────────
+const DEMO_SESSIONS = [
+  { id: 's1', label: '2026-06-26 02:00', repos: [
+    { name: 'webapp-frontend', size: 42000000 },
+    { name: 'api-service',     size: 18000000 },
+    { name: 'mobile-app',      size: 31000000 },
+    { name: 'infrastructure',  size: 9500000  },
+    { name: 'data-pipeline',   size: 25000000 },
+  ]},
+  { id: 's2', label: '2026-06-25 02:00', repos: [
+    { name: 'webapp-frontend', size: 40000000 },
+    { name: 'api-service',     size: 17500000 },
+    { name: 'mobile-app',      size: 31000000 },
+    { name: 'infrastructure',  size: 9500000  },
+  ]},
+  { id: 's3', label: '2026-06-24 02:00', repos: [
+    { name: 'webapp-frontend', size: 39000000 },
+    { name: 'api-service',     size: 17000000 },
+    { name: 'mobile-app',      size: 30500000 },
+  ]},
+];
+
+function populateDiffDropdowns() {
+  const sessions = window.DEMO_MODE ? DEMO_SESSIONS : [];
+  ['diff-session-a', 'diff-session-b'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— select session —</option>';
+    sessions.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.id; opt.textContent = s.label;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function fmtBytes(b) {
+  if (b >= 1e9) return (b/1e9).toFixed(1) + ' GB';
+  if (b >= 1e6) return (b/1e6).toFixed(1) + ' MB';
+  if (b >= 1e3) return (b/1e3).toFixed(0) + ' KB';
+  return b + ' B';
+}
+
+function runSessionDiff() {
+  const aId = document.getElementById('diff-session-a')?.value;
+  const bId = document.getElementById('diff-session-b')?.value;
+  const result  = document.getElementById('diff-result');
+  const placeholder = document.getElementById('diff-placeholder');
+  const tbody   = document.getElementById('diff-tbody');
+  const summary = document.getElementById('diff-summary');
+
+  if (!aId || !bId) { showToast('Select both sessions to compare.', 'info'); return; }
+  if (aId === bId)  { showToast('Select two different sessions.', 'info'); return; }
+
+  const sessions = window.DEMO_MODE ? DEMO_SESSIONS : [];
+  const a = sessions.find(s => s.id === aId);
+  const b = sessions.find(s => s.id === bId);
+  if (!a || !b) { showToast('Session data not available — connect Google Drive for live diff.', 'info'); return; }
+
+  const aMap = Object.fromEntries(a.repos.map(r => [r.name, r.size]));
+  const bMap = Object.fromEntries(b.repos.map(r => [r.name, r.size]));
+  const allRepos = [...new Set([...Object.keys(aMap), ...Object.keys(bMap)])].sort();
+
+  let added = 0, removed = 0, changed = 0, totalDelta = 0;
+  const rows = allRepos.map(name => {
+    const sA = aMap[name], sB = bMap[name];
+    let change, delta = 0, colorStyle = '';
+    if (sA === undefined) { change = '➕ Added'; added++; delta = sB; colorStyle = 'color:#166534'; }
+    else if (sB === undefined) { change = '➖ Removed'; removed++; delta = -sA; colorStyle = 'color:#b91c1c'; }
+    else {
+      delta = sB - sA;
+      const pct = Math.round(delta / sA * 100);
+      if (delta > 0)       { change = `↑ +${pct}%`; changed++; colorStyle = 'color:#166534'; }
+      else if (delta < 0)  { change = `↓ ${pct}%`;  changed++; colorStyle = 'color:#b91c1c'; }
+      else                 { change = '—'; colorStyle = 'color:var(--text-2)'; }
+    }
+    totalDelta += delta;
+    return `<tr>
+      <td>${name}</td>
+      <td style="${colorStyle};font-weight:600">${change}</td>
+      <td>${sA !== undefined ? fmtBytes(sA) : '—'}</td>
+      <td>${sB !== undefined ? fmtBytes(sB) : '—'}</td>
+      <td style="${colorStyle}">${delta !== 0 ? (delta > 0 ? '+' : '') + fmtBytes(Math.abs(delta)) : '—'}</td>
+    </tr>`;
+  }).join('');
+
+  tbody.innerHTML = rows;
+  summary.innerHTML = [
+    `<span class="badge badge-success">+${added} added</span>`,
+    `<span class="badge badge-failure">${removed} removed</span>`,
+    `<span class="badge badge-queued">${changed} changed</span>`,
+    `<span style="font-size:13px;color:var(--text-2);margin-left:4px">Total delta: ${totalDelta >= 0 ? '+' : ''}${fmtBytes(Math.abs(totalDelta))}</span>`,
+  ].join('');
+
+  placeholder.style.display = 'none';
+  result.style.display = 'block';
+}
+
+// ── PWA Service Worker registration ──────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/github-gdrive-backup/sw.js').catch(() => {});
+  });
+}
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 updateGHStatus();
 updateDriveStatus();
@@ -3584,6 +3777,8 @@ wizardRender();
 checkDriveQuotaWarning();
 checkTokenExpiredStatus();
 checkSlaBadge();
+checkAnomalyBanner();
+populateDiffDropdowns();
 
 // Init storage target selector
 (function() {

@@ -1,0 +1,95 @@
+name: PAT Rotation Reminder
+
+on:
+  schedule:
+    # Runs weekly on Monday at 08:00 UTC
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+jobs:
+  pat-reminder:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PAT expiry and notify
+        continue-on-error: true
+        env:
+          PAT_EXPIRY_DATE: ${{ secrets.PAT_EXPIRY_DATE }}
+          TEAMS_WEBHOOK_URL: ${{ secrets.TEAMS_WEBHOOK_URL }}
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+        run: |
+          if [ -z "$PAT_EXPIRY_DATE" ]; then
+            echo "PAT_EXPIRY_DATE secret not set — skipping reminder."
+            exit 0
+          fi
+
+          EXPIRY_TS=$(date -d "$PAT_EXPIRY_DATE" +%s 2>/dev/null || date -j -f "%Y-%m-%d" "$PAT_EXPIRY_DATE" +%s 2>/dev/null)
+          NOW_TS=$(date +%s)
+          DAYS_LEFT=$(( (EXPIRY_TS - NOW_TS) / 86400 ))
+
+          echo "PAT expires on $PAT_EXPIRY_DATE — $DAYS_LEFT days remaining."
+
+          if [ "$DAYS_LEFT" -le 7 ] && [ "$DAYS_LEFT" -ge 0 ]; then
+            echo "Within 7-day reminder window — sending alerts."
+
+            # Teams Adaptive Card
+            if [ -n "$TEAMS_WEBHOOK_URL" ]; then
+              curl -s -X POST "$TEAMS_WEBHOOK_URL" \
+                -H "Content-Type: application/json" \
+                -d "{
+                  \"type\": \"message\",
+                  \"attachments\": [{
+                    \"contentType\": \"application/vnd.microsoft.card.adaptive\",
+                    \"content\": {
+                      \"\$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",
+                      \"type\": \"AdaptiveCard\",
+                      \"version\": \"1.4\",
+                      \"body\": [
+                        {\"type\":\"TextBlock\",\"text\":\"⚠️ GitHub PAT Expiry Reminder\",\"weight\":\"Bolder\",\"size\":\"Medium\",\"color\":\"Warning\"},
+                        {\"type\":\"TextBlock\",\"text\":\"Your GitHub Personal Access Token expires in **$DAYS_LEFT day(s)** on $PAT_EXPIRY_DATE.\",\"wrap\":true},
+                        {\"type\":\"TextBlock\",\"text\":\"Renew at: GitHub → Settings → Developer Settings → Personal Access Tokens\",\"wrap\":true,\"color\":\"Accent\"}
+                      ]
+                    }
+                  }]
+                }"
+            fi
+
+            # SendGrid email
+            if [ -n "$SENDGRID_API_KEY" ]; then
+              curl -s -X POST "https://api.sendgrid.com/v3/mail/send" \
+                -H "Authorization: Bearer $SENDGRID_API_KEY" \
+                -H "Content-Type: application/json" \
+                -d "{
+                  \"personalizations\": [{\"to\": [{\"email\": \"omarsrao@gmail.com\"}]}],
+                  \"from\": {\"email\": \"omarsrao@gmail.com\", \"name\": \"GH Backup\"},
+                  \"subject\": \"⚠️ GitHub PAT expires in $DAYS_LEFT day(s)\",
+                  \"content\": [{
+                    \"type\": \"text/html\",
+                    \"value\": \"<h2>GitHub PAT Expiry Reminder</h2><p>Your GitHub Personal Access Token (GH_BACKUP_TOKEN) expires in <strong>$DAYS_LEFT day(s)</strong> on <strong>$PAT_EXPIRY_DATE</strong>.</p><p>Renew it now: GitHub &rarr; Settings &rarr; Developer Settings &rarr; Personal Access Tokens &rarr; Generate new token.</p><p>After renewing, update the <code>GH_BACKUP_TOKEN</code> secret in your repository's Actions secrets.</p>\"
+                  }]
+                }"
+            fi
+
+          elif [ "$DAYS_LEFT" -lt 0 ]; then
+            echo "PAT has already expired — posting critical alert."
+            if [ -n "$TEAMS_WEBHOOK_URL" ]; then
+              curl -s -X POST "$TEAMS_WEBHOOK_URL" \
+                -H "Content-Type: application/json" \
+                -d "{
+                  \"type\": \"message\",
+                  \"attachments\": [{
+                    \"contentType\": \"application/vnd.microsoft.card.adaptive\",
+                    \"content\": {
+                      \"\$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",
+                      \"type\": \"AdaptiveCard\",
+                      \"version\": \"1.4\",
+                      \"body\": [
+                        {\"type\":\"TextBlock\",\"text\":\"🚨 GitHub PAT Has Expired!\",\"weight\":\"Bolder\",\"size\":\"Medium\",\"color\":\"Attention\"},
+                        {\"type\":\"TextBlock\",\"text\":\"Your GitHub PAT expired on $PAT_EXPIRY_DATE. Backups are failing. Renew immediately.\",\"wrap\":true}
+                      ]
+                    }
+                  }]
+                }"
+            fi
+          else
+            echo "PAT has $DAYS_LEFT days remaining — no reminder needed yet."
+          fi

@@ -54,11 +54,23 @@ Browse timestamped backup sessions loaded live from Google Drive. Select a sessi
 
 ---
 
-### Reports
+### Reports & Session Diff
 
 Track backup success rates, consecutive-day streaks, failure counts, and full run history. Every backup and restore run is listed with its status, trigger type, duration, and a direct link. Export the full history as a CSV with one click.
 
+The **Session Diff** view compares any two backup sessions side by side — showing added, removed, changed, and unchanged repositories with exact byte deltas so you can spot unexpected growth or missing repos instantly.
+
 ![Reports](docs/screenshots/reports.svg)
+
+![Session Diff](docs/screenshots/reports-diff.svg)
+
+---
+
+### Anomaly Detection
+
+The dashboard automatically detects when a backup session size deviates significantly from the 7-day rolling average. An amber banner surfaces the alert immediately so you can investigate before a silent data loss becomes a problem.
+
+![Dashboard — Anomaly Alert](docs/screenshots/dashboard-anomaly.svg)
 
 ---
 
@@ -75,6 +87,14 @@ Configure your GitHub Personal Access Token, connect Google Drive via OAuth, ver
 Click **"Explore with sample data →"** on the login screen to enter Demo Mode — no authentication required. The dashboard is populated with realistic sample data (5 repositories, 47 backup sessions, workflow run history including a simulated failure) and a persistent banner reminds you that live actions are disabled until you sign in.
 
 ![Demo Mode](docs/screenshots/demo-mode.svg)
+
+---
+
+### Progressive Web App (PWA)
+
+Install the dashboard directly on your desktop or mobile home screen. The included service worker caches the app shell for instant offline loading — no app store needed.
+
+![PWA Install](docs/screenshots/pwa-install.svg)
 
 ---
 
@@ -102,6 +122,20 @@ Click **"Explore with sample data →"** on the login screen to enter Demo Mode 
 | **Incremental backup** | Optional mode that only backs up repos changed since last session |
 | **Auto-cleanup** | Weekly workflow removes Drive sessions beyond retention threshold |
 | **Health status** | `docs/status.json` updated on each run; live README badge reflects current status via shields.io dynamic badge |
+| **Email digest** | Daily/weekly HTML summary via SendGrid — set `SENDGRID_API_KEY` to activate (`notify.yml`) |
+| **MS Teams webhook** | Adaptive Card notifications for backup success/failure — set `TEAMS_WEBHOOK_URL` (`notify.yml`) |
+| **PAT rotation reminder** | Weekly `pat-check.yml` cron warns via Teams + email when PAT is ≤7 days from expiry |
+| **Repo search** | Filter the backup repo list by name directly in the Backup tab |
+| **Session diff** | Compare any two backup sessions side by side — added, removed, changed repos with byte deltas |
+| **GFS retention** | Grandfather-Father-Son policy (daily × 7, weekly × 4, monthly × 12) in `cleanup.yml` |
+| **SLA breach alerts** | Hourly `sla-check.yml` posts Teams/email alert if backup age exceeds `SLA_HOURS` |
+| **Compliance CSV export** | One-click CSV export of full run history for audit evidence packages |
+| **Anomaly detection** | Auto-detects session size deviation >20% from 7-day average; dismissible dashboard banner |
+| **Azure Blob storage** | `STORAGE_TARGET=azure` — uses `@azure/storage-blob` with connection string + container name |
+| **Backblaze B2** | `STORAGE_TARGET=b2` — S3-compatible, reuses `@aws-sdk/client-s3` with custom B2 endpoint |
+| **SBOM generation** | Optional `include_sbom=true` input generates SPDX SBOM via `anchore/sbom-action@v0` |
+| **Auto-restore test** | Monthly `monthly-restore-test.yml` dry-run verifies restore integrity; result appended to audit log |
+| **PWA / offline** | `manifest.json` + cache-first service worker — install dashboard to home screen, works offline |
 
 ---
 
@@ -182,13 +216,21 @@ Go to **Settings → Secrets and variables → Actions** and add these 5 secrets
 | `GOOGLE_CLIENT_SECRET` | Full JSON contents of `credentials/google-client-secret.json` |
 | `GOOGLE_TOKEN` | Full JSON contents of `credentials/google-token.json` |
 
-**Optional notification secrets:**
+**Optional notification & feature secrets:**
 
 | Secret | Value |
 |--------|-------|
 | `SLACK_WEBHOOK_URL` | Incoming webhook URL for Slack failure alerts |
-| `NOTIFY_EMAIL` | Gmail address for email failure alerts |
-| `NOTIFY_EMAIL_PASSWORD` | Gmail app password (not your account password) |
+| `TEAMS_WEBHOOK_URL` | MS Teams incoming webhook URL for Adaptive Card notifications |
+| `SENDGRID_API_KEY` | SendGrid API key for email digest (`notify.yml`, `sla-check.yml`, `pat-check.yml`) |
+| `PAT_EXPIRY_DATE` | Your PAT expiry date in `YYYY-MM-DD` format — triggers rotation reminder workflow |
+| `SLA_HOURS` | Max hours since last backup before SLA breach alert fires (default: `26`) |
+| `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob connection string (when `STORAGE_TARGET=azure`) |
+| `AZURE_CONTAINER_NAME` | Azure container name (default: `gh-backups`) |
+| `B2_ENDPOINT` | Backblaze B2 S3-compatible endpoint URL (when `STORAGE_TARGET=b2`) |
+| `B2_KEY_ID` | Backblaze B2 application key ID |
+| `B2_APP_KEY` | Backblaze B2 application key |
+| `B2_BUCKET` | Backblaze B2 bucket name |
 
 ### 6. Trigger your first backup
 
@@ -304,37 +346,52 @@ python get_token.py   # One-time Google OAuth → credentials/google-token.json
 ```
 github-gdrive-backup/
 ├── .github/workflows/
-│   ├── backup.yml          — daily cron + manual backup
-│   └── restore.yml         — manual restore
+│   ├── backup.yml               — daily cron + manual backup (SBOM, storage target)
+│   ├── restore.yml              — manual restore
+│   ├── cleanup.yml              — GFS / simple retention cleanup
+│   ├── notify.yml               — Teams + SendGrid email digest
+│   ├── pat-check.yml            — weekly PAT expiry reminder
+│   ├── sla-check.yml            — hourly SLA breach alert
+│   └── monthly-restore-test.yml — monthly dry-run restore integrity check
 ├── docs/
-│   ├── index.html          — GitHub Pages dashboard
-│   ├── ui-preview.html     — screenshot gallery
-│   └── screenshots/        — SVG mockups for README
+│   ├── index.html               — GitHub Pages dashboard SPA
+│   ├── manifest.json            — PWA manifest
+│   ├── sw.js                    — cache-first service worker
+│   └── screenshots/             — SVG mockups for README and User Guide
 ├── src/
 │   ├── auth/google-auth.js
 │   ├── backup/
-│   │   ├── github.js       — GitHub API client
-│   │   ├── gdrive.js       — Google Drive client
-│   │   └── index.js        — backup orchestrator
-│   ├── restore/index.js    — restore orchestrator
-│   ├── server/             — optional self-hosted Express server
+│   │   ├── github.js            — GitHub API client
+│   │   ├── gdrive.js            — Google Drive client
+│   │   ├── storage/
+│   │   │   ├── s3.js            — Amazon S3 adapter
+│   │   │   ├── azure.js         — Azure Blob adapter
+│   │   │   └── b2.js            — Backblaze B2 adapter
+│   │   └── index.js             — backup orchestrator
+│   ├── restore/index.js         — restore orchestrator
+│   ├── server/                  — optional self-hosted Express server
 │   └── logger.js
-├── credentials/            — git-ignored, OAuth files go here
-├── get_token.py            — one-time Google OAuth script
+├── credentials/                 — git-ignored, OAuth files go here
+├── get_token.py                 — one-time Google OAuth script
 ├── .env.example
 └── README.md
 ```
 
 ---
 
-## Failure Alerts
+## Failure Alerts & Notifications
 
-When a backup run fails, `notify.yml` automatically fires and:
-- Posts a Slack message (if `SLACK_WEBHOOK_URL` secret is set)
-- Sends an email (if `NOTIFY_EMAIL` and `NOTIFY_EMAIL_PASSWORD` secrets are set)
-- Updates `docs/status.json` with the failure status and run URL
+`notify.yml` fires after every backup run and delivers rich, multi-channel notifications:
 
-Add either or both secrets to **Settings → Secrets and variables → Actions** to activate alerts.
+- **MS Teams** — color-coded Adaptive Card (green = success, red = failure). Set `TEAMS_WEBHOOK_URL`.
+- **SendGrid email digest** — HTML table summarizing run status, repo count, and session link. Set `SENDGRID_API_KEY`.
+- **Slack** — plain text message (legacy). Set `SLACK_WEBHOOK_URL`.
+- **`docs/status.json`** — updated on every run; live README badge reflects current status.
+
+Additional proactive alerts:
+- **PAT rotation reminder** (`pat-check.yml`, weekly Monday 08:00 UTC) — warns via Teams + email when `PAT_EXPIRY_DATE` is ≤7 days away.
+- **SLA breach alert** (`sla-check.yml`, hourly) — fires Teams + email if backup age exceeds `SLA_HOURS` (default 26).
+- **Monthly restore test** (`monthly-restore-test.yml`, 1st of month 03:00 UTC) — dry-run restore integrity check; result appended to `docs/audit.log`.
 
 ---
 
