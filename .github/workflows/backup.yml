@@ -1,9 +1,9 @@
 name: Scheduled GitHub → Google Drive Backup
 
 on:
-  schedule:
-    # Runs daily at 02:00 UTC — adjust to your preferred time
-    - cron: '0 2 * * *'
+  # schedule:
+  #   # Runs daily at 02:00 UTC — adjust to your preferred time
+  #   - cron: '0 2 * * *'
   workflow_dispatch:
     inputs:
       incremental:
