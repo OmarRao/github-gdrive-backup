@@ -90,7 +90,7 @@ The **automation layer** is the engine. On a schedule, or on manual dispatch, `b
 
 ![Dashboard Overview](screenshots/dashboard.svg)
 
-The **storage layer** is Google Drive by default. Authentication to Drive uses an OAuth client (`GOOGLE_CLIENT_SECRET`) plus a refresh-capable token (`GOOGLE_TOKEN`) that you generate once locally with the `get_token.py` helper. Each backup run writes into a per-session, per-repository folder hierarchy so that any single run can be located and restored independently. For organizations that prefer object storage or need geographic redundancy, the project also supports **Amazon S3** (set `STORAGE_TARGET=s3` with `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY`); **Azure Blob** is described in this guide as an optional/aspirational target.
+The **storage layer** is Google Drive by default. Authentication to Drive uses an OAuth client (`GOOGLE_CLIENT_SECRET`) plus a refresh-capable token (`GOOGLE_TOKEN`) that you generate once locally with the `get_token.py` helper. Each backup run writes into a per-session, per-repository folder hierarchy so that any single run can be located and restored independently. For organizations that prefer object storage or need geographic redundancy, the project also supports **Amazon S3** (`STORAGE_TARGET=s3`), **Azure Blob Storage** (`STORAGE_TARGET=azure`), and **Backblaze B2** (`STORAGE_TARGET=b2`) as fully implemented storage backends.
 
 The **presentation layer** — the dashboard — is intentionally "thin." It holds no secrets server-side because there is no server. Your GitHub PAT and Drive token are stored exclusively in the browser's `localStorage`, and the only outbound calls the dashboard makes are to `api.github.com` and `googleapis.com`. This design keeps the trust boundary tight: GitHub Pages serves static files, your browser holds your credentials, and the third-party APIs do the work. Firebase, when configured, is used only for sign-in identity and never receives your backup tokens.
 
@@ -222,6 +222,9 @@ The complete secret reference is below. Only the first five are required for a d
 | `GOOGLE_TOKEN` | JSON of `credentials/google-token.json` (from `get_token.py`) | Yes |
 | `BACKUP_ENCRYPTION_KEY` | AES-256-CBC key; archives stored as `.zip.enc` | Optional |
 | `AWS_ACCESS_KEY_ID` | S3 access key (with `STORAGE_TARGET=s3`) | Optional |
+| `AWS_SECRET_ACCESS_KEY` | S3 secret key (with `STORAGE_TARGET=s3`) | Optional |
+| `AWS_BUCKET_NAME` | S3 bucket name (with `STORAGE_TARGET=s3`) | Optional |
+| `AWS_REGION` | S3 region, e.g. `us-east-1` (with `STORAGE_TARGET=s3`) | Optional |
 | `AWS_SECRET_ACCESS_KEY` | S3 secret key (with `STORAGE_TARGET=s3`) | Optional |
 
 After setting secrets, you can verify them from the **Settings → Actions Secrets** tab of the dashboard, which shows which expected secrets are present (it never displays values — only presence). You can also confirm with `gh secret list`.
@@ -465,7 +468,7 @@ Set `STORAGE_TARGET` to choose your storage backend. The same session/owner key 
 | Target | `STORAGE_TARGET` value | Secrets required | Status |
 |---|---|---|---|
 | Google Drive | *(default — omit the variable)* | `GDRIVE_FOLDER_ID`, Google OAuth | Implemented (default) |
-| Amazon S3 | `s3` | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY` | Implemented |
+| Amazon S3 | `s3` | `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_BUCKET_NAME`, `AWS_REGION` | Implemented |
 | Azure Blob Storage | `azure` | `AZURE_STORAGE_CONNECTION_STRING`, `AZURE_CONTAINER_NAME` | Implemented (`src/backup/storage/azure.js`) |
 | Backblaze B2 | `b2` | `B2_ENDPOINT`, `B2_KEY_ID`, `B2_APP_KEY`, `B2_BUCKET` | Implemented (`src/backup/storage/b2.js`) |
 
@@ -528,7 +531,7 @@ Set `SENDGRID_API_KEY` to activate the HTML email digest that fires in `notify.y
 gh secret set SENDGRID_API_KEY --body "SG...."
 ```
 
-The digest email uses the `From` address `backup@noreply.example.com` and the recipient address comes from `NOTIFY_EMAIL` if set, otherwise falls back to `GH_USER`'s primary email on GitHub.
+The digest email uses `omarsrao@gmail.com` as both the `From` and `To` address (configured in `notify.yml`).
 
 ### 9.3 MS Teams Webhook
 
@@ -906,7 +909,7 @@ Every backup run now sends an HTML email digest via SendGrid. Set the `SENDGRID_
 
 ### 18.3 PAT Rotation Reminder
 
-A weekly workflow (`pat-check.yml`, Mondays 09:00 UTC) checks `PAT_EXPIRY_DATE` (format `YYYY-MM-DD`) and posts a warning card to Teams and sends an email when the PAT is within 7 days of expiry. `backup.yml` also alerts immediately via Teams if the PAT is already expired during a run.
+A weekly workflow (`pat-check.yml`, Mondays 08:00 UTC) checks `PAT_EXPIRY_DATE` (format `YYYY-MM-DD`) and posts a warning card to Teams and sends an email when the PAT is within 7 days of expiry. `backup.yml` also alerts immediately via Teams if the PAT is already expired during a run.
 
 ### 18.4 Dashboard Run Search & Repo Count
 

@@ -95,7 +95,7 @@ jobs:
           script: |
             const payload = context.payload.workflow_run;
             const content = JSON.stringify({
-              status: 'failing',
+              status: payload.conclusion === 'success' ? 'passing' : 'failing',
               last_run: new Date().toISOString(),
               run_url: payload.html_url
             });

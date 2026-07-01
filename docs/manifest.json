@@ -3,6 +3,7 @@
   "short_name": "GH Backup",
   "description": "Back up every GitHub repository to Google Drive — automated, encrypted, and restorable.",
   "start_url": "/github-gdrive-backup/",
+  "scope": "/github-gdrive-backup/",
   "display": "standalone",
   "background_color": "#0f172a",
   "theme_color": "#166534",

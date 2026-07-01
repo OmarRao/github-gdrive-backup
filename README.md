@@ -30,7 +30,7 @@ Try it instantly at the **[Live Dashboard](https://omarrao.github.io/github-gdri
 
 ### Dashboard
 
-A polished Firebase-authenticated login screen gates the dashboard, with Google Sign-In and a one-click Demo Mode. The main overview shows repository count, backup session count, time since last run, and active workflow status — each stat card now includes a trend indicator. A colored top accent bar, the signed-in user's avatar in the nav, and refreshed Inter typography round out the v2.1.0 visual overhaul.
+A polished Firebase-authenticated login screen gates the dashboard, with Google Sign-In and a one-click Demo Mode. The main overview shows repository count, backup session count, time since last run, and active workflow status — each stat card includes an SLA badge and trend indicator. A colored top accent bar, the signed-in user's avatar in the nav, and system Segoe UI typography round out the v3.0.0 visual overhaul.
 
 ![Dashboard](docs/screenshots/dashboard.svg)
 
@@ -225,6 +225,10 @@ Go to **Settings → Secrets and variables → Actions** and add these 5 secrets
 | `SENDGRID_API_KEY` | SendGrid API key for email digest (`notify.yml`, `sla-check.yml`, `pat-check.yml`) |
 | `PAT_EXPIRY_DATE` | Your PAT expiry date in `YYYY-MM-DD` format — triggers rotation reminder workflow |
 | `SLA_HOURS` | Max hours since last backup before SLA breach alert fires (default: `26`) |
+| `AWS_ACCESS_KEY_ID` | AWS access key (when `STORAGE_TARGET=s3`) |
+| `AWS_SECRET_ACCESS_KEY` | AWS secret key (when `STORAGE_TARGET=s3`) |
+| `AWS_BUCKET_NAME` | S3 bucket name (when `STORAGE_TARGET=s3`) |
+| `AWS_REGION` | S3 bucket region, e.g. `us-east-1` (when `STORAGE_TARGET=s3`, default: `us-east-1`) |
 | `AZURE_STORAGE_CONNECTION_STRING` | Azure Blob connection string (when `STORAGE_TARGET=azure`) |
 | `AZURE_CONTAINER_NAME` | Azure container name (default: `gh-backups`) |
 | `B2_ENDPOINT` | Backblaze B2 S3-compatible endpoint URL (when `STORAGE_TARGET=b2`) |
@@ -419,7 +423,7 @@ MIT — see [LICENSE](LICENSE)
 
 ## Author
 
-**Omar Rao** — Engineer, Data Resilience, Cybersecurity & Privacy
+**Omar Rao** — Cybersecurity, Privacy and Resilience Expert
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-Omar%20Rao-0a66c2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/omarrao/)
 [![Substack](https://img.shields.io/badge/Substack-omarrao-ff6719?logo=substack&logoColor=white)](https://substack.com/@omarrao)

@@ -42,7 +42,7 @@ jobs:
           GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
           GOOGLE_TOKEN_PATH:         ./credentials/google-token.json
           DRY_RUN:                   'true'
-          RESTORE_TMP_DIR:           /tmp/gh-restore-test
+          BACKUP_TMP_DIR:            /tmp/gh-restore-test
         run: |
           echo "Starting monthly dry-run restore integrity test..."
           node src/restore/index.js
