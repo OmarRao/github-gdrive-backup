@@ -98,6 +98,14 @@ Install the dashboard directly on your desktop or mobile home screen. The includ
 
 ---
 
+### CI Pipeline — Build, Lint & Test
+
+Every push and pull request to `main` runs the full CI pipeline: copyright header verification, ESLint, Jest tests, npm security audit, YAML lint, and secret scanning — all gates must pass before merge.
+
+![CI Pipeline](docs/screenshots/ci-security.svg)
+
+---
+
 ## Features
 
 | Feature | Details |
@@ -349,14 +357,17 @@ python get_token.py   # One-time Google OAuth → credentials/google-token.json
 
 ```
 github-gdrive-backup/
-├── .github/workflows/
-│   ├── backup.yml               — daily cron + manual backup (SBOM, storage target)
-│   ├── restore.yml              — manual restore
-│   ├── cleanup.yml              — GFS / simple retention cleanup
-│   ├── notify.yml               — Teams + SendGrid email digest
-│   ├── pat-check.yml            — weekly PAT expiry reminder
-│   ├── sla-check.yml            — hourly SLA breach alert
-│   └── monthly-restore-test.yml — monthly dry-run restore integrity check
+├── .github/
+│   ├── CODEOWNERS               — all paths require @OmarRao review
+│   └── workflows/
+│       ├── ci.yml               — CI: lint, test, copyright, audit, secret scan
+│       ├── backup.yml           — daily cron + manual backup (SBOM, storage target)
+│       ├── restore.yml          — manual restore
+│       ├── cleanup.yml          — GFS / simple retention cleanup
+│       ├── notify.yml           — Teams + SendGrid email digest
+│       ├── pat-check.yml        — weekly PAT expiry reminder
+│       ├── sla-check.yml        — hourly SLA breach alert
+│       └── monthly-restore-test.yml — monthly dry-run restore integrity check
 ├── docs/
 │   ├── index.html               — GitHub Pages dashboard SPA
 │   ├── manifest.json            — PWA manifest
@@ -375,6 +386,13 @@ github-gdrive-backup/
 │   ├── restore/index.js         — restore orchestrator
 │   ├── server/                  — optional self-hosted Express server
 │   └── logger.js
+├── tests/
+│   ├── copyright.test.js        — enforces copyright header on every src/*.js
+│   ├── logger.test.js           — logger export and call surface
+│   └── storage.test.js          — S3/Azure/B2 adapter interface
+├── scripts/
+│   └── check-headers.js         — standalone copyright header audit
+├── .eslintrc.json               — ESLint rules (no-eval, eqeqeq, security rules)
 ├── credentials/                 — git-ignored, OAuth files go here
 ├── get_token.py                 — one-time Google OAuth script
 ├── .env.example
@@ -399,10 +417,33 @@ Additional proactive alerts:
 
 ---
 
-## Security
+## Security & CI
 
+### Source code protection
+- **CODEOWNERS** — every file and workflow requires `@OmarRao` review before any PR can merge
+- **Copyright headers** — `// Copyright (c) Omar Rao. All rights reserved.` is enforced on all 15 `src/**/*.js` files; CI fails if a new file is added without it
 - `credentials/` and `.env` are in `.gitignore` — never committed
 - Dashboard tokens stored in `localStorage` only — never sent to any third party
+
+### CI pipeline (`ci.yml`) — runs on every push and PR to `main`
+
+| Gate | Tool | Must pass |
+|------|------|-----------|
+| Copyright headers | shell `grep` across `src/` | Yes |
+| Linting | ESLint (`no-eval`, `no-implied-eval`, `no-new-func`, `eqeqeq`) | Yes |
+| Tests | Jest — 25 tests, 3 suites | Yes |
+| Dependency audit | `npm audit --audit-level=high` | Warn |
+| Workflow YAML | `yamllint` | Warn |
+| Secret scanning | Gitleaks | Warn |
+
+```bash
+npm run lint          # ESLint
+npm test              # Jest with coverage
+npm run check-headers # Copyright header audit
+npm run audit         # npm audit --audit-level=high
+```
+
+### Runtime security
 - GitHub PAT scopes: `repo`, `workflow`, `read:org`, `read:user` — read-only for backup, no destructive permissions
 - Google Drive token scoped to `drive.file` in Actions, `drive.readonly` in the dashboard
 - Self-hosted Express server has no built-in auth — run locally or behind a reverse proxy

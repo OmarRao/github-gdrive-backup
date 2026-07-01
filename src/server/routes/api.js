@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 const express = require('express');
 const router = express.Router();
 const { runBackup } = require('../../backup/index');

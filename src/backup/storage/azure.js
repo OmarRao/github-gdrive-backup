@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 /**
  * Azure Blob Storage adapter.
  * Same interface as s3.js and drive.js.

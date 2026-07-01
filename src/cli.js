@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Copyright (c) Omar Rao. All rights reserved.
 /**
  * gh-gdrive-backup CLI
  *

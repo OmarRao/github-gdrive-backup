@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');

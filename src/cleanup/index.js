@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 const { google } = require('googleapis');
 const { GoogleAuth } = require('google-auth-library');
 const fs = require('fs');

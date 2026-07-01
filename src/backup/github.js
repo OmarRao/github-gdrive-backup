@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 const { Octokit } = require('@octokit/rest');
 const simpleGit = require('simple-git');
 const path = require('path');

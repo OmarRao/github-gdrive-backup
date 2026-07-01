@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 /**
  * AWS S3 storage adapter (stub).
  * Same interface as drive.js.

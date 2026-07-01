@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 const { createLogger, format, transports } = require('winston');
 const path = require('path');
 const fs = require('fs');

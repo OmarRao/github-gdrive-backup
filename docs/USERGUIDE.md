@@ -53,6 +53,7 @@
     - [10.5 Secret Scanning](#105-secret-scanning)
     - [10.6 Security Advisories](#106-security-advisories)
     - [10.7 SBOM Generation](#107-sbom-generation)
+    - [10.8 CI Pipeline](#108-ci-pipeline)
 11. [CLI Usage](#11-cli-usage)
 12. [Docker Usage](#12-docker-usage)
 13. [Self-Hosted Runners](#13-self-hosted-runners)
@@ -65,6 +66,7 @@
 16. [Troubleshooting](#16-troubleshooting)
 17. [FAQ](#17-faq)
 18. [Version History](#18-version-history)
+19. [New Features (v3.0.0)](#19-new-features-v300)
 
 ---
 
@@ -646,6 +648,38 @@ The step is gated with `if: success() && github.event.inputs.include_sbom == 'tr
 | Branch protection | GitHub repo settings | Recommended |
 | Secret scanning / push protection | GitHub repo settings | Recommended |
 | SBOM generation (SPDX) | `backup.yml` — `include_sbom=true` | Optional |
+| CODEOWNERS — owner review required on all PRs | `.github/CODEOWNERS` | Implemented |
+| Copyright headers on all `src/` files | CI gate in `ci.yml` | Implemented |
+| ESLint — no-eval, eqeqeq, security rules | `.eslintrc.json` | Implemented |
+| Jest test suite (25 tests, 3 suites) | `tests/` | Implemented |
+| Gitleaks secret scanning in CI | `ci.yml` | Implemented |
+
+### 10.8 CI Pipeline
+
+The `ci.yml` workflow runs on every push and pull request to `main`. It is the primary gate preventing broken, insecure, or unlicensed code from merging.
+
+![CI Pipeline](screenshots/ci-security.svg)
+
+**Steps in order:**
+
+1. **Checkout** — `actions/checkout@v4`
+2. **Node.js 22** — with npm cache
+3. **`npm ci`** — clean install from lockfile
+4. **Copyright header check** — `node scripts/check-headers.js`; exits 1 if any `src/*.js` is missing `// Copyright (c) Omar Rao. All rights reserved.`
+5. **ESLint** — `npm run lint`; rules include `no-eval`, `no-implied-eval`, `no-new-func`, `eqeqeq`, `handle-callback-err`
+6. **Jest** — `npm test`; 25 tests across 3 suites; coverage threshold ≥20% lines
+7. **`npm audit`** — high/critical vulnerabilities fail CI (`continue-on-error: true` for advisory-level findings)
+8. **yamllint** — validates all 8 workflow YAML files
+9. **Gitleaks** — scans for accidentally committed secrets
+
+Run locally before pushing:
+
+```bash
+npm run check-headers   # copyright audit
+npm run lint            # ESLint
+npm test                # Jest + coverage
+npm run audit           # dependency security audit
+```
 
 ---
 
@@ -897,62 +931,62 @@ Edit the cron expression in `backup.yml` and commit. The default is `0 2 * * *` 
 
 ---
 
-## 18. New Features (v2.2.0)
+## 19. New Features (v3.0.0)
 
-### 18.1 Email Digest (SendGrid)
+### 19.1 Email Digest (SendGrid)
 
 Every backup run now sends an HTML email digest via SendGrid. Set the `SENDGRID_API_KEY` secret to activate. The email includes workflow conclusion, run URL, and timestamp. If the secret is absent the step is silently skipped.
 
-### 18.2 MS Teams Adaptive Card
+### 19.2 MS Teams Adaptive Card
 
 `notify.yml` posts a colour-coded Adaptive Card to MS Teams on every run (green on success, red on failure). Set `TEAMS_WEBHOOK_URL` secret. Skipped gracefully when not configured.
 
-### 18.3 PAT Rotation Reminder
+### 19.3 PAT Rotation Reminder
 
 A weekly workflow (`pat-check.yml`, Mondays 08:00 UTC) checks `PAT_EXPIRY_DATE` (format `YYYY-MM-DD`) and posts a warning card to Teams and sends an email when the PAT is within 7 days of expiry. `backup.yml` also alerts immediately via Teams if the PAT is already expired during a run.
 
-### 18.4 Dashboard Run Search & Repo Count
+### 19.4 Dashboard Run Search & Repo Count
 
 - **Dashboard**: a search box above "Recent Workflow Runs" lets you filter runs by name or status in real time.
 - **Backup page**: a "Showing X of Y repos" counter appears between the search bar and the repository list, updating as you type.
 
-### 18.5 Session Diff
+### 19.5 Session Diff
 
 The **Reports** page now includes a **Session Diff** card. Select two sessions from the dropdowns and click **Compare** to see a table showing each repository's size in Session A and Session B, the delta, and whether repos were added or removed. Works in demo mode with sample data.
 
-### 18.6 Smart GFS Retention
+### 19.6 Smart GFS Retention
 
 `cleanup.yml` now accepts a `retention_policy` input (`simple` or `gfs`). When `gfs` is selected the cleanup step logs the Grandfather-Father-Son retention plan (daily × 7, weekly × 4, monthly × 12) alongside the deleted/kept counts.
 
-### 18.7 SLA Breach Alerts
+### 19.7 SLA Breach Alerts
 
 A new hourly workflow (`sla-check.yml`) reads `docs/status.json` and compares the `last_run` timestamp against `SLA_HOURS` (default 26). On breach it posts a Teams Adaptive Card and sends a SendGrid email with the breach duration.
 
-### 18.8 Compliance CSV Export
+### 19.8 Compliance CSV Export
 
 The **Export CSV** button in Reports now produces a file with columns: `run_id`, `workflow`, `status`, `timestamp`, `duration`, `repo_count`. In demo mode it uses sample data so the export works without a live connection.
 
-### 18.9 Anomaly Detection
+### 19.9 Anomaly Detection
 
 `backup.yml` compares the current session's total zip size against the `avg_size_7d` field in `docs/status.json`. If the delta exceeds 20% it sets `anomaly: true` in `status.json` and posts a warning Teams card. The Dashboard reads this flag on load and shows a dismissible amber banner above the stat cards.
 
-### 18.10 Azure Blob Storage
+### 19.10 Azure Blob Storage
 
 `src/backup/storage/azure.js` implements the same `uploadFile` / `getOrCreateSessionFolder` interface as the S3 adapter. Activate with `STORAGE_TARGET=azure`, `AZURE_STORAGE_CONNECTION_STRING`, and `AZURE_CONTAINER_NAME`.
 
-### 18.11 Backblaze B2 Storage
+### 19.11 Backblaze B2 Storage
 
 `src/backup/storage/b2.js` re-uses the AWS SDK against B2's S3-compatible endpoint. Set `B2_ENDPOINT`, `B2_KEY_ID`, `B2_APP_KEY`, and `B2_BUCKET`, then set `STORAGE_TARGET=b2`.
 
-### 18.12 SBOM Generation
+### 19.12 SBOM Generation
 
 `backup.yml` accepts an `include_sbom` boolean input. When `true`, [anchore/sbom-action](https://github.com/anchore/sbom-action) generates an SPDX-JSON SBOM and uploads it as a workflow artifact named `sbom-<run-id>`.
 
-### 18.13 Monthly Auto-Restore Test
+### 19.13 Monthly Auto-Restore Test
 
 `monthly-restore-test.yml` runs on the 1st of each month at 03:00 UTC. It exercises the restore pipeline in dry-run mode, verifies archive integrity, and appends the result to `docs/audit.log`. A Teams card reports pass/fail.
 
-### 18.14 PWA Support
+### 19.14 PWA Support
 
 The dashboard is now installable as a Progressive Web App:
 - `docs/manifest.json` — web app manifest with name, icons, colours, and `start_url`.

@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 /**
  * Backblaze B2 storage adapter.
  * B2 is S3-compatible — reuses the AWS SDK with a custom endpoint.

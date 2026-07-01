@@ -1,0 +1,109 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" width="900" height="500" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="topbar" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="900" height="500" fill="#f8fafc"/>
+  <rect x="0" y="0" width="900" height="4" fill="url(#topbar)"/>
+  <rect x="0" y="4" width="900" height="44" fill="#ffffff"/>
+  <text x="28" y="32" font-size="14" font-weight="700" fill="#1e293b">CI — Build, Lint &amp; Test</text>
+  <line x1="0" y1="48" x2="900" y2="48" stroke="#e2e8f0"/>
+
+  <!-- Pipeline steps -->
+  <rect x="28" y="64" width="844" height="408" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+
+  <!-- Header row -->
+  <rect x="28" y="64" width="844" height="36" rx="12" fill="#f8fafc"/>
+  <rect x="28" y="82" width="844" height="18" fill="#f8fafc"/>
+  <text x="48" y="87" font-size="11" font-weight="600" fill="#64748b">STEP</text>
+  <text x="400" y="87" font-size="11" font-weight="600" fill="#64748b">STATUS</text>
+  <text x="580" y="87" font-size="11" font-weight="600" fill="#64748b">DURATION</text>
+  <text x="720" y="87" font-size="11" font-weight="600" fill="#64748b">OUTPUT</text>
+  <line x1="48" y1="100" x2="852" y2="100" stroke="#e2e8f0"/>
+
+  <!-- Step 1: Checkout -->
+  <circle cx="62" cy="126" r="5" fill="#4ade80"/>
+  <text x="80" y="130" font-size="12" font-weight="600" fill="#1e293b">Checkout</text>
+  <rect x="390" y="115" width="62" height="20" rx="10" fill="#dcfce7" stroke="#4ade80"/>
+  <text x="421" y="129" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">passed</text>
+  <text x="580" y="130" font-size="12" fill="#64748b">1s</text>
+  <text x="720" y="130" font-size="11" fill="#94a3b8">actions/checkout@v4</text>
+  <line x1="48" y1="143" x2="852" y2="143" stroke="#e2e8f0"/>
+
+  <!-- Step 2: Node setup -->
+  <circle cx="62" cy="165" r="5" fill="#4ade80"/>
+  <text x="80" y="169" font-size="12" font-weight="600" fill="#1e293b">Set up Node.js 22</text>
+  <rect x="390" y="154" width="62" height="20" rx="10" fill="#dcfce7" stroke="#4ade80"/>
+  <text x="421" y="168" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">passed</text>
+  <text x="580" y="169" font-size="12" fill="#64748b">4s</text>
+  <text x="720" y="169" font-size="11" fill="#94a3b8">cache: npm</text>
+  <line x1="48" y1="182" x2="852" y2="182" stroke="#e2e8f0"/>
+
+  <!-- Step 3: npm ci -->
+  <circle cx="62" cy="204" r="5" fill="#4ade80"/>
+  <text x="80" y="208" font-size="12" font-weight="600" fill="#1e293b">Install dependencies</text>
+  <rect x="390" y="193" width="62" height="20" rx="10" fill="#dcfce7" stroke="#4ade80"/>
+  <text x="421" y="207" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">passed</text>
+  <text x="580" y="208" font-size="12" fill="#64748b">18s</text>
+  <text x="720" y="208" font-size="11" fill="#94a3b8">npm ci</text>
+  <line x1="48" y1="221" x2="852" y2="221" stroke="#e2e8f0"/>
+
+  <!-- Step 4: Copyright headers -->
+  <circle cx="62" cy="243" r="5" fill="#4ade80"/>
+  <text x="80" y="247" font-size="12" font-weight="600" fill="#1e293b">Verify copyright headers</text>
+  <rect x="390" y="232" width="62" height="20" rx="10" fill="#dcfce7" stroke="#4ade80"/>
+  <text x="421" y="246" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">passed</text>
+  <text x="580" y="247" font-size="12" fill="#64748b">1s</text>
+  <text x="720" y="247" font-size="11" fill="#4ade80">15/15 files ✓</text>
+  <line x1="48" y1="260" x2="852" y2="260" stroke="#e2e8f0"/>
+
+  <!-- Step 5: Lint -->
+  <circle cx="62" cy="282" r="5" fill="#4ade80"/>
+  <text x="80" y="286" font-size="12" font-weight="600" fill="#1e293b">Lint (ESLint)</text>
+  <rect x="390" y="271" width="62" height="20" rx="10" fill="#dcfce7" stroke="#4ade80"/>
+  <text x="421" y="285" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">passed</text>
+  <text x="580" y="286" font-size="12" fill="#64748b">3s</text>
+  <text x="720" y="286" font-size="11" fill="#4ade80">0 errors · 0 warnings</text>
+  <line x1="48" y1="299" x2="852" y2="299" stroke="#e2e8f0"/>
+
+  <!-- Step 6: Tests -->
+  <circle cx="62" cy="321" r="5" fill="#4ade80"/>
+  <text x="80" y="325" font-size="12" font-weight="600" fill="#1e293b">Run tests (Jest)</text>
+  <rect x="390" y="310" width="62" height="20" rx="10" fill="#dcfce7" stroke="#4ade80"/>
+  <text x="421" y="324" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">passed</text>
+  <text x="580" y="325" font-size="12" fill="#64748b">7s</text>
+  <text x="720" y="325" font-size="11" fill="#4ade80">25/25 tests · 3 suites</text>
+  <line x1="48" y1="338" x2="852" y2="338" stroke="#e2e8f0"/>
+
+  <!-- Step 7: npm audit -->
+  <circle cx="62" cy="360" r="5" fill="#4ade80"/>
+  <text x="80" y="364" font-size="12" font-weight="600" fill="#1e293b">Security audit (npm audit)</text>
+  <rect x="390" y="349" width="62" height="20" rx="10" fill="#dcfce7" stroke="#4ade80"/>
+  <text x="421" y="363" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">passed</text>
+  <text x="580" y="364" font-size="12" fill="#64748b">5s</text>
+  <text x="720" y="364" font-size="11" fill="#4ade80">0 high/critical vulns</text>
+  <line x1="48" y1="377" x2="852" y2="377" stroke="#e2e8f0"/>
+
+  <!-- Step 8: YAML lint -->
+  <circle cx="62" cy="399" r="5" fill="#4ade80"/>
+  <text x="80" y="403" font-size="12" font-weight="600" fill="#1e293b">Validate workflow YAML</text>
+  <rect x="390" y="388" width="62" height="20" rx="10" fill="#dcfce7" stroke="#4ade80"/>
+  <text x="421" y="402" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">passed</text>
+  <text x="580" y="403" font-size="12" fill="#64748b">8s</text>
+  <text x="720" y="403" font-size="11" fill="#4ade80">7/7 workflows valid</text>
+  <line x1="48" y1="416" x2="852" y2="416" stroke="#e2e8f0"/>
+
+  <!-- Step 9: Gitleaks -->
+  <circle cx="62" cy="438" r="5" fill="#4ade80"/>
+  <text x="80" y="442" font-size="12" font-weight="600" fill="#1e293b">Secret scan (Gitleaks)</text>
+  <rect x="390" y="427" width="62" height="20" rx="10" fill="#dcfce7" stroke="#4ade80"/>
+  <text x="421" y="441" text-anchor="middle" font-size="10" font-weight="700" fill="#166534">passed</text>
+  <text x="580" y="442" font-size="12" fill="#64748b">11s</text>
+  <text x="720" y="442" font-size="11" fill="#4ade80">No secrets detected</text>
+
+  <!-- Total badge -->
+  <rect x="680" y="458" width="192" height="6" rx="3" fill="#dcfce7"/>
+  <text x="776" y="484" text-anchor="middle" font-size="12" font-weight="700" fill="#166534">All checks passed · 58s total</text>
+</svg>

@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 /**
  * Run this script once to authorise Google Drive access.
  * It opens a browser URL, you paste back the code, and the token is saved.

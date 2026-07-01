@@ -1,0 +1,8 @@
+# CODEOWNERS — every change requires review from Omar Rao
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+*                             @OmarRao
+*.yml                         @OmarRao
+.github/workflows/            @OmarRao
+src/                          @OmarRao
+docs/                         @OmarRao

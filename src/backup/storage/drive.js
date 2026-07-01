@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 /**
  * Google Drive storage adapter.
  * Extracted from src/backup/index.js — same interface as s3.js.

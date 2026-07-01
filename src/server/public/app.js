@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 /* ── Navigation ─────────────────────────────────────────────────────────── */
 document.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', e => {

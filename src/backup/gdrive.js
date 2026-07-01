@@ -1,3 +1,4 @@
+// Copyright (c) Omar Rao. All rights reserved.
 const { google } = require('googleapis');
 const fs = require('fs');
 const path = require('path');
