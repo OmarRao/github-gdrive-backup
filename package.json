@@ -1,6 +1,6 @@
 {
   "name": "github-gdrive-backup",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "description": "Back up every GitHub repository to Google Drive — code, issues, PRs, releases, wiki, labels, milestones — and restore with one click.",
   "main": "src/server/app.js",
   "bin": {

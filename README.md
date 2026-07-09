@@ -106,6 +106,22 @@ Every push and pull request to `main` runs the full CI pipeline: copyright heade
 
 ---
 
+### Dashboard Insights — Health, Storage Growth & Timeline
+
+The dashboard opens with a **System Health** panel — a traffic-light summary of last backup, SLA, anomaly state, storage usage, and connection status. Below it, a **Storage Growth** area chart plots session size across the last 10 backups, and a 30-day **Backup Timeline** heatmap surfaces gaps and failures at a glance. Click any session to open a detail drawer showing a **Restore Confidence Score** and per-repo sizes.
+
+![Dashboard Insights](docs/screenshots/dashboard-insights.svg)
+
+---
+
+### Command Palette
+
+Press <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>K</kbd> anywhere to open a fuzzy command palette — jump to any page or fire an action (trigger backup, export CSV/JSON, toggle theme) without touching the mouse. Full arrow-key navigation and Enter to run.
+
+![Command Palette](docs/screenshots/command-palette.svg)
+
+---
+
 ## Features
 
 | Feature | Details |
@@ -144,6 +160,13 @@ Every push and pull request to `main` runs the full CI pipeline: copyright heade
 | **SBOM generation** | Optional `include_sbom=true` input generates SPDX SBOM via `anchore/sbom-action@v0` |
 | **Auto-restore test** | Monthly `monthly-restore-test.yml` dry-run verifies restore integrity; result appended to audit log |
 | **PWA / offline** | `manifest.json` + cache-first service worker — install dashboard to home screen, works offline |
+| **System health panel** | Traffic-light summary of last backup, SLA, anomaly, storage, and GitHub/Drive connection status |
+| **Storage growth chart** | Inline SVG area chart of session size across the last 10 backups |
+| **Backup timeline heatmap** | 30-day GitHub-style heatmap coloring each day by backup volume; failed days in red |
+| **Session detail drawer** | Click a session for a Restore Confidence Score and per-repo size breakdown |
+| **Command palette** | `⌘/Ctrl-K` fuzzy launcher for pages and actions, full keyboard navigation |
+| **Notification center** | Bell dropdown persists recent toasts with unread badge, stored in `localStorage` |
+| **Report JSON export** | Export full run history as structured JSON alongside CSV and compliance PDF |
 
 ---
 

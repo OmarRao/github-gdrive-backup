@@ -1,0 +1,123 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <rect x="0" y="0" width="900" height="560" fill="#f1f5f9"/>
+
+  <!-- System Health card -->
+  <rect x="24" y="24" width="852" height="176" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="48" y="56" font-size="15" font-weight="700" fill="#0f172a">System Health</text>
+  <text x="48" y="76" font-size="12" fill="#64748b">At-a-glance status across every control</text>
+
+  <!-- 6 health items -->
+  <g font-family="'Segoe UI', system-ui, sans-serif">
+    <!-- row1 -->
+    <rect x="48" y="92" width="256" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+    <circle cx="68" cy="114" r="6" fill="#10b981"/>
+    <text x="84" y="110" font-size="10" font-weight="700" letter-spacing="0.4" fill="#64748b">LAST BACKUP</text>
+    <text x="84" y="126" font-size="13" font-weight="700" fill="#0f172a">Success</text>
+
+    <rect x="320" y="92" width="256" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+    <circle cx="340" cy="114" r="6" fill="#10b981"/>
+    <text x="356" y="110" font-size="10" font-weight="700" letter-spacing="0.4" fill="#64748b">SLA</text>
+    <text x="356" y="126" font-size="13" font-weight="700" fill="#0f172a">Within 26h</text>
+
+    <rect x="592" y="92" width="256" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+    <circle cx="612" cy="114" r="6" fill="#f59e0b"/>
+    <text x="628" y="110" font-size="10" font-weight="700" letter-spacing="0.4" fill="#64748b">ANOMALY</text>
+    <text x="628" y="126" font-size="13" font-weight="700" fill="#0f172a">Detected</text>
+
+    <!-- row2 -->
+    <rect x="48" y="144" width="256" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+    <circle cx="68" cy="166" r="6" fill="#10b981"/>
+    <text x="84" y="162" font-size="10" font-weight="700" letter-spacing="0.4" fill="#64748b">STORAGE</text>
+    <text x="84" y="178" font-size="13" font-weight="700" fill="#0f172a">14% used</text>
+
+    <rect x="320" y="144" width="256" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+    <circle cx="340" cy="166" r="6" fill="#10b981"/>
+    <text x="356" y="162" font-size="10" font-weight="700" letter-spacing="0.4" fill="#64748b">GITHUB</text>
+    <text x="356" y="178" font-size="13" font-weight="700" fill="#0f172a">Connected</text>
+
+    <rect x="592" y="144" width="256" height="44" rx="8" fill="#f8fafc" stroke="#e2e8f0"/>
+    <circle cx="612" cy="166" r="6" fill="#10b981"/>
+    <text x="628" y="162" font-size="10" font-weight="700" letter-spacing="0.4" fill="#64748b">DRIVE</text>
+    <text x="628" y="178" font-size="13" font-weight="700" fill="#0f172a">Connected</text>
+  </g>
+
+  <!-- Storage Growth card -->
+  <rect x="24" y="216" width="414" height="320" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="48" y="248" font-size="15" font-weight="700" fill="#0f172a">Storage Growth</text>
+  <text x="48" y="268" font-size="12" fill="#64748b">Session size over the last 10 backups</text>
+  <!-- grid -->
+  <line x1="72" y1="300" x2="410" y2="300" stroke="#e2e8f0"/>
+  <line x1="72" y1="380" x2="410" y2="380" stroke="#e2e8f0"/>
+  <line x1="72" y1="460" x2="410" y2="460" stroke="#e2e8f0"/>
+  <text x="66" y="303" text-anchor="end" font-size="10" fill="#94a3b8">620</text>
+  <text x="66" y="383" text-anchor="end" font-size="10" fill="#94a3b8">310</text>
+  <text x="66" y="463" text-anchor="end" font-size="10" fill="#94a3b8">0</text>
+  <!-- area -->
+  <path d="M80 440 L118 360 L156 410 L194 330 L232 400 L270 320 L308 380 L346 300 L384 430 L402 460 L402 460 L80 460 Z" fill="#2563eb" opacity="0.12"/>
+  <path d="M80 440 L118 360 L156 410 L194 330 L232 400 L270 320 L308 380 L346 300 L384 430" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <g fill="#ffffff" stroke="#2563eb" stroke-width="2">
+    <circle cx="80" cy="440" r="3"/><circle cx="118" cy="360" r="3"/><circle cx="156" cy="410" r="3"/><circle cx="194" cy="330" r="3"/><circle cx="232" cy="400" r="3"/><circle cx="270" cy="320" r="3"/><circle cx="308" cy="380" r="3"/><circle cx="346" cy="300" r="3"/><circle cx="384" cy="430" r="3"/>
+  </g>
+  <text x="80" y="500" font-size="10" fill="#94a3b8">oldest</text>
+  <text x="410" y="500" text-anchor="end" font-size="10" fill="#94a3b8">newest · MB</text>
+
+  <!-- Backup Timeline card -->
+  <rect x="462" y="216" width="414" height="320" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="486" y="248" font-size="15" font-weight="700" fill="#0f172a">Backup Timeline</text>
+  <text x="486" y="268" font-size="12" fill="#64748b">Daily backup activity &amp; volume</text>
+  <!-- heatmap 6 cols x 5 rows -->
+  <g>
+    <!-- row of colors, representing 30 days -->
+    <!-- We'll draw 5 rows x 10 cols = 50 but keep to 30 with realistic levels -->
+  </g>
+  <g>
+    <!-- 3 rows x 10 cols -->
+    <!-- row 1 (older, mostly empty) -->
+    <rect x="486" y="290" width="18" height="18" rx="3" fill="#e2e8f0"/>
+    <rect x="510" y="290" width="18" height="18" rx="3" fill="#e2e8f0"/>
+    <rect x="534" y="290" width="18" height="18" rx="3" fill="#e2e8f0"/>
+    <rect x="558" y="290" width="18" height="18" rx="3" fill="#bbf7d0"/>
+    <rect x="582" y="290" width="18" height="18" rx="3" fill="#4ade80"/>
+    <rect x="606" y="290" width="18" height="18" rx="3" fill="#16a34a"/>
+    <rect x="630" y="290" width="18" height="18" rx="3" fill="#4ade80"/>
+    <rect x="654" y="290" width="18" height="18" rx="3" fill="#14532d"/>
+    <rect x="678" y="290" width="18" height="18" rx="3" fill="#16a34a"/>
+    <rect x="702" y="290" width="18" height="18" rx="3" fill="#4ade80"/>
+    <!-- row 2 -->
+    <rect x="486" y="314" width="18" height="18" rx="3" fill="#16a34a"/>
+    <rect x="510" y="314" width="18" height="18" rx="3" fill="#4ade80"/>
+    <rect x="534" y="314" width="18" height="18" rx="3" fill="#bbf7d0"/>
+    <rect x="558" y="314" width="18" height="18" rx="3" fill="#ef4444"/>
+    <rect x="582" y="314" width="18" height="18" rx="3" fill="#16a34a"/>
+    <rect x="606" y="314" width="18" height="18" rx="3" fill="#14532d"/>
+    <rect x="630" y="314" width="18" height="18" rx="3" fill="#4ade80"/>
+    <rect x="654" y="314" width="18" height="18" rx="3" fill="#16a34a"/>
+    <rect x="678" y="314" width="18" height="18" rx="3" fill="#4ade80"/>
+    <rect x="702" y="314" width="18" height="18" rx="3" fill="#bbf7d0"/>
+    <!-- row 3 -->
+    <rect x="486" y="338" width="18" height="18" rx="3" fill="#4ade80"/>
+    <rect x="510" y="338" width="18" height="18" rx="3" fill="#16a34a"/>
+    <rect x="534" y="338" width="18" height="18" rx="3" fill="#14532d"/>
+    <rect x="558" y="338" width="18" height="18" rx="3" fill="#16a34a"/>
+    <rect x="582" y="338" width="18" height="18" rx="3" fill="#4ade80"/>
+    <rect x="606" y="338" width="18" height="18" rx="3" fill="#bbf7d0"/>
+    <rect x="630" y="338" width="18" height="18" rx="3" fill="#4ade80"/>
+    <rect x="654" y="338" width="18" height="18" rx="3" fill="#16a34a"/>
+    <rect x="678" y="338" width="18" height="18" rx="3" fill="#14532d"/>
+    <rect x="702" y="338" width="18" height="18" rx="3" fill="#4ade80"/>
+  </g>
+  <!-- legend -->
+  <text x="486" y="392" font-size="11" fill="#64748b">Less</text>
+  <rect x="516" y="382" width="14" height="14" rx="3" fill="#e2e8f0"/>
+  <rect x="534" y="382" width="14" height="14" rx="3" fill="#bbf7d0"/>
+  <rect x="552" y="382" width="14" height="14" rx="3" fill="#4ade80"/>
+  <rect x="570" y="382" width="14" height="14" rx="3" fill="#16a34a"/>
+  <rect x="588" y="382" width="14" height="14" rx="3" fill="#14532d"/>
+  <text x="610" y="392" font-size="11" fill="#64748b">More</text>
+  <rect x="662" y="382" width="14" height="14" rx="3" fill="#ef4444"/>
+  <text x="682" y="392" font-size="11" fill="#64748b">Failed</text>
+
+  <!-- confidence note -->
+  <text x="486" y="440" font-size="12" fill="#475569" font-weight="600">Click any session → detail drawer with</text>
+  <text x="486" y="458" font-size="12" fill="#475569" font-weight="600">Restore Confidence Score &amp; per-repo sizes.</text>
+</svg>

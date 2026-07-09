@@ -1,5 +1,5 @@
 // Service Worker — cache-first for the app shell
-const CACHE  = 'gh-backup-v1';
+const CACHE  = 'gh-backup-v2';
 const SHELL  = [
   '/github-gdrive-backup/',
   '/github-gdrive-backup/index.html',

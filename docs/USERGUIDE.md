@@ -1,5 +1,5 @@
 # GitHub → Google Drive Backup — Technical User Guide
-**Version 3.0.0** | Last updated: 2026-06-30
+**Version 3.1.0** | Last updated: 2026-07-08
 
 ---
 
@@ -63,6 +63,7 @@
     - [14.3 Audit Log](#143-audit-log)
     - [14.4 Supported Frameworks (SOX, HIPAA, ISO 27001, SOC 2)](#144-supported-frameworks-sox-hipaa-iso-27001-soc-2)
 15. [PWA & Offline Support](#15-pwa--offline-support)
+15A. [Dashboard Insights & Productivity (v3.1)](#15a-dashboard-insights--productivity-v31)
 16. [Troubleshooting](#16-troubleshooting)
 17. [FAQ](#17-faq)
 18. [Version History](#18-version-history)
@@ -848,7 +849,54 @@ Most modern browsers (Chrome, Edge, Safari on iOS) show an **Install** prompt in
 3. On a navigate miss (no cache entry), it falls back to the cached shell — preventing blank screens offline.
 4. On update (new deployment), old caches are deleted and the new shell is cached during the activate phase.
 
-**Cache invalidation:** update the `CACHE_NAME` constant in `docs/sw.js` (e.g. `gh-backup-v2`) after major UI changes to force all clients to re-cache on next load.
+**Cache invalidation:** update the `CACHE` constant in `docs/sw.js` (e.g. `gh-backup-v2`) after major UI changes to force all clients to re-cache on next load.
+
+---
+
+## 15A. Dashboard Insights & Productivity (v3.1)
+
+Version 3.1 adds a layer of at-a-glance intelligence and keyboard-first navigation to the dashboard. None of these features require new secrets or a server — they are computed entirely in the browser from data already loaded.
+
+### System Health panel
+
+Directly under the stat cards, a six-tile **System Health** grid gives a traffic-light read on the whole system:
+
+| Tile | Green | Amber | Red |
+|---|---|---|---|
+| Last Backup | Success | — | Failed |
+| SLA | Within threshold | — | Breached |
+| Anomaly | Normal | Detected (>20% size deviation) | — |
+| Storage | ≤80% used | 80–90% | >90% |
+| GitHub | Connected | — | — |
+| Drive | Connected | — | — |
+
+### Storage Growth chart
+
+An inline SVG area chart plots the size (MB) of the last 10 backup sessions oldest→newest, with hover tooltips per point. Use it to spot steady growth (plan capacity) or sudden drops (investigate with Session Diff).
+
+### Backup Timeline heatmap
+
+A 30-day, GitHub-contributions-style heatmap. Each cell is one day, colored by backup volume (five green shades); days with a failed backup are red, and days with no backup stay grey. Hover any cell for the date and size.
+
+![Dashboard Insights](screenshots/dashboard-insights.svg)
+
+### Session detail drawer
+
+Click any session in **Restore** (or its **Details** button) to slide open a right-hand drawer showing a **Restore Confidence Score** (a 0–100 ring synthesized from run status and integrity metadata) and a per-repository size breakdown. Failed repos are flagged inline.
+
+### Command palette
+
+Press <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>K</kbd> anywhere — even inside a text field — to open a fuzzy command palette. Type to filter across pages (Dashboard, Backup, Restore, …) and actions (trigger backup, export CSV/JSON, toggle theme, open notifications). Navigate with <kbd>↑</kbd>/<kbd>↓</kbd>, run with <kbd>↵</kbd>, dismiss with <kbd>Esc</kbd>.
+
+![Command Palette](screenshots/command-palette.svg)
+
+### Notification center
+
+Every toast is also persisted (last 30, in `localStorage`) to a bell dropdown in the top bar. An unread badge shows the count; opening the panel marks them read. Use **Clear all** to empty it.
+
+### Report JSON export
+
+The **Reports** tab now offers an **Export JSON** button alongside CSV and the compliance PDF. The JSON payload includes an `exported_at` timestamp, repository name, run count, and a structured array of every run (id, workflow, status, event, timestamp, duration) — ideal for feeding downstream tooling or SIEM ingestion.
 
 ---
 

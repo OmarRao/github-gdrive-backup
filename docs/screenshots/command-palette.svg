@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 520" width="900" height="520" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="900" height="520" fill="#0f172a"/>
+  <!-- dimmed dashboard behind -->
+  <rect x="0" y="0" width="900" height="520" fill="#0f172a"/>
+  <rect x="24" y="24" width="852" height="90" rx="12" fill="url(#hero)" opacity="0.35"/>
+  <rect x="24" y="128" width="270" height="80" rx="12" fill="#1e293b" opacity="0.5"/>
+  <rect x="315" y="128" width="270" height="80" rx="12" fill="#1e293b" opacity="0.5"/>
+  <rect x="606" y="128" width="270" height="80" rx="12" fill="#1e293b" opacity="0.5"/>
+  <rect x="0" y="0" width="900" height="520" fill="#0f172a" opacity="0.55"/>
+
+  <!-- palette panel -->
+  <rect x="200" y="70" width="500" height="380" rx="14" fill="#1e293b" stroke="#334155"/>
+  <!-- input -->
+  <rect x="200" y="70" width="500" height="52" rx="14" fill="#1e293b"/>
+  <line x1="200" y1="122" x2="700" y2="122" stroke="#334155"/>
+  <circle cx="228" cy="96" r="7" fill="none" stroke="#64748b" stroke-width="2"/>
+  <line x1="233" y1="101" x2="239" y2="107" stroke="#64748b" stroke-width="2" stroke-linecap="round"/>
+  <text x="250" y="101" font-size="14" fill="#94a3b8">Search pages and actions…</text>
+  <rect x="640" y="84" width="44" height="24" rx="6" fill="#0f172a" stroke="#334155"/>
+  <text x="662" y="100" text-anchor="middle" font-size="11" fill="#94a3b8">⌘K</text>
+
+  <!-- NAVIGATE group -->
+  <text x="216" y="146" font-size="10.5" font-weight="700" letter-spacing="0.5" fill="#64748b">NAVIGATE</text>
+  <!-- active item -->
+  <rect x="210" y="154" width="480" height="38" rx="8" fill="#2563eb"/>
+  <text x="234" y="178" font-size="13.5" fill="#ffffff">🏠  Dashboard</text>
+  <text x="676" y="178" text-anchor="end" font-size="11" fill="#dbeafe">D</text>
+  <text x="234" y="216" font-size="13.5" fill="#e2e8f0">💾  Backup</text>
+  <text x="676" y="216" text-anchor="end" font-size="11" fill="#64748b">B</text>
+  <text x="234" y="252" font-size="13.5" fill="#e2e8f0">♻️  Restore</text>
+  <text x="676" y="252" text-anchor="end" font-size="11" fill="#64748b">R</text>
+  <text x="234" y="288" font-size="13.5" fill="#e2e8f0">📋  Workflow Runs</text>
+  <text x="676" y="288" text-anchor="end" font-size="11" fill="#64748b">W</text>
+
+  <!-- ACTIONS group -->
+  <text x="216" y="322" font-size="10.5" font-weight="700" letter-spacing="0.5" fill="#64748b">ACTIONS</text>
+  <text x="234" y="352" font-size="13.5" fill="#e2e8f0">🚀  Trigger a backup</text>
+  <text x="234" y="386" font-size="13.5" fill="#e2e8f0">🧾  Export report as JSON</text>
+  <text x="234" y="420" font-size="13.5" fill="#e2e8f0">🌓  Toggle dark / light mode</text>
+
+  <!-- footer hint -->
+  <text x="450" y="474" text-anchor="middle" font-size="11" fill="#64748b">↑ ↓ to navigate · ↵ to run · esc to close</text>
+</svg>
