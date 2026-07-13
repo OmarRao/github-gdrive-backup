@@ -1,5 +1,5 @@
 # GitHub → Google Drive Backup — Technical User Guide
-**Version 3.1.0** | Last updated: 2026-07-08
+**Version 3.2.0** | Last updated: 2026-07-13
 
 ---
 
@@ -34,6 +34,7 @@
 8. [Storage & Retention](#8-storage--retention)
    - [8.1 Google Drive Structure](#81-google-drive-structure)
    - [8.2 S3 / Azure Blob / Backblaze B2](#82-s3--azure-blob--backblaze-b2)
+   - [8.2A Multi-Destination Fan-Out (3-2-1 Rule)](#82a-multi-destination-fan-out-3-2-1-rule)
    - [8.3 Retention Policy (Simple & GFS)](#83-retention-policy-simple--gfs)
    - [8.4 Drive Quota Monitoring](#84-drive-quota-monitoring)
 9. [Notifications & Monitoring](#9-notifications--monitoring)
@@ -93,7 +94,7 @@ The **automation layer** is the engine. On a schedule, or on manual dispatch, `b
 
 ![Dashboard Overview](screenshots/dashboard.svg)
 
-The **storage layer** is Google Drive by default. Authentication to Drive uses an OAuth client (`GOOGLE_CLIENT_SECRET`) plus a refresh-capable token (`GOOGLE_TOKEN`) that you generate once locally with the `get_token.py` helper. Each backup run writes into a per-session, per-repository folder hierarchy so that any single run can be located and restored independently. For organizations that prefer object storage or need geographic redundancy, the project also supports **Amazon S3** (`STORAGE_TARGET=s3`), **Azure Blob Storage** (`STORAGE_TARGET=azure`), and **Backblaze B2** (`STORAGE_TARGET=b2`) as fully implemented storage backends.
+The **storage layer** is Google Drive by default. Authentication to Drive uses an OAuth client (`GOOGLE_CLIENT_SECRET`) plus a refresh-capable token (`GOOGLE_TOKEN`) that you generate once locally with the `get_token.py` helper. Each backup run writes into a per-session, per-repository folder hierarchy so that any single run can be located and restored independently. For organizations that prefer object storage or need geographic redundancy, the project also supports **Amazon S3** (`STORAGE_TARGET=s3`), **Azure Blob Storage** (`STORAGE_TARGET=azure`), and **Backblaze B2** (`STORAGE_TARGET=b2`) as fully implemented storage backends. Beyond a single target, **multi-destination fan-out** (`BACKUP_MIRROR_TARGETS`) mirrors every archive to additional clouds to satisfy the 3-2-1 backup rule — see [8.2A](#82a-multi-destination-fan-out-3-2-1-rule).
 
 The **presentation layer** — the dashboard — is intentionally "thin." It holds no secrets server-side because there is no server. Your GitHub PAT and Drive token are stored exclusively in the browser's `localStorage`, and the only outbound calls the dashboard makes are to `api.github.com` and `googleapis.com`. This design keeps the trust boundary tight: GitHub Pages serves static files, your browser holds your credentials, and the third-party APIs do the work. Firebase, when configured, is used only for sign-in identity and never receives your backup tokens.
 
@@ -476,6 +477,36 @@ Set `STORAGE_TARGET` to choose your storage backend. The same session/owner key 
 | Backblaze B2 | `b2` | `B2_ENDPOINT`, `B2_KEY_ID`, `B2_APP_KEY`, `B2_BUCKET` | Implemented (`src/backup/storage/b2.js`) |
 
 **Azure Blob** uses `@azure/storage-blob` (lazy-loaded only when `STORAGE_TARGET=azure`). The container is created automatically on first use if it does not exist. **Backblaze B2** reuses `@aws-sdk/client-s3` with your B2 S3-compatible endpoint — no additional SDK install required beyond the existing AWS SDK dependency.
+
+### 8.2A Multi-Destination Fan-Out (3-2-1 Rule)
+
+`STORAGE_TARGET` chooses a *single* primary backend. For true resilience, the **3-2-1 rule** calls for three copies across two media with one off-site. The fan-out layer (`src/backup/storage/fanout.js`) delivers this by keeping **Google Drive as the primary destination** and *mirroring* every artifact to one or more secondary clouds.
+
+![3-2-1 Fan-Out](screenshots/fanout-321.svg)
+
+Enable it with a comma-separated list of adapters:
+
+```env
+BACKUP_MIRROR_TARGETS=s3,b2
+```
+
+Valid values are `s3`, `azure`, and `b2`. Each listed target's own credentials (see the table in [8.2](#82-s3--azure-blob--backblaze-b2)) must also be present. On every run the orchestrator mirrors:
+
+- each repository archive (`<repo>.zip` or `<repo>.zip.enc`)
+- each wiki archive (`<repo>-wiki.zip`)
+- each per-repo `metadata.json` (mirrored as `<repo>-metadata.json` in the flat session prefix)
+- the session-level `manifest.json` and `backup-summary.json`
+
+**Verification & failure semantics.** Each mirrored file's reported byte size is checked against the source; a mismatch is logged as an error and marked `ok: false`. Mirroring is **best-effort** — a mirror failure never fails the primary Drive backup. Results are aggregated into the summary under `mirror.perTarget`, e.g.:
+
+```json
+"mirror": {
+  "targets": ["s3", "b2"],
+  "perTarget": { "s3": { "ok": 12, "failed": 0 }, "b2": { "ok": 11, "failed": 1 } }
+}
+```
+
+**Encryption.** When `BACKUP_ENCRYPTION_KEY` is set, archives are mirrored in their already-encrypted (`.zip.enc`) form, so secondary copies are protected at rest just like the primary.
 
 ### 8.3 Retention Policy (Simple & GFS)
 

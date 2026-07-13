@@ -157,6 +157,7 @@ Press <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>K</kbd> anywhere to open a fuzzy comma
 | **Anomaly detection** | Auto-detects session size deviation >20% from 7-day average; dismissible dashboard banner |
 | **Azure Blob storage** | `STORAGE_TARGET=azure` — uses `@azure/storage-blob` with connection string + container name |
 | **Backblaze B2** | `STORAGE_TARGET=b2` — S3-compatible, reuses `@aws-sdk/client-s3` with custom B2 endpoint |
+| **Multi-destination fan-out (3-2-1)** | `BACKUP_MIRROR_TARGETS=s3,b2` mirrors every archive, manifest & summary to secondary clouds with per-file size verification; Drive stays primary, mirror failures never fail the backup |
 | **SBOM generation** | Optional `include_sbom=true` input generates SPDX SBOM via `anchore/sbom-action@v0` |
 | **Auto-restore test** | Monthly `monthly-restore-test.yml` dry-run verifies restore integrity; result appended to audit log |
 | **PWA / offline** | `manifest.json` + cache-first service worker — install dashboard to home screen, works offline |
@@ -266,6 +267,7 @@ Go to **Settings → Secrets and variables → Actions** and add these 5 secrets
 | `B2_KEY_ID` | Backblaze B2 application key ID |
 | `B2_APP_KEY` | Backblaze B2 application key |
 | `B2_BUCKET` | Backblaze B2 bucket name |
+| `BACKUP_MIRROR_TARGETS` | Comma-separated secondary destinations for 3-2-1 fan-out, e.g. `s3,b2` (each target's own secrets must also be set) |
 
 ### 6. Trigger your first backup
 
@@ -325,8 +327,33 @@ BACKUP_INCLUDE=code,issues,pull_requests,releases,wiki,labels,milestones
 BACKUP_CONCURRENCY=3
 BACKUP_TMP_DIR=./tmp
 
+# Multi-destination fan-out (3-2-1) — Drive is always primary
+BACKUP_MIRROR_TARGETS=s3,b2
+
 PORT=3000
 ```
+
+---
+
+## Multi-Destination Fan-Out (3-2-1 Rule)
+
+The 3-2-1 backup rule — **3** copies, on **2** different media, with **1** off-site — is the baseline for real resilience. This tool implements it by keeping Google Drive as the **primary** destination and mirroring every artifact to one or more **secondary** clouds.
+
+![3-2-1 Fan-Out](docs/screenshots/fanout-321.svg)
+
+Set `BACKUP_MIRROR_TARGETS` to any combination of `s3`, `azure`, and `b2` (each target's own credentials must also be configured):
+
+```env
+BACKUP_MIRROR_TARGETS=s3,b2
+```
+
+On each run the orchestrator mirrors:
+- every repository archive (`repo.zip` / `repo.zip.enc`)
+- every wiki archive
+- per-repo `metadata.json`
+- the session `manifest.json` and `backup-summary.json`
+
+Each mirrored file's byte size is verified against the source. Mirroring is **best-effort**: a failed or mismatched mirror is logged and recorded under `summary.mirror.perTarget` (with `ok`/`failed` counts per destination) but never fails the primary Drive backup. Encrypted archives (`BACKUP_ENCRYPTION_KEY`) are mirrored in their encrypted form.
 
 ---
 

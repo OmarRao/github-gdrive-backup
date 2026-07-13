@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 460" width="900" height="460" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/>
+    </marker>
+    <linearGradient id="prim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2563eb"/><stop offset="1" stop-color="#1d4ed8"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="900" height="460" fill="#f8fafc"/>
+  <text x="32" y="42" font-size="18" font-weight="800" fill="#0f172a">Multi-Destination Fan-Out — 3-2-1 Rule</text>
+  <text x="32" y="64" font-size="13" fill="#64748b">3 copies · 2 media · 1 off-site — Google Drive stays primary, secondaries are verified mirrors</text>
+
+  <!-- Source -->
+  <rect x="32" y="110" width="150" height="90" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="107" y="150" text-anchor="middle" font-size="26">🐙</text>
+  <text x="107" y="180" text-anchor="middle" font-size="13" font-weight="700" fill="#0f172a">GitHub / GitLab</text>
+
+  <!-- Orchestrator -->
+  <rect x="256" y="100" width="180" height="110" rx="12" fill="#0f172a"/>
+  <text x="346" y="140" text-anchor="middle" font-size="13.5" font-weight="700" fill="#ffffff">Backup Orchestrator</text>
+  <text x="346" y="162" text-anchor="middle" font-size="11" fill="#94a3b8">clone · zip · SHA-256</text>
+  <text x="346" y="180" text-anchor="middle" font-size="11" fill="#94a3b8">encrypt (optional)</text>
+  <text x="346" y="198" text-anchor="middle" font-size="11" fill="#4ade80">size-verify each copy</text>
+
+  <line x1="182" y1="155" x2="252" y2="155" stroke="#94a3b8" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Primary: Drive -->
+  <rect x="560" y="70" width="300" height="90" rx="12" fill="url(#prim)"/>
+  <text x="584" y="104" font-size="24">📁</text>
+  <text x="620" y="100" font-size="14" font-weight="700" fill="#ffffff">Google Drive — PRIMARY</text>
+  <text x="620" y="122" font-size="11.5" fill="#dbeafe">Session folders · verified upload</text>
+  <text x="620" y="140" font-size="11.5" fill="#dbeafe">Fails the backup on mismatch</text>
+  <line x1="436" y1="145" x2="556" y2="115" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrow)"/>
+
+  <!-- Mirror 1: S3 -->
+  <rect x="560" y="180" width="300" height="72" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="584" y="222" font-size="22">🪣</text>
+  <text x="620" y="212" font-size="13.5" font-weight="700" fill="#0f172a">Amazon S3 — mirror</text>
+  <text x="620" y="232" font-size="11.5" fill="#64748b">BACKUP_MIRROR_TARGETS=s3</text>
+  <line x1="436" y1="160" x2="556" y2="212" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+
+  <!-- Mirror 2: B2 -->
+  <rect x="560" y="272" width="300" height="72" rx="12" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="584" y="314" font-size="22">🔥</text>
+  <text x="620" y="304" font-size="13.5" font-weight="700" fill="#0f172a">Backblaze B2 — mirror</text>
+  <text x="620" y="324" font-size="11.5" fill="#64748b">BACKUP_MIRROR_TARGETS=…,b2</text>
+  <line x1="436" y1="170" x2="556" y2="304" stroke="#94a3b8" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+
+  <!-- Mirror 3: Azure (implied) -->
+  <rect x="560" y="364" width="300" height="60" rx="12" fill="#ffffff" stroke="#e2e8f0" stroke-dasharray="4 4"/>
+  <text x="584" y="401" font-size="20">☁️</text>
+  <text x="620" y="390" font-size="13" font-weight="700" fill="#475569">Azure Blob — mirror (optional)</text>
+  <text x="620" y="410" font-size="11" fill="#94a3b8">any combination of s3 · azure · b2</text>
+  <line x1="436" y1="180" x2="556" y2="392" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+
+  <!-- footnote -->
+  <text x="32" y="250" font-size="12" fill="#475569" font-weight="600" transform="rotate(0)">Mirrored:</text>
+  <text x="32" y="272" font-size="11.5" fill="#64748b">• repo archives (.zip / .zip.enc)</text>
+  <text x="32" y="292" font-size="11.5" fill="#64748b">• wiki archives</text>
+  <text x="32" y="312" font-size="11.5" fill="#64748b">• per-repo metadata.json</text>
+  <text x="32" y="332" font-size="11.5" fill="#64748b">• manifest.json + summary</text>
+  <text x="32" y="360" font-size="11" fill="#94a3b8">Best-effort: a mirror failure is</text>
+  <text x="32" y="376" font-size="11" fill="#94a3b8">logged &amp; recorded, never fails</text>
+  <text x="32" y="392" font-size="11" fill="#94a3b8">the primary Drive backup.</text>
+</svg>

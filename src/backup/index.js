@@ -7,6 +7,7 @@ const { execSync } = require('child_process');
 const archiver = require('archiver');
 const GitHubClient = require('./github');
 const GoogleDriveClient = require('./gdrive');
+const fanout = require('./storage/fanout');
 const logger = require('../logger');
 
 const INCLUDE = (process.env.BACKUP_INCLUDE || 'code,issues,pull_requests,releases,wiki,labels,milestones').split(',');
@@ -66,7 +67,7 @@ function encryptFile(inputPath, outputPath, keyHex) {
   fs.writeFileSync(outputPath, output);
 }
 
-async function backupRepo(gh, drive, repo, backupFolderId) {
+async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders) {
   const { owner, name } = repo;
   const repoDir = path.join(TMP, `${owner.login}-${name}-${Date.now()}`);
   fs.mkdirSync(repoDir, { recursive: true });
@@ -74,6 +75,7 @@ async function backupRepo(gh, drive, repo, backupFolderId) {
   const repoFolder = await drive.ensureFolder(name, backupFolderId);
 
   let manifestEntry = null;
+  const mirrorResults = [];
 
   try {
     if (INCLUDE.includes('code')) {
@@ -100,6 +102,15 @@ async function backupRepo(gh, drive, repo, backupFolderId) {
       }
 
       const uploaded = await drive.uploadFile(uploadPath, repoFolder);
+
+      // Fan-out: mirror the exact bytes we uploaded to Drive to secondary
+      // destinations before we delete the local copy (3-2-1 rule).
+      if (mirrorFolders) {
+        const mirrorSize = fs.statSync(uploadPath).size;
+        const res = await fanout.mirrorFile(uploadPath, mirrorFolders, uploadFileName, mirrorSize);
+        mirrorResults.push({ file: uploadFileName, targets: res });
+      }
+
       fs.rmSync(uploadPath, { force: true });
 
       if (!encrypted) {
@@ -146,6 +157,10 @@ async function backupRepo(gh, drive, repo, backupFolderId) {
         await zipDirectory(wikiDir, wikiZip);
         const wikiLocalSize = fs.statSync(wikiZip).size;
         const wikiUploaded = await drive.uploadFile(wikiZip, repoFolder);
+        if (mirrorFolders) {
+          const res = await fanout.mirrorFile(wikiZip, mirrorFolders, `${name}-wiki.zip`, wikiLocalSize);
+          mirrorResults.push({ file: `${name}-wiki.zip`, targets: res });
+        }
         fs.rmSync(wikiZip, { force: true });
         const wikiDriveSize = parseInt(wikiUploaded.size, 10);
         if (!wikiDriveSize || wikiDriveSize !== wikiLocalSize) {
@@ -158,19 +173,24 @@ async function backupRepo(gh, drive, repo, backupFolderId) {
     }
 
     await drive.uploadJson('metadata.json', metadata, repoFolder);
+    if (mirrorFolders) {
+      const res = await fanout.mirrorJson(TMP, `${name}-metadata.json`, metadata, mirrorFolders);
+      mirrorResults.push({ file: `${name}-metadata.json`, targets: res });
+    }
     logger.info(`✓ ${repo.full_name} backed up`);
     return {
       repo: repo.full_name,
       status: 'success',
       driveFolder: repoFolder,
       ...(manifestEntry || {}),
+      ...(mirrorResults.length ? { mirrors: mirrorResults } : {}),
     };
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
   }
 }
 
-async function backupGitLabProject(drive, project, sessionFolder, gitlabToken, gitlabHost) {
+async function backupGitLabProject(drive, project, sessionFolder, gitlabToken, gitlabHost, mirrorFolders) {
   const projectPath = project.path_with_namespace;
   const repoName = project.path;
   const safeDir = path.join(TMP, `gitlab-${repoName}-${Date.now()}`);
@@ -205,6 +225,11 @@ async function backupGitLabProject(drive, project, sessionFolder, gitlabToken, g
     }
 
     await drive.uploadFile(uploadPath, repoFolder);
+    let mirrors = null;
+    if (mirrorFolders) {
+      const mirrorSize = fs.statSync(uploadPath).size;
+      mirrors = [{ file: uploadFileName, targets: await fanout.mirrorFile(uploadPath, mirrorFolders, uploadFileName, mirrorSize) }];
+    }
     fs.rmSync(uploadPath, { force: true });
 
     logger.info(`✓ GitLab ${projectPath} backed up`);
@@ -217,7 +242,7 @@ async function backupGitLabProject(drive, project, sessionFolder, gitlabToken, g
       encrypted,
     };
 
-    return { repo: `gitlab:${projectPath}`, status: 'success', driveFolder: repoFolder, ...manifestEntry };
+    return { repo: `gitlab:${projectPath}`, status: 'success', driveFolder: repoFolder, ...manifestEntry, ...(mirrors ? { mirrors } : {}) };
   } finally {
     fs.rmSync(safeDir, { recursive: true, force: true });
   }
@@ -247,6 +272,13 @@ async function runBackup(options = {}) {
 
   logger.info(`Backup session folder: ${sessionFolder}`);
 
+  // Multi-destination fan-out (3-2-1). Drive is primary; these are mirrors.
+  let mirrorFolders = null;
+  if (fanout.enabled()) {
+    mirrorFolders = await fanout.initSessionFolders(sessionName);
+    logger.info(`Fan-out enabled — mirroring to: ${fanout.parseTargets().join(', ')}`);
+  }
+
   let repos = options.repos
     ? options.repos.map(r => ({ owner: { login: r.split('/')[0] }, name: r.split('/')[1] }))
     : await gh.listRepos(owner);
@@ -274,7 +306,7 @@ async function runBackup(options = {}) {
   for (let i = 0; i < repos.length; i += CONCURRENCY) {
     const batch = repos.slice(i, i + CONCURRENCY);
     const batchResults = await Promise.allSettled(
-      batch.map(r => backupRepo(gh, drive, r, sessionFolder))
+      batch.map(r => backupRepo(gh, drive, r, sessionFolder, mirrorFolders))
     );
     batchResults.forEach((r, idx) => {
       if (r.status === 'fulfilled') results.push(r.value);
@@ -329,7 +361,7 @@ async function runBackup(options = {}) {
 
     for (const project of gitlabProjects) {
       try {
-        const glResult = await backupGitLabProject(drive, project, sessionFolder, gitlabToken, gitlabHost);
+        const glResult = await backupGitLabProject(drive, project, sessionFolder, gitlabToken, gitlabHost, mirrorFolders);
         results.push(glResult);
       } catch (glErr) {
         logger.error(`GitLab project ${project.path_with_namespace} failed: ${glErr.message}`);
@@ -358,18 +390,37 @@ async function runBackup(options = {}) {
   const manifestPath = path.join(TMP, `manifest-${timestamp}.json`);
   fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
   await drive.uploadFile(manifestPath, sessionFolder);
+  if (mirrorFolders) {
+    await fanout.mirrorFile(manifestPath, mirrorFolders, 'manifest.json');
+  }
   fs.rmSync(manifestPath, { force: true });
   logger.info(`Manifest written with ${manifestRepos.length} entries`);
+
+  // Aggregate fan-out results across all repos into a session-level summary.
+  let mirror = null;
+  if (mirrorFolders) {
+    const targets = fanout.parseTargets();
+    const perTarget = Object.fromEntries(targets.map(t => [t, { ok: 0, failed: 0 }]));
+    results.forEach(r => (r.mirrors || []).forEach(m => (m.targets || []).forEach(x => {
+      if (!perTarget[x.target]) perTarget[x.target] = { ok: 0, failed: 0 };
+      perTarget[x.target][x.ok ? 'ok' : 'failed']++;
+    })));
+    mirror = { targets, perTarget };
+  }
 
   const summary = {
     timestamp,
     total: repos.length,
     success: results.filter(r => r.status === 'success').length,
     failed: results.filter(r => r.status === 'failed').length,
+    ...(mirror ? { mirror } : {}),
     results,
   };
 
   await drive.uploadJson('backup-summary.json', summary, sessionFolder);
+  if (mirrorFolders) {
+    await fanout.mirrorJson(TMP, 'backup-summary.json', summary, mirrorFolders);
+  }
   logger.info(`Backup complete: ${summary.success}/${summary.total} succeeded`);
   return summary;
 }
