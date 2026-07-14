@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <defs>
+    <marker id="da" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#94a3b8"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="900" height="400" fill="#f8fafc"/>
+  <text x="32" y="42" font-size="18" font-weight="800" fill="#0f172a">True Delta Uploads — git bundle chain</text>
+  <text x="32" y="64" font-size="13" fill="#64748b">Each session uploads only new git objects. Restore replays the chain to reconstruct full history.</text>
+
+  <!-- Session timeline -->
+  <!-- S0 full -->
+  <rect x="40" y="110" width="180" height="120" rx="12" fill="#ffffff" stroke="#2563eb" stroke-width="2"/>
+  <text x="60" y="138" font-size="12" font-weight="700" fill="#2563eb">Session 0</text>
+  <text x="60" y="162" font-size="13" font-weight="700" fill="#0f172a">full.bundle</text>
+  <text x="60" y="182" font-size="11" fill="#64748b">all objects (base)</text>
+  <rect x="60" y="196" width="140" height="18" rx="4" fill="#2563eb" opacity="0.85"/>
+  <text x="130" y="209" text-anchor="middle" font-size="10" fill="#fff">~ full size</text>
+
+  <!-- S1 delta -->
+  <rect x="270" y="110" width="180" height="120" rx="12" fill="#ffffff" stroke="#10b981" stroke-width="2"/>
+  <text x="290" y="138" font-size="12" font-weight="700" fill="#059669">Session 1</text>
+  <text x="290" y="162" font-size="13" font-weight="700" fill="#0f172a">delta.bundle</text>
+  <text x="290" y="182" font-size="11" fill="#64748b">objects since S0</text>
+  <rect x="290" y="196" width="42" height="18" rx="4" fill="#10b981"/>
+  <text x="345" y="209" font-size="10" fill="#64748b">small</text>
+
+  <!-- S2 unchanged -->
+  <rect x="500" y="110" width="180" height="120" rx="12" fill="#ffffff" stroke="#cbd5e1" stroke-width="2" stroke-dasharray="5 4"/>
+  <text x="520" y="138" font-size="12" font-weight="700" fill="#94a3b8">Session 2</text>
+  <text x="520" y="162" font-size="13" font-weight="700" fill="#475569">unchanged</text>
+  <text x="520" y="182" font-size="11" fill="#64748b">no refs changed</text>
+  <text x="520" y="208" font-size="11" fill="#94a3b8">→ nothing uploaded</text>
+
+  <!-- S3 delta -->
+  <rect x="730" y="110" width="140" height="120" rx="12" fill="#ffffff" stroke="#10b981" stroke-width="2"/>
+  <text x="750" y="138" font-size="12" font-weight="700" fill="#059669">Session 3</text>
+  <text x="750" y="162" font-size="13" font-weight="700" fill="#0f172a">delta.bundle</text>
+  <text x="750" y="182" font-size="11" fill="#64748b">since S1</text>
+  <rect x="750" y="196" width="34" height="18" rx="4" fill="#10b981"/>
+
+  <line x1="220" y1="170" x2="266" y2="170" stroke="#94a3b8" stroke-width="2" marker-end="url(#da)"/>
+  <line x1="450" y1="170" x2="496" y2="170" stroke="#cbd5e1" stroke-width="2" marker-end="url(#da)"/>
+  <line x1="680" y1="170" x2="726" y2="170" stroke="#94a3b8" stroke-width="2" marker-end="url(#da)"/>
+
+  <!-- restore -->
+  <rect x="40" y="272" width="830" height="96" rx="12" fill="#0f172a"/>
+  <text x="64" y="302" font-size="13.5" font-weight="700" fill="#ffffff">Restore = replay the chain</text>
+  <text x="64" y="326" font-size="12" fill="#94a3b8">clone full.bundle (base)  →  fetch delta (S1)  →  fetch delta (S3)  =  complete history</text>
+  <text x="64" y="350" font-size="11.5" fill="#4ade80">backup-state.json in each repo folder records the ordered chain — restore is fully automatic.</text>
+</svg>

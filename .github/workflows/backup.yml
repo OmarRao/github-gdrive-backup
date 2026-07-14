@@ -11,6 +11,12 @@ on:
         required: false
         default: 'false'
         type: boolean
+      incremental_mode:
+        description: 'Archive strategy: full (zip) or delta (git bundle, upload only new objects)'
+        required: false
+        default: 'full'
+        type: choice
+        options: ['full', 'delta']
       repos:
         description: 'Comma-separated list of repos to back up (leave blank for all)'
         required: false
@@ -89,6 +95,7 @@ jobs:
           GOOGLE_TOKEN_PATH:         ./credentials/google-token.json
           BACKUP_INCLUDE:            ${{ github.event.inputs.include || 'code,issues,pull_requests,releases,wiki,labels,milestones' }}
           INCREMENTAL:               ${{ github.event.inputs.incremental || 'false' }}
+          INCREMENTAL_MODE:          ${{ github.event.inputs.incremental_mode || 'full' }}
           BACKUP_CONCURRENCY:        '3'
           BACKUP_TMP_DIR:            /tmp/gh-backup
           REPOS:                     ${{ github.event.inputs.repos }}

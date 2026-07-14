@@ -1,5 +1,5 @@
 # GitHub → Google Drive Backup — Technical User Guide
-**Version 3.3.0** | Last updated: 2026-07-14
+**Version 3.4.0** | Last updated: 2026-07-14
 
 ---
 
@@ -24,6 +24,7 @@
    - [6.1 Scheduled Backups](#61-scheduled-backups)
    - [6.2 Manual Backup](#62-manual-backup)
    - [6.3 Incremental Backups](#63-incremental-backups)
+   - [6.3A True Delta Uploads (`INCREMENTAL_MODE=delta`)](#63a-true-delta-uploads-incremental_modedelta)
    - [6.4 Multi-Org Backup](#64-multi-org-backup)
    - [6.5 GitLab Source](#65-gitlab-source)
    - [6.6 Backup Encryption](#66-backup-encryption)
@@ -361,6 +362,31 @@ After dispatch, follow progress live in the **Workflow Runs** view.
 Because each repository is fetched as a **git mirror**, the system naturally captures full history while transferring only changed objects on subsequent runs — git's pack protocol sends deltas, not the whole repository each time. This means day-to-day runs are fast and bandwidth-efficient even though every session yields a self-contained, restorable archive. For very large repositories, incremental fetch dramatically reduces clone time compared with a fresh full clone on every run.
 
 If you enable encryption, note that each archive is encrypted independently, so an incremental fetch still produces a complete, decryptable `.zip.enc` per session rather than a chain of dependent diffs. This keeps restore simple: any single session stands on its own.
+
+### 6.3A True Delta Uploads (`INCREMENTAL_MODE=delta`)
+
+The default archive is a **full** zip mirror per session. Setting `INCREMENTAL_MODE=delta` (or the `incremental_mode: delta` workflow input) switches to **true delta uploads**: each session uploads a `git bundle` containing *only the objects new since the last backup*, dramatically reducing storage and upload bandwidth for repos that change little between runs.
+
+![Delta Uploads](screenshots/delta-uploads.svg)
+
+Per repo, the engine (`src/backup/incremental.js`) compares the current ref → SHA map against the previous session's state and chooses:
+
+| Decision | Bundle written |
+|---|---|
+| No previous state | `full` bundle (`git bundle --all`) — the chain base |
+| Refs changed | `delta` bundle (`git bundle --all --not <prev tips>`) |
+| Refs identical | **unchanged** — no archive uploaded, only a small `backup-state.json` |
+| Previous base objects missing (force-push / history rewrite) | automatic fall-back to a fresh `full` bundle |
+
+Each repo folder stores `backup-state.json` recording the ref SHAs and the **chain** — the base session plus the ordered list of delta sessions. On restore, `src/restore/index.js` reads the chain, downloads the base bundle and every delta in order, and replays them (`git clone --mirror` of the base, then `git fetch` of each delta) to reconstruct the complete history before pushing. A delta session is therefore exactly as restorable as a full one, on any provider (see [7.4](#74-cross-provider-restore-github--gitlab--gitea)).
+
+**What is and isn't saved.** The clone *from GitHub* remains a full mirror — that is required to compute a correct delta locally. The savings are on **storage and upload bandwidth** (Drive/S3/B2), which is the cost that accumulates session-over-session. Encryption and 3-2-1 fan-out apply to bundles exactly as they do to zips (`<repo>.bundle` / `<repo>.bundle.enc`).
+
+```bash
+gh workflow run backup.yml -f incremental_mode=delta
+```
+
+The session `backup-summary.json` reports the outcome mix under `incremental`, e.g. `{ "mode": "delta", "full": 2, "delta": 46, "unchanged": 11 }`.
 
 ### 6.4 Multi-Org Backup
 

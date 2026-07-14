@@ -144,6 +144,7 @@ Press <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>K</kbd> anywhere to open a fuzzy comma
 | **Retention policy** | UI to configure auto-deletion of old Drive sessions (30–365 days) |
 | **Failure alerts** | Slack and email notifications when backup fails (`notify.yml`) |
 | **Incremental backup** | Optional mode that only backs up repos changed since last session |
+| **True delta uploads** | `INCREMENTAL_MODE=delta` uploads only *new git objects* as a `git bundle` chain (full → delta → delta), skips unchanged repos entirely, and restores by replaying the chain |
 | **Auto-cleanup** | Weekly workflow removes Drive sessions beyond retention threshold |
 | **Health status** | `docs/status.json` updated on each run; live README badge reflects current status via shields.io dynamic badge |
 | **Email digest** | Daily/weekly HTML summary via SendGrid — set `SENDGRID_API_KEY` to activate (`notify.yml`) |
@@ -335,6 +336,9 @@ BACKUP_TMP_DIR=./tmp
 # Multi-destination fan-out (3-2-1) — Drive is always primary
 BACKUP_MIRROR_TARGETS=s3,b2
 
+# True delta uploads — only new git objects each session (git bundle chain)
+INCREMENTAL_MODE=delta
+
 PORT=3000
 ```
 
@@ -405,6 +409,31 @@ Each provider handles its own repo/project creation, authenticated remote URL, a
 gh workflow run restore.yml \
   -f target_provider=gitlab \
   -f target_owner=my-gitlab-group
+```
+
+---
+
+## True Delta Uploads (Incremental)
+
+By default each session uploads a **full** zip mirror of every repo. With `INCREMENTAL_MODE=delta`, the backup instead uploads a **`git bundle` containing only the objects that are new since the last backup** — typically a fraction of the size for repos that change little between runs.
+
+![Delta Uploads](docs/screenshots/delta-uploads.svg)
+
+How it works per repo:
+
+| Situation | What's uploaded |
+|---|---|
+| First-ever backup | `full` bundle (all objects) — the chain base |
+| Refs changed since last session | `delta` bundle (`git bundle --all --not <prev tips>`) |
+| No refs changed | **nothing** — the repo is skipped, only a tiny state file is written |
+| History rewritten / force-push loses the base | automatic fall-back to a fresh `full` bundle |
+
+Each repo folder stores a `backup-state.json` recording the ref SHAs plus the **chain** (`base` session + ordered deltas). Restore is fully automatic: it reads the chain, downloads the base bundle and each delta in order, and replays them to reconstruct the complete history before pushing — so a delta session is exactly as restorable as a full one. Encryption and 3-2-1 fan-out both apply to bundles just like zips.
+
+> **Note:** the clone *from GitHub* is still a full mirror (needed to compute a correct delta); the savings are on **storage and upload bandwidth** — the cost that accrues over time on Drive/S3/B2.
+
+```bash
+gh workflow run backup.yml -f incremental_mode=delta
 ```
 
 ---

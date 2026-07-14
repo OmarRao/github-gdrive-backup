@@ -8,7 +8,10 @@ const archiver = require('archiver');
 const GitHubClient = require('./github');
 const GoogleDriveClient = require('./gdrive');
 const fanout = require('./storage/fanout');
+const incremental = require('./incremental');
 const logger = require('../logger');
+
+const INCREMENTAL_MODE = (process.env.INCREMENTAL_MODE || '').trim().toLowerCase() === 'delta';
 
 const INCLUDE = (process.env.BACKUP_INCLUDE || 'code,issues,pull_requests,releases,wiki,labels,milestones').split(',');
 const TMP = path.resolve(process.env.BACKUP_TMP_DIR || './tmp');
@@ -67,7 +70,7 @@ function encryptFile(inputPath, outputPath, keyHex) {
   fs.writeFileSync(outputPath, output);
 }
 
-async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders) {
+async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, incrementalCtx) {
   const { owner, name } = repo;
   const repoDir = path.join(TMP, `${owner.login}-${name}-${Date.now()}`);
   fs.mkdirSync(repoDir, { recursive: true });
@@ -76,20 +79,57 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders) {
 
   let manifestEntry = null;
   const mirrorResults = [];
+  let incrementalInfo = null;
 
   try {
     if (INCLUDE.includes('code')) {
-      await gh.cloneRepo(repo, repoDir);
-      const zipPath = `${repoDir}.zip`;
-      await zipDirectory(repoDir, zipPath);
+      const mirrorDir = await gh.cloneRepo(repo, repoDir);
 
-      // Compute SHA-256 of the zip
+      // ── True delta (incremental) mode ──────────────────────────────────────
+      // Produce a git bundle of only the objects new since the last backup.
+      let archivePath = `${repoDir}.zip`;
+      let baseName = `${name}.zip`;
+      if (incrementalCtx) {
+        const prev = incrementalCtx.prevStateByRepo[name];
+        const curRefs = incremental.readRefs(mirrorDir);
+        const mode = incremental.decideMode(prev && prev.refs, curRefs);
+
+        if (mode === 'unchanged') {
+          const state = {
+            session: incrementalCtx.sessionName, mode: 'unchanged',
+            base: prev.base, chain: prev.chain, refs: curRefs,
+          };
+          await drive.uploadJson('backup-state.json', state, repoFolder);
+          if (mirrorFolders) await fanout.mirrorJson(TMP, `${name}-backup-state.json`, state, mirrorFolders);
+          logger.info(`↷ ${repo.full_name} unchanged since last backup — no archive uploaded`);
+          incrementalInfo = { mode: 'unchanged', base: prev.base, chain: prev.chain };
+          // Still record metadata below, then return.
+          const metaUnchanged = { repo: repo.full_name, backed_up_at: new Date().toISOString(), incremental: incrementalInfo };
+          await drive.uploadJson('metadata.json', metaUnchanged, repoFolder);
+          return { repo: repo.full_name, status: 'success', driveFolder: repoFolder, incremental: incrementalInfo };
+        }
+
+        const bundlePath = `${repoDir}.bundle`;
+        const effMode = incremental.createBundle(mirrorDir, bundlePath, prev && prev.refs, mode);
+        archivePath = bundlePath;
+        baseName = `${name}.bundle`;
+        const base = effMode === 'full' ? incrementalCtx.sessionName : prev.base;
+        const chain = effMode === 'full' ? [incrementalCtx.sessionName] : [...prev.chain, incrementalCtx.sessionName];
+        incrementalInfo = { mode: effMode, base, chain, refs: curRefs };
+        logger.info(`Δ ${repo.full_name}: ${effMode} bundle (chain depth ${chain.length})`);
+      } else {
+        await zipDirectory(repoDir, archivePath);
+      }
+
+      const zipPath = archivePath;
+
+      // Compute SHA-256 of the archive
       const sha256 = computeSha256(zipPath);
       const localSize = fs.statSync(zipPath).size;
 
       const encryptionKey = process.env.BACKUP_ENCRYPTION_KEY;
       let uploadPath = zipPath;
-      let uploadFileName = `${name}.zip`;
+      let uploadFileName = baseName;
       let encrypted = false;
 
       if (encryptionKey) {
@@ -97,7 +137,7 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders) {
         encryptFile(zipPath, encPath, encryptionKey);
         fs.rmSync(zipPath, { force: true });
         uploadPath = encPath;
-        uploadFileName = `${name}.zip.enc`;
+        uploadFileName = `${baseName}.enc`;
         encrypted = true;
       }
 
@@ -117,11 +157,11 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders) {
         const driveSize = parseInt(uploaded.size, 10);
         if (!driveSize || driveSize !== localSize) {
           logger.error(`Verification failed for ${name}: local size ${localSize} bytes, Drive size ${driveSize || 0} bytes`);
-          throw new Error(`Upload verification failed: size mismatch for ${name}.zip`);
+          throw new Error(`Upload verification failed: size mismatch for ${baseName}`);
         }
-        logger.info(`Verified ${name}.zip: ${localSize} bytes matches Drive`);
+        logger.info(`Verified ${baseName}: ${localSize} bytes matches Drive`);
       } else {
-        logger.info(`Uploaded encrypted ${name}.zip.enc (original zip size: ${localSize} bytes)`);
+        logger.info(`Uploaded encrypted ${uploadFileName} (original size: ${localSize} bytes)`);
       }
 
       manifestEntry = {
@@ -130,7 +170,21 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders) {
         size: localSize,
         sha256,
         encrypted,
+        ...(incrementalInfo ? { incremental: { mode: incrementalInfo.mode, base: incrementalInfo.base, chain: incrementalInfo.chain } } : {}),
       };
+
+      // Persist per-repo delta state so the next session can compute its delta.
+      if (incrementalInfo) {
+        const state = {
+          session: incrementalCtx.sessionName,
+          mode: incrementalInfo.mode,
+          base: incrementalInfo.base,
+          chain: incrementalInfo.chain,
+          refs: incrementalInfo.refs,
+        };
+        await drive.uploadJson('backup-state.json', state, repoFolder);
+        if (mirrorFolders) await fanout.mirrorJson(TMP, `${name}-backup-state.json`, state, mirrorFolders);
+      }
     }
 
     const metadata = { repo: repo.full_name, backed_up_at: new Date().toISOString() };
@@ -184,6 +238,7 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders) {
       driveFolder: repoFolder,
       ...(manifestEntry || {}),
       ...(mirrorResults.length ? { mirrors: mirrorResults } : {}),
+      ...(incrementalInfo ? { incremental: { mode: incrementalInfo.mode } } : {}),
     };
   } finally {
     fs.rmSync(repoDir, { recursive: true, force: true });
@@ -248,6 +303,39 @@ async function backupGitLabProject(drive, project, sessionFolder, gitlabToken, g
   }
 }
 
+/**
+ * Load per-repo delta state (backup-state.json) from the most recent existing
+ * backup session (excluding the one just created), keyed by repo name.
+ */
+async function loadPrevIncrementalState(drive, rootFolderId, currentSessionFolder) {
+  const byRepo = {};
+  try {
+    const sessions = (await drive.listBackups(rootFolderId))
+      .filter(s => s.id !== currentSessionFolder);
+    if (!sessions.length) return byRepo;
+    const prev = sessions[0]; // listBackups is newest-first
+    const repoFolders = (await drive.listFolderContents(prev.id))
+      .filter(f => f.mimeType === 'application/vnd.google-apps.folder');
+    for (const rf of repoFolders) {
+      const files = await drive.listFolderContents(rf.id);
+      const stateFile = files.find(f => f.name === 'backup-state.json');
+      if (!stateFile) continue;
+      const tmp = path.join(TMP, `state-${Date.now()}-${rf.name}.json`);
+      try {
+        await drive.downloadFile(stateFile.id, tmp);
+        byRepo[rf.name] = JSON.parse(fs.readFileSync(tmp, 'utf8'));
+      } catch (e) {
+        logger.warn(`Could not read prior state for ${rf.name}: ${e.message}`);
+      } finally {
+        fs.rmSync(tmp, { force: true });
+      }
+    }
+  } catch (e) {
+    logger.warn(`Could not load previous incremental state: ${e.message}`);
+  }
+  return byRepo;
+}
+
 async function runBackup(options = {}) {
   const token = options.token || process.env.GITHUB_TOKEN;
   const owner = options.owner || process.env.GITHUB_USER;
@@ -279,6 +367,14 @@ async function runBackup(options = {}) {
     logger.info(`Fan-out enabled — mirroring to: ${fanout.parseTargets().join(', ')}`);
   }
 
+  // True delta (incremental) mode: load per-repo ref state from the most recent
+  // prior session so this run can upload only new git objects.
+  let incrementalCtx = null;
+  if (INCREMENTAL_MODE) {
+    incrementalCtx = { sessionName, prevStateByRepo: await loadPrevIncrementalState(drive, rootFolderId, sessionFolder) };
+    logger.info(`Incremental (delta) mode enabled — ${Object.keys(incrementalCtx.prevStateByRepo).length} repo state(s) carried forward`);
+  }
+
   let repos = options.repos
     ? options.repos.map(r => ({ owner: { login: r.split('/')[0] }, name: r.split('/')[1] }))
     : await gh.listRepos(owner);
@@ -306,7 +402,7 @@ async function runBackup(options = {}) {
   for (let i = 0; i < repos.length; i += CONCURRENCY) {
     const batch = repos.slice(i, i + CONCURRENCY);
     const batchResults = await Promise.allSettled(
-      batch.map(r => backupRepo(gh, drive, r, sessionFolder, mirrorFolders))
+      batch.map(r => backupRepo(gh, drive, r, sessionFolder, mirrorFolders, incrementalCtx))
     );
     batchResults.forEach((r, idx) => {
       if (r.status === 'fulfilled') results.push(r.value);
@@ -408,12 +504,23 @@ async function runBackup(options = {}) {
     mirror = { targets, perTarget };
   }
 
+  // Aggregate incremental (delta) mode outcomes.
+  let incrementalSummary = null;
+  if (incrementalCtx) {
+    incrementalSummary = { mode: 'delta', full: 0, delta: 0, unchanged: 0 };
+    results.forEach(r => {
+      const m = r.incremental && r.incremental.mode;
+      if (m && incrementalSummary[m] !== undefined) incrementalSummary[m]++;
+    });
+  }
+
   const summary = {
     timestamp,
     total: repos.length,
     success: results.filter(r => r.status === 'success').length,
     failed: results.filter(r => r.status === 'failed').length,
     ...(mirror ? { mirror } : {}),
+    ...(incrementalSummary ? { incremental: incrementalSummary } : {}),
     results,
   };
 

@@ -7,6 +7,7 @@ const extractZip = require('extract-zip');
 const simpleGit = require('simple-git');
 const GoogleDriveClient = require('../backup/gdrive');
 const { getProvider } = require('./providers');
+const incremental = require('../backup/incremental');
 const logger = require('../logger');
 
 const TMP = path.resolve(process.env.BACKUP_TMP_DIR || './tmp');
@@ -54,7 +55,72 @@ async function loadManifest(drive, files) {
   }
 }
 
-async function restoreRepo(provider, drive, repoFiles, owner, options = {}, manifestHashes = null) {
+/** Download a bundle file, decrypting a .enc archive if needed. Returns local path. */
+async function fetchBundle(drive, bundleFile, destBase) {
+  const isEnc = bundleFile.name.endsWith('.enc');
+  const dlPath = `${destBase}${isEnc ? '.bundle.enc' : '.bundle'}`;
+  await drive.downloadFile(bundleFile.id, dlPath);
+  if (!isEnc) return dlPath;
+  const decPath = `${destBase}.bundle`;
+  await decryptFile(dlPath, decPath);
+  fs.rmSync(dlPath, { force: true });
+  return decPath;
+}
+
+/**
+ * Reconstruct a mirror repo from a delta bundle chain. Reads backup-state.json
+ * in the selected session's repo folder for the chain (session names, oldest
+ * first), collects each session's bundle for this repo, and applies them in
+ * order. Falls back to treating a lone bundle as a self-contained full bundle.
+ * @returns {Promise<string>} path to the reconstructed mirror repo
+ */
+async function reconstructFromChain(drive, ctx, repoName, repoFiles) {
+  const stateFile = repoFiles.find(f => f.name === 'backup-state.json');
+  const localBundles = [];
+  const cleanup = [];
+
+  let chain = null;
+  if (stateFile) {
+    const stateTmp = path.join(TMP, `state-${Date.now()}.json`);
+    await drive.downloadFile(stateFile.id, stateTmp);
+    const state = JSON.parse(fs.readFileSync(stateTmp, 'utf8'));
+    fs.rmSync(stateTmp, { force: true });
+    chain = Array.isArray(state.chain) && state.chain.length ? state.chain : null;
+  }
+
+  if (chain && ctx && ctx.sessionsByName) {
+    for (const sessName of chain) {
+      const sessId = ctx.sessionsByName[sessName];
+      if (!sessId) throw new Error(`Chain session "${sessName}" not found in Drive — cannot reconstruct ${repoName}`);
+      const repoFolder = (await drive.listFolderContents(sessId))
+        .find(f => f.name === repoName && f.mimeType === 'application/vnd.google-apps.folder');
+      if (!repoFolder) throw new Error(`Repo "${repoName}" missing from chain session "${sessName}"`);
+      const files = await drive.listFolderContents(repoFolder.id);
+      const bundleFile = files.find(f => f.name.endsWith('.bundle') || f.name.endsWith('.bundle.enc'));
+      if (!bundleFile) throw new Error(`Bundle for "${repoName}" missing in chain session "${sessName}"`);
+      const local = await fetchBundle(drive, bundleFile, path.join(TMP, `${repoName}-${sessName}`));
+      localBundles.push(local);
+      cleanup.push(local);
+    }
+  } else {
+    // No chain metadata — treat the current folder's bundle as a full bundle.
+    const bundleFile = repoFiles.find(f => f.name.endsWith('.bundle') || f.name.endsWith('.bundle.enc'));
+    const local = await fetchBundle(drive, bundleFile, path.join(TMP, `${repoName}-only`));
+    localBundles.push(local);
+    cleanup.push(local);
+  }
+
+  const mirrorDir = path.join(TMP, `${repoName}-mirror-${Date.now()}`);
+  incremental.reconstruct(localBundles[0], localBundles.slice(1), mirrorDir);
+  cleanup.forEach(f => fs.rmSync(f, { force: true }));
+  logger.info(`Reconstructed ${repoName} from ${localBundles.length} bundle(s)`);
+  return mirrorDir;
+}
+
+async function restoreRepo(provider, drive, repoFiles, owner, options = {}, manifestHashes = null, ctx = null) {
+  const bundleFile = repoFiles.find(f => f.name.endsWith('.bundle') || f.name.endsWith('.bundle.enc'));
+  const stateFile = repoFiles.find(f => f.name === 'backup-state.json');
+  const isIncremental = !!bundleFile || !!stateFile;
   const gitFile = repoFiles.find(f => (f.name.endsWith('.zip') || f.name.endsWith('.zip.enc')) && !f.name.includes('wiki'));
   const metaFile = repoFiles.find(f => f.name === 'metadata.json');
 
@@ -71,8 +137,19 @@ async function restoreRepo(provider, drive, repoFiles, owner, options = {}, mani
   // Create the destination repo if it doesn't exist (provider-agnostic)
   await provider.ensureRepo(targetOwner, repoName, options);
 
-  // Push git content
-  if (gitFile) {
+  // Delta (bundle) restore: reconstruct the full mirror from the bundle chain.
+  if (isIncremental) {
+    const mirrorDir = await reconstructFromChain(drive, ctx, repoName, repoFiles);
+    const remoteUrl = provider.remoteUrl(targetOwner, repoName);
+    await simpleGit(mirrorDir).addRemote('target', remoteUrl).catch(() => {});
+    await simpleGit(mirrorDir).push('target', '--all', ['--force']);
+    await simpleGit(mirrorDir).push('target', '--tags', ['--force']);
+    fs.rmSync(mirrorDir, { recursive: true, force: true });
+    logger.info(`Pushed reconstructed git content to ${targetOwner}/${repoName}`);
+  }
+
+  // Push git content (full-archive restore)
+  if (gitFile && !isIncremental) {
     const isEncrypted = gitFile.name.endsWith('.enc');
     const downloadDest = path.join(TMP, `${repoName}-restore${isEncrypted ? '.zip.enc' : '.zip'}`);
     const zipTmp = isEncrypted ? path.join(TMP, `${repoName}-restore.zip`) : downloadDest;
@@ -146,6 +223,9 @@ async function runRestore(options = {}) {
   const sessionName = sessions.find(s => s.id === sessionId)?.name;
   logger.info(`Restoring from session: ${sessionName}`);
 
+  // Map session name → id so delta restores can walk the bundle chain.
+  const ctx = { rootFolderId, sessionsByName: Object.fromEntries(sessions.map(s => [s.name, s.id])) };
+
   const repoFolders = await drive.listFolderContents(sessionId);
   const repoList = repoFolders.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
 
@@ -184,7 +264,7 @@ async function runRestore(options = {}) {
       // Feature 2: Load manifest for hash verification
       const manifestHashes = await loadManifest(drive, files);
 
-      const result = await restoreRepo(provider, drive, files, owner, options, manifestHashes);
+      const result = await restoreRepo(provider, drive, files, owner, options, manifestHashes, ctx);
       results.push({ ...result, status: 'success' });
     } catch (err) {
       logger.error(`Failed restoring ${repoFolder.name}: ${err.message}`);
