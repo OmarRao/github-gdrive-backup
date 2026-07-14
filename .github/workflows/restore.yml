@@ -1,8 +1,14 @@
-name: Restore from Google Drive → GitHub
+name: Restore from Google Drive → Git provider
 
 on:
   workflow_dispatch:
     inputs:
+      target_provider:
+        description: 'Destination git provider'
+        required: false
+        default: 'github'
+        type: choice
+        options: ['github', 'gitlab', 'gitea']
       session_name:
         description: 'Backup session folder name in Drive (leave blank for latest)'
         required: false
@@ -12,7 +18,7 @@ on:
         required: false
         default: ''
       target_owner:
-        description: 'Target GitHub owner/org (leave blank for authenticated user)'
+        description: 'Target owner/org/namespace (leave blank for authenticated user)'
         required: false
         default: ''
       private:
@@ -72,6 +78,12 @@ jobs:
           GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
           GOOGLE_TOKEN_PATH:         ./credentials/google-token.json
           BACKUP_TMP_DIR:            /tmp/gh-restore
+          # Cross-provider restore destinations (only the selected one is used)
+          RESTORE_TARGET_PROVIDER:   ${{ github.event.inputs.target_provider || 'github' }}
+          GITLAB_TOKEN:              ${{ secrets.GITLAB_TOKEN }}
+          GITLAB_HOST:               ${{ secrets.GITLAB_HOST }}
+          GITEA_TOKEN:               ${{ secrets.GITEA_TOKEN }}
+          GITEA_HOST:                ${{ secrets.GITEA_HOST }}
           INPUT_SESSION:             ${{ github.event.inputs.session_name }}
           INPUT_REPOS:               ${{ github.event.inputs.repos }}
           INPUT_TARGET_OWNER:        ${{ github.event.inputs.target_owner }}
@@ -82,6 +94,7 @@ jobs:
           node -e "
             const { runRestore } = require('./src/restore/index');
             const opts = {
+              provider: process.env.RESTORE_TARGET_PROVIDER || 'github',
               repos: process.env.INPUT_REPOS ? process.env.INPUT_REPOS.split(',').map(r => r.trim()) : [],
               targetOwner: process.env.INPUT_TARGET_OWNER || undefined,
               private: process.env.INPUT_PRIVATE !== 'false',

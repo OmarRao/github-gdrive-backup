@@ -158,6 +158,7 @@ Press <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>K</kbd> anywhere to open a fuzzy comma
 | **Azure Blob storage** | `STORAGE_TARGET=azure` — uses `@azure/storage-blob` with connection string + container name |
 | **Backblaze B2** | `STORAGE_TARGET=b2` — S3-compatible, reuses `@aws-sdk/client-s3` with custom B2 endpoint |
 | **Multi-destination fan-out (3-2-1)** | `BACKUP_MIRROR_TARGETS=s3,b2` mirrors every archive, manifest & summary to secondary clouds with per-file size verification; Drive stays primary, mirror failures never fail the backup |
+| **Cross-provider restore** | Restore a Drive session into **GitHub, GitLab, or Gitea** — pick the destination at dispatch time (`RESTORE_TARGET_PROVIDER`); git history, labels & milestones recreated on the target |
 | **SBOM generation** | Optional `include_sbom=true` input generates SPDX SBOM via `anchore/sbom-action@v0` |
 | **Auto-restore test** | Monthly `monthly-restore-test.yml` dry-run verifies restore integrity; result appended to audit log |
 | **PWA / offline** | `manifest.json` + cache-first service worker — install dashboard to home screen, works offline |
@@ -268,6 +269,10 @@ Go to **Settings → Secrets and variables → Actions** and add these 5 secrets
 | `B2_APP_KEY` | Backblaze B2 application key |
 | `B2_BUCKET` | Backblaze B2 bucket name |
 | `BACKUP_MIRROR_TARGETS` | Comma-separated secondary destinations for 3-2-1 fan-out, e.g. `s3,b2` (each target's own secrets must also be set) |
+| `GITLAB_TOKEN` | GitLab PAT (`api`, `write_repository`) — for cross-provider restore to GitLab |
+| `GITLAB_HOST` | GitLab base URL (default `https://gitlab.com`) — for self-hosted GitLab |
+| `GITEA_TOKEN` | Gitea access token with repo write scope — for cross-provider restore to Gitea |
+| `GITEA_HOST` | Gitea base URL, e.g. `https://gitea.example.com` |
 
 ### 6. Trigger your first backup
 
@@ -374,10 +379,33 @@ GDRIVE_FOLDER_ID/
 
 ## Restore Behaviour
 
-- Creates the target GitHub repo if it does not exist (private by default)
+- Creates the target repo if it does not exist (private by default)
 - Pushes all branches and tags with `--force` — safe to re-run
 - Recreates labels and milestones exactly as backed up
-- Issues and PRs are preserved in `metadata.json` — the GitHub API does not support programmatic issue creation
+- Issues and PRs are preserved in `metadata.json` — most git APIs do not support programmatic issue creation
+
+---
+
+## Cross-Provider Restore
+
+A backup captured from GitHub isn't locked to GitHub. Because the archived git mirror carries the full history, it can be pushed to **any** git host — real disaster-recovery portability. Choose the destination when you dispatch the restore workflow (or set `RESTORE_TARGET_PROVIDER`):
+
+![Cross-Provider Restore](docs/screenshots/cross-provider-restore.svg)
+
+| Provider | `RESTORE_TARGET_PROVIDER` | Required secrets |
+|---|---|---|
+| GitHub *(default)* | `github` | `GH_BACKUP_TOKEN` |
+| GitLab (SaaS or self-hosted) | `gitlab` | `GITLAB_TOKEN`, optional `GITLAB_HOST` (default `https://gitlab.com`) |
+| Gitea (self-hosted) | `gitea` | `GITEA_TOKEN`, `GITEA_HOST` |
+
+Each provider handles its own repo/project creation, authenticated remote URL, and label/milestone recreation (best-effort). The git push path is identical across providers, so branches and tags always transfer faithfully.
+
+```bash
+# Restore the latest session into a GitLab group
+gh workflow run restore.yml \
+  -f target_provider=gitlab \
+  -f target_owner=my-gitlab-group
+```
 
 ---
 

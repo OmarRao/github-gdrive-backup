@@ -1,5 +1,5 @@
 # GitHub → Google Drive Backup — Technical User Guide
-**Version 3.2.0** | Last updated: 2026-07-13
+**Version 3.3.0** | Last updated: 2026-07-14
 
 ---
 
@@ -31,6 +31,7 @@
    - [7.1 Selecting a Session (Point-in-Time)](#71-selecting-a-session-point-in-time)
    - [7.2 Dry-Run Mode](#72-dry-run-mode)
    - [7.3 Full Restore](#73-full-restore)
+   - [7.4 Cross-Provider Restore (GitHub / GitLab / Gitea)](#74-cross-provider-restore-github--gitlab--gitea)
 8. [Storage & Retention](#8-storage--retention)
    - [8.1 Google Drive Structure](#81-google-drive-structure)
    - [8.2 S3 / Azure Blob / Backblaze B2](#82-s3--azure-blob--backblaze-b2)
@@ -438,6 +439,28 @@ gh workflow run restore.yml \
 ```
 
 Restored repositories are pushed from the mirror, recreating branches and tags. If archives were encrypted, `restore.yml` uses `BACKUP_ENCRYPTION_KEY` to decrypt them transparently — so that secret must still be present at restore time. After a restore completes, verify the result in GitHub and, ideally, compare a known commit hash against the source to confirm fidelity.
+
+### 7.4 Cross-Provider Restore (GitHub / GitLab / Gitea)
+
+Because each archive is a complete git mirror, a backup is **not tied to the source host**. You can restore into a different git provider entirely — the foundation of a real disaster-recovery and vendor-portability story. The destination is selected by `RESTORE_TARGET_PROVIDER` (or the `target_provider` workflow input); `restore/providers/` encapsulates the per-provider differences (repo creation, authenticated remote URL, label/milestone APIs) behind a common interface, so the git push path is identical everywhere.
+
+![Cross-Provider Restore](screenshots/cross-provider-restore.svg)
+
+| Provider | `RESTORE_TARGET_PROVIDER` | Secrets | Notes |
+|---|---|---|---|
+| GitHub *(default)* | `github` | `GITHUB_TOKEN` | Original behavior; fully backward compatible |
+| GitLab | `gitlab` | `GITLAB_TOKEN`, `GITLAB_HOST` (default `https://gitlab.com`) | SaaS or self-hosted; creates the project under the target namespace |
+| Gitea | `gitea` | `GITEA_TOKEN`, `GITEA_HOST` | Self-hosted; tries the org endpoint, falls back to the user namespace |
+
+```bash
+# Restore the latest session into a self-hosted GitLab group
+gh workflow run restore.yml \
+  -f target_provider=gitlab \
+  -f target_owner=platform-team \
+  -f repos="api-service,webapp-frontend"
+```
+
+**What transfers:** all branches and tags (force-pushed from the mirror), plus labels and milestones recreated via the destination's API on a best-effort basis. Issues and pull requests remain in `metadata.json` for reference — cross-host issue re-creation is intentionally out of scope because issue/PR models differ between providers. Encrypted archives are decrypted with `BACKUP_ENCRYPTION_KEY` before push, exactly as in a same-provider restore.
 
 ---
 

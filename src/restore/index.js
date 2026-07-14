@@ -4,9 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const extractZip = require('extract-zip');
-const { Octokit } = require('@octokit/rest');
 const simpleGit = require('simple-git');
 const GoogleDriveClient = require('../backup/gdrive');
+const { getProvider } = require('./providers');
 const logger = require('../logger');
 
 const TMP = path.resolve(process.env.BACKUP_TMP_DIR || './tmp');
@@ -54,7 +54,7 @@ async function loadManifest(drive, files) {
   }
 }
 
-async function restoreRepo(octokit, drive, repoFiles, owner, options = {}, manifestHashes = null) {
+async function restoreRepo(provider, drive, repoFiles, owner, options = {}, manifestHashes = null) {
   const gitFile = repoFiles.find(f => (f.name.endsWith('.zip') || f.name.endsWith('.zip.enc')) && !f.name.includes('wiki'));
   const metaFile = repoFiles.find(f => f.name === 'metadata.json');
 
@@ -68,18 +68,8 @@ async function restoreRepo(octokit, drive, repoFiles, owner, options = {}, manif
   const repoName = options.repoName || meta.repo.split('/')[1];
   const targetOwner = options.targetOwner || owner;
 
-  // Create GitHub repo if it doesn't exist
-  try {
-    await octokit.repos.get({ owner: targetOwner, repo: repoName });
-    logger.info(`Repo ${targetOwner}/${repoName} already exists — pushing to it`);
-  } catch {
-    await octokit.repos.createForAuthenticatedUser({
-      name: repoName,
-      private: options.private !== false,
-      description: `Restored from backup on ${new Date().toISOString()}`,
-    });
-    logger.info(`Created repo ${targetOwner}/${repoName}`);
-  }
+  // Create the destination repo if it doesn't exist (provider-agnostic)
+  await provider.ensureRepo(targetOwner, repoName, options);
 
   // Push git content
   if (gitFile) {
@@ -101,8 +91,7 @@ async function restoreRepo(octokit, drive, repoFiles, owner, options = {}, manif
 
     await extractZip(zipTmp, { dir: extractDir });
 
-    const token = process.env.GITHUB_TOKEN;
-    const remoteUrl = `https://x-access-token:${token}@github.com/${targetOwner}/${repoName}.git`;
+    const remoteUrl = provider.remoteUrl(targetOwner, repoName);
 
     const gitDir = fs.readdirSync(extractDir).find(d =>
       fs.statSync(path.join(extractDir, d)).isDirectory()
@@ -118,39 +107,30 @@ async function restoreRepo(octokit, drive, repoFiles, owner, options = {}, manif
     logger.info(`Pushed git content to ${targetOwner}/${repoName}`);
   }
 
-  // Restore labels
+  // Restore labels & milestones via the destination provider (best-effort)
   if (meta.labels?.length) {
-    for (const label of meta.labels) {
-      await octokit.issues.createLabel({
-        owner: targetOwner, repo: repoName,
-        name: label.name, color: label.color, description: label.description || '',
-      }).catch(() => {});
-    }
+    await provider.restoreLabels(targetOwner, repoName, meta.labels);
   }
-
-  // Restore milestones
   if (meta.milestones?.length) {
-    for (const ms of meta.milestones) {
-      await octokit.issues.createMilestone({
-        owner: targetOwner, repo: repoName,
-        title: ms.title, description: ms.description, due_on: ms.due_on,
-      }).catch(() => {});
-    }
+    await provider.restoreMilestones(targetOwner, repoName, meta.milestones);
   }
 
-  logger.info(`✓ Restored ${meta.repo} → ${targetOwner}/${repoName}`);
-  return { original: meta.repo, restored: `${targetOwner}/${repoName}` };
+  logger.info(`✓ Restored ${meta.repo} → ${provider.id}:${targetOwner}/${repoName}`);
+  return { original: meta.repo, restored: `${targetOwner}/${repoName}`, provider: provider.id };
 }
 
 async function runRestore(options = {}) {
-  const token = options.token || process.env.GITHUB_TOKEN;
-  const owner = options.owner || process.env.GITHUB_USER;
+  const owner = options.owner || process.env.GITHUB_USER || process.env.RESTORE_TARGET_OWNER;
 
-  if (!token || !owner) throw new Error('GITHUB_TOKEN and GITHUB_USER are required.');
+  if (!owner) throw new Error('A target owner is required (GITHUB_USER or RESTORE_TARGET_OWNER).');
 
   fs.mkdirSync(TMP, { recursive: true });
 
-  const octokit = new Octokit({ auth: token });
+  // Build the destination provider (github | gitlab | gitea). Each provider
+  // validates its own credentials when constructed.
+  const provider = getProvider(options);
+  logger.info(`Restore destination provider: ${provider.id}`);
+
   const auth = await GoogleDriveClient.createAuthClient(
     process.env.GOOGLE_CLIENT_SECRET_PATH || './credentials/google-client-secret.json',
     process.env.GOOGLE_TOKEN_PATH || './credentials/google-token.json'
@@ -204,7 +184,7 @@ async function runRestore(options = {}) {
       // Feature 2: Load manifest for hash verification
       const manifestHashes = await loadManifest(drive, files);
 
-      const result = await restoreRepo(octokit, drive, files, owner, options, manifestHashes);
+      const result = await restoreRepo(provider, drive, files, owner, options, manifestHashes);
       results.push({ ...result, status: 'success' });
     } catch (err) {
       logger.error(`Failed restoring ${repoFolder.name}: ${err.message}`);
