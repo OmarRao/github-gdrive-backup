@@ -520,7 +520,7 @@ github-gdrive-backup/
 │   └── storage.test.js          — S3/Azure/B2 adapter interface
 ├── scripts/
 │   └── check-headers.js         — standalone copyright header audit
-├── .eslintrc.json               — ESLint rules (no-eval, eqeqeq, security rules)
+├── eslint.config.js             — ESLint flat config (no-eval, eqeqeq, security rules)
 ├── credentials/                 — git-ignored, OAuth files go here
 ├── get_token.py                 — one-time Google OAuth script
 ├── .env.example

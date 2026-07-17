@@ -732,7 +732,7 @@ The step is gated with `if: success() && github.event.inputs.include_sbom == 'tr
 | SBOM generation (SPDX) | `backup.yml` — `include_sbom=true` | Optional |
 | CODEOWNERS — owner review required on all PRs | `.github/CODEOWNERS` | Implemented |
 | Copyright headers on all `src/` files | CI gate in `ci.yml` | Implemented |
-| ESLint — no-eval, eqeqeq, security rules | `.eslintrc.json` | Implemented |
+| ESLint — no-eval, eqeqeq, security rules | `eslint.config.js` (flat config) | Implemented |
 | Jest test suite (25 tests, 3 suites) | `tests/` | Implemented |
 | Gitleaks secret scanning in CI | `ci.yml` | Implemented |
 
@@ -748,7 +748,7 @@ The `ci.yml` workflow runs on every push and pull request to `main`. It is the p
 2. **Node.js 22** — with npm cache
 3. **`npm ci`** — clean install from lockfile
 4. **Copyright header check** — `node scripts/check-headers.js`; exits 1 if any `src/*.js` is missing `// Copyright (c) Omar Rao. All rights reserved.`
-5. **ESLint** — `npm run lint`; rules include `no-eval`, `no-implied-eval`, `no-new-func`, `eqeqeq`, `handle-callback-err`
+5. **ESLint** — `npm run lint`; rules include `no-eval`, `no-implied-eval`, `no-new-func`, `eqeqeq` (flat config, `eslint.config.js`)
 6. **Jest** — `npm test`; 25 tests across 3 suites; coverage threshold ≥20% lines
 7. **`npm audit`** — high/critical vulnerabilities fail CI (`continue-on-error: true` for advisory-level findings)
 8. **yamllint** — validates all 8 workflow YAML files
