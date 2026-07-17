@@ -1,0 +1,100 @@
+name: Integration Smoke Test
+
+# End-to-end validation of the real data path that unit tests can't exercise:
+# a true DELTA backup to Google Drive, then a LOCAL restore that reconstructs
+# the bundle chain and verifies git history. Self-skips when the required
+# secrets are not configured, so forks without credentials stay green.
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 4 1 * *'   # monthly, 1st @ 04:00 UTC
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check required secrets
+        id: check
+        env:
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          GH_BACKUP_TOKEN: ${{ secrets.GH_BACKUP_TOKEN }}
+          GOOGLE_TOKEN: ${{ secrets.GOOGLE_TOKEN }}
+        run: |
+          if [ -n "$GDRIVE_FOLDER_ID" ] && [ -n "$GH_BACKUP_TOKEN" ] && [ -n "$GOOGLE_TOKEN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Integration secrets not configured — skipping smoke test."
+          fi
+
+      - name: Set up Node.js
+        if: steps.check.outputs.ready == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        if: steps.check.outputs.ready == 'true'
+        run: npm ci
+
+      - name: Write Google credentials
+        if: steps.check.outputs.ready == 'true'
+        env:
+          GOOGLE_CLIENT_SECRET_JSON: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_TOKEN_JSON: ${{ secrets.GOOGLE_TOKEN }}
+        run: |
+          mkdir -p credentials
+          printf '%s' "$GOOGLE_CLIENT_SECRET_JSON" > credentials/google-client-secret.json
+          printf '%s' "$GOOGLE_TOKEN_JSON"         > credentials/google-token.json
+
+      - name: Delta backup (this repo only)
+        if: steps.check.outputs.ready == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_BACKUP_TOKEN }}
+          GITHUB_USER: ${{ secrets.GH_USER }}
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
+          GOOGLE_TOKEN_PATH: ./credentials/google-token.json
+          BACKUP_TMP_DIR: /tmp/smoke-backup
+          BACKUP_INCLUDE: code
+          INCREMENTAL_MODE: delta
+        run: |
+          node -e "
+            const { runBackup } = require('./src/backup/index');
+            runBackup({ repos: ['${{ github.repository }}'] })
+              .then(s => { console.log('backup summary', JSON.stringify(s.incremental || {})); })
+              .catch(e => { console.error(e); process.exit(1); });
+          "
+
+      - name: Local restore + verify history
+        if: steps.check.outputs.ready == 'true'
+        env:
+          GDRIVE_FOLDER_ID: ${{ secrets.GDRIVE_FOLDER_ID }}
+          GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
+          GOOGLE_TOKEN_PATH: ./credentials/google-token.json
+          BACKUP_TMP_DIR: /tmp/smoke-restore
+          RESTORE_TARGET_PROVIDER: local
+          RESTORE_LOCAL_DIR: /tmp/smoke-out
+        run: |
+          node -e "
+            const { runRestore } = require('./src/restore/index');
+            runRestore({ provider: 'local' })
+              .then(r => { console.log('restore', JSON.stringify(r)); })
+              .catch(e => { console.error(e); process.exit(1); });
+          "
+          repo='${{ github.event.repository.name }}'
+          dir="/tmp/smoke-out/${repo}.git"
+          echo "Verifying reconstructed repo at $dir"
+          test -d "$dir" || { echo "Reconstructed repo missing"; exit 1; }
+          count=$(git -C "$dir" rev-list --all --count)
+          echo "Reconstructed commit count: $count"
+          [ "$count" -gt 0 ] || { echo "No commits reconstructed"; exit 1; }
+          echo "Integration smoke test passed."
+
+      - name: Clean up credentials
+        if: always()
+        run: rm -rf credentials

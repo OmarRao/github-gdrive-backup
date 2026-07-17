@@ -9,6 +9,12 @@ updates:
     labels:
       - "dependencies"
       - "security"
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # Group minor + patch bumps so auto-merge can land them together
+      minor-and-patch:
+        update-types: ["minor", "patch"]
 
   - package-ecosystem: "github-actions"
     directory: "/"

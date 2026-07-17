@@ -61,3 +61,35 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
+
+  provenance:
+    name: SBOM & Build Provenance
+    needs: build-lint-test
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write        # required for signing the attestation
+      attestations: write    # required to record the attestation
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate SPDX SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: spdx-json
+          output-file: sbom.spdx.json
+
+      - name: Attest build provenance for the SBOM
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: sbom.spdx.json
+
+      - name: Upload SBOM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sbom-${{ github.sha }}
+          path: sbom.spdx.json
+          retention-days: 90
