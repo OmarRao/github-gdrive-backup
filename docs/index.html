@@ -1162,6 +1162,17 @@
     .wiz-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 6px; }
     .wiz-cmd { background: var(--bg-sidebar); color: #e2e8f0; font-family: ui-monospace, monospace; font-size: 12px; padding: 14px; border-radius: var(--radius-sm); white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
 
+    /* ── Onboarding checklist ─────────────────────────────────────────────── */
+    .ob-step { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-bottom: 8px; }
+    .ob-step.done { background: var(--primary-bg); border-color: var(--primary); }
+    .ob-check { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; background: var(--bg-hover); color: var(--muted); flex-shrink: 0; }
+    .ob-step.done .ob-check { background: var(--primary); color: #fff; }
+    .ob-meta { flex: 1; min-width: 0; }
+    .ob-title { font-size: 13.5px; font-weight: 600; color: var(--text); }
+    .ob-hint { font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+    .ob-badge { font-size: 11px; font-weight: 700; color: var(--primary-h); }
+    .ob-go { padding: 5px 12px; font-size: 12px; }
+
     /* ── Chain lineage ────────────────────────────────────────────────────── */
     .chain-lineage { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
     .chain-node { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
@@ -2352,6 +2363,29 @@
   <div class="drawer-body" id="drawer-body"></div>
 </aside>
 
+<!-- ── First-run onboarding ─────────────────────────────────────────────── -->
+<div id="onboarding-modal" class="modal-overlay hidden">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <span class="modal-title">Welcome — let's finish setup</span>
+    </div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px">
+      Your dashboard shows live stats once GitHub and Google Drive are connected. Complete these steps to activate backups.
+    </p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <div style="flex:1;height:6px;background:var(--bg-hover);border-radius:3px;overflow:hidden">
+        <div id="onboarding-progress-bar" style="height:100%;width:0;background:var(--primary);transition:width .3s"></div>
+      </div>
+      <span id="onboarding-progress" style="font-size:12px;font-weight:600;color:var(--muted);white-space:nowrap">0 of 4 complete</span>
+    </div>
+    <div id="onboarding-steps"></div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+      <button class="btn btn-secondary" onclick="skipOnboarding()">Skip for now</button>
+      <button class="btn btn-primary" onclick="gotoSetup('settings')">Go to Settings</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Restore wizard ───────────────────────────────────────────────────── -->
 <div id="restore-wizard-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
   <div class="modal-box" style="max-width:560px">
@@ -2461,8 +2495,23 @@
 </div>
 
 <script>
-const REPO_OWNER  = 'OmarRao';
-const REPO_NAME   = 'github-gdrive-backup';
+// Target repository (the fork that hosts the workflows). Auto-derived from the
+// GitHub Pages URL so any fork's dashboard talks to ITS OWN repo — never the
+// upstream. e.g. https://alice.github.io/github-gdrive-backup/ → alice/github-gdrive-backup.
+// A manual override (Settings) or localhost falls back to the upstream template.
+const REPO_TARGET = (() => {
+  const ovOwner = localStorage.getItem('gh_repo_owner');
+  const ovName  = localStorage.getItem('gh_repo_name');
+  if (ovOwner && ovName) return { owner: ovOwner, name: ovName, source: 'manual' };
+  const host = location.hostname; // <owner>.github.io
+  const seg  = location.pathname.split('/').filter(Boolean)[0];
+  if (host.endsWith('.github.io') && seg) {
+    return { owner: host.replace('.github.io', ''), name: seg, source: 'pages' };
+  }
+  return { owner: 'OmarRao', name: 'github-gdrive-backup', source: 'fallback' };
+})();
+const REPO_OWNER  = REPO_TARGET.owner;
+const REPO_NAME   = REPO_TARGET.name;
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
 
 // ── Demo data ──────────────────────────────────────────────────────────────────
@@ -2479,22 +2528,34 @@ const DEMO = (() => {
     { name: 'data-pipeline',   full_name: 'acme/data-pipeline',   private: true,  lang: 'Python ETL',     commits: 891,  lastCommit: ago(12*D) },
   ];
 
-  // 10 backup sessions over 10 days; session 9 (2 days ago) had data-pipeline fail.
+  // 30 daily backup sessions (newest first). Each carries a delta mode so the
+  // dashboard's composition/timeline/stats are all derived from ONE source and
+  // stay internally consistent. Index 0 = today; higher index = older.
   const sessions = [];
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 30; i++) {
     const created = ago(i*D + 4*H);
     const size = 180 + Math.round(Math.abs(Math.sin(i*1.7)) * 440); // 180–620 MB
-    const failed = (i === 2); // 2 days ago
+    const failed = (i === 2); // 2 days ago had a failed repo
+    // Oldest session (i=29) is the full base; a compaction takes a fresh base
+    // partway (i=9); a couple of days are unchanged; everything else is a delta.
+    const isBase = (i === 29) || (i === 9);
+    const unchanged = (i === 5 || i === 14);
+    const mode = failed ? 'delta' : isBase ? 'full' : unchanged ? 'unchanged' : 'delta';
     sessions.push({
       id: 'demo-session-' + i,
       name: 'session-' + new Date(now - i*D).toISOString().slice(0,10),
       createdTime: created,
       repoCount: 5,
-      sizeMB: size,
+      sizeMB: mode === 'unchanged' ? 0 : size,
       status: failed ? 'failure' : 'success',
       failedRepo: failed ? 'data-pipeline (401 error)' : null,
+      mode,
     });
   }
+
+  // Derive delta composition from the sessions themselves.
+  const composition = sessions.reduce((acc, s) => { acc[s.mode] = (acc[s.mode] || 0) + 1; return acc; },
+    { full: 0, delta: 0, unchanged: 0 });
 
   // 15 workflow runs: backup / cleanup / restore mix.
   const kinds = ['Backup','Backup','Cleanup','Backup','Restore','Backup','Backup','Cleanup','Backup','Restore','Backup','Backup','Cleanup','Backup','Backup'];
@@ -2515,15 +2576,37 @@ const DEMO = (() => {
     };
   });
 
+  // Everything below is DERIVED from the arrays above so the numbers always
+  // match the graphs (single source of truth).
+  const failedSessions = sessions.filter(s => s.status === 'failure').length;
+  const successRate = (((sessions.length - failedSessions) / sessions.length) * 100).toFixed(1) + '%';
+  // Current streak = consecutive most-recent successful sessions.
+  let streak = 0;
+  for (const s of sessions) { if (s.status === 'success') streak++; else break; }
+  const archived = sessions.filter(s => s.mode !== 'unchanged').length; // sessions that uploaded data
+
   return {
     repos, sessions, runs,
-    stats: { repos: 5, sessions: 47, lastBackup: ago(2*H), active: 0 },
-    reports: { total: 47, rate: '97.9%', failed: 1, streak: '8 days' },
+    stats: {
+      repos: repos.length,
+      sessions: sessions.length,
+      lastBackup: sessions[0].createdTime,
+      active: 0,
+    },
+    reports: {
+      total: sessions.length,
+      rate: successRate,
+      failed: failedSessions,
+      streak: streak + ' day' + (streak === 1 ? '' : 's'),
+    },
     quota: { usedGB: 14.2, totalGB: 100 },
     slaHours: 26,
-    // v3.5 — delta composition + fan-out status from the latest session summary
-    composition: { full: 1, delta: 3, unchanged: 1 },
-    mirror: { targets: ['s3', 'b2'], perTarget: { s3: { ok: 5, failed: 0 }, b2: { ok: 4, failed: 1 } } },
+    // Delta composition derived from session modes; fan-out status per target.
+    composition,
+    mirror: {
+      targets: ['s3', 'b2'],
+      perTarget: { s3: { ok: archived, failed: 0 }, b2: { ok: archived - 1, failed: 1 } },
+    },
   };
 })();
 
@@ -2606,6 +2689,19 @@ async function driveFetch(path, opts = {}) {
   if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error((e.error && e.error.message) || res.statusText); }
   return res.json();
 }
+
+// Drive fetch returning raw text (for alt=media file downloads).
+async function driveFetchRaw(path, opts = {}) {
+  const res = await fetch(`https://www.googleapis.com${path}`, {
+    ...opts,
+    headers: { Authorization: `Bearer ${driveToken}`, ...(opts.headers || {}) },
+  });
+  if (!res.ok) throw new Error(res.statusText);
+  return res.text();
+}
+
+// Latest session summary (composition/fan-out), populated by loadDashboard.
+let _latestSummary = null;
 
 // ── Status pills ─────────────────────────────────────────────────────────────
 async function updateGHStatus() {
@@ -2783,28 +2879,102 @@ async function loadDashboard() {
     renderDashboardWidgets(DEMO.sessions, DEMO.runs);
     return;
   }
-  if (!ghToken) { document.getElementById('dash-warn').classList.remove('hidden'); }
+  // First-run gating: don't show stale or upstream data before the user has
+  // configured THEIR GitHub + Drive. Show placeholders and steer them to setup.
+  const status = setupStatus();
+  if (!status.complete) {
+    resetDashboardToEmpty();
+    document.getElementById('dash-warn').classList.remove('hidden');
+    maybeShowOnboarding();
+    return;
+  }
+  document.getElementById('dash-warn').classList.add('hidden');
+
+  // Fully configured — fetch the user's OWN live data.
   const runs  = await ghFetch(`/repos/${REPO_OWNER}/${REPO_NAME}/actions/runs?per_page=10`).catch(() => ({ workflow_runs:[] }));
   const allRuns = runs.workflow_runs || [];
   document.getElementById('stat-active').textContent = allRuns.filter(r => r.status==='in_progress'||r.status==='queued').length;
   const lastBackup = allRuns.find(r => r.name?.toLowerCase().includes('backup'));
   document.getElementById('stat-last').textContent = lastBackup ? relTime(lastBackup.created_at) : '—';
   try {
-    const all = await ghFetch(`/users/${ghUser || REPO_OWNER}/repos?per_page=100&type=all`);
+    const all = await ghFetch(`/users/${ghUser}/repos?per_page=100&type=all`);
     document.getElementById('stat-repos').textContent = all.length;
   } catch { document.getElementById('stat-repos').textContent = '—'; }
-  if (driveToken && driveFolderID) {
-    try {
-      const data = await driveFetch(
-        `/drive/v3/files?q='${driveFolderID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name)&orderBy=createdTime+desc`
-      );
-      document.getElementById('stat-sessions').textContent = (data.files||[]).length;
-    } catch { document.getElementById('stat-sessions').textContent = '—'; }
-  } else { document.getElementById('stat-sessions').textContent = '—'; }
+  try {
+    const data = await driveFetch(
+      `/drive/v3/files?q='${driveFolderID}'+in+parents+and+mimeType='application/vnd.google-apps.folder'+and+trashed=false&fields=files(id,name,createdTime)&orderBy=createdTime+desc`
+    );
+    const files = data.files || [];
+    document.getElementById('stat-sessions').textContent = files.length;
+    _liveSessions = files.map(s => ({ id: s.id, name: s.name, createdTime: s.createdTime }));
+    // Pull the latest session's backup-summary.json for composition/fan-out.
+    _latestSummary = await loadLatestSummary(files).catch(() => null);
+  } catch { document.getElementById('stat-sessions').textContent = '—'; }
   _dashRuns = allRuns.slice(0,8);
   renderRuns(_dashRuns, document.getElementById('dash-runs'));
   renderDashboardWidgets(_liveSessions, allRuns);
 }
+
+// Clear all dashboard numbers/widgets to a neutral "not set up yet" state.
+function resetDashboardToEmpty() {
+  ['stat-repos','stat-sessions','stat-active'].forEach(id => { const e = document.getElementById(id); if (e) e.textContent = '—'; });
+  const last = document.getElementById('stat-last'); if (last) last.textContent = '—';
+  ['trend-repos','trend-sessions','trend-last','trend-active'].forEach(id => setTrend(id, '', ''));
+  _dashRuns = []; _liveSessions = []; _latestSummary = null;
+  const dr = document.getElementById('dash-runs');
+  if (dr) dr.innerHTML = '<p class="muted" style="padding:12px">Complete setup to see your workflow runs.</p>';
+  renderDashboardWidgets([], []);
+}
+
+// Fetch and parse the newest session's backup-summary.json (best-effort).
+async function loadLatestSummary(files) {
+  if (!files || !files.length) return null;
+  const contents = await driveFetch(
+    `/drive/v3/files?q='${files[0].id}'+in+parents+and+name='backup-summary.json'+and+trashed=false&fields=files(id)`
+  );
+  const f = (contents.files || [])[0];
+  if (!f) return null;
+  const text = await driveFetchRaw(`/drive/v3/files/${f.id}?alt=media`);
+  return JSON.parse(text);
+}
+
+// ── First-run setup status & onboarding ────────────────────────────────────────
+function setupStatus() {
+  const steps = [
+    { key: 'gh',     label: 'Connect GitHub token', done: !!ghToken,       page: 'settings', hint: 'Paste a PAT (repo, workflow scopes) in Settings → GitHub.' },
+    { key: 'ghuser', label: 'Verify GitHub account', done: !!ghUser,        page: 'settings', hint: 'Auto-detected once your token is valid.' },
+    { key: 'drive',  label: 'Connect Google Drive',  done: !!driveToken,    page: 'settings', hint: 'Authorize Drive in Settings → Google Drive.' },
+    { key: 'folder', label: 'Set backup folder ID',  done: !!driveFolderID, page: 'settings', hint: 'Paste your Drive backup folder ID.' },
+  ];
+  return { steps, complete: steps.every(s => s.done), done: steps.filter(s => s.done).length, total: steps.length };
+}
+
+let _onboardingSkipped = false;
+function maybeShowOnboarding() {
+  if (window.DEMO_MODE || _onboardingSkipped) return;
+  if (setupStatus().complete) { closeOnboarding(); return; }
+  renderOnboarding();
+  document.getElementById('onboarding-modal').classList.remove('hidden');
+}
+function renderOnboarding() {
+  const st = setupStatus();
+  const list = document.getElementById('onboarding-steps');
+  if (!list) return;
+  document.getElementById('onboarding-progress').textContent = `${st.done} of ${st.total} complete`;
+  document.getElementById('onboarding-progress-bar').style.width = `${(st.done / st.total * 100)}%`;
+  list.innerHTML = st.steps.map((s, i) => `
+    <div class="ob-step ${s.done ? 'done' : ''}">
+      <span class="ob-check" aria-hidden="true">${s.done ? '✓' : (i + 1)}</span>
+      <div class="ob-meta">
+        <div class="ob-title">${s.label}</div>
+        <div class="ob-hint">${s.hint}</div>
+      </div>
+      ${s.done ? '<span class="ob-badge">Done</span>' : `<button class="btn btn-secondary ob-go" onclick="gotoSetup('${s.page}')">Set up →</button>`}
+    </div>`).join('');
+}
+function gotoSetup(page) { closeOnboarding(); navTo(page); }
+function closeOnboarding() { document.getElementById('onboarding-modal')?.classList.add('hidden'); }
+function skipOnboarding() { _onboardingSkipped = true; closeOnboarding(); showToast('You can finish setup anytime in Settings', 'info'); }
 
 // keep last-known live sessions (populated by loadSessions) for dashboard widgets
 let _liveSessions = [];
@@ -2824,8 +2994,8 @@ function renderComposition() {
   const card = document.getElementById('composition-card');
   const body = document.getElementById('composition-body');
   if (!card || !body) return;
-  const comp = window.DEMO_MODE ? DEMO.composition : (window._latestSummary && window._latestSummary.incremental);
-  const mirror = window.DEMO_MODE ? DEMO.mirror : (window._latestSummary && window._latestSummary.mirror);
+  const comp = window.DEMO_MODE ? DEMO.composition : (_latestSummary && _latestSummary.incremental);
+  const mirror = window.DEMO_MODE ? DEMO.mirror : (_latestSummary && _latestSummary.mirror);
   if (!comp && !mirror) { card.style.display = 'none'; return; }
   card.style.display = '';
 

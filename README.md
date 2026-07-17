@@ -28,6 +28,12 @@ Try it instantly at the **[Live Dashboard](https://omarrao.github.io/github-gdri
 
 ## Screenshots
 
+### First-Run Setup
+
+On your first sign-in the dashboard **gates itself** until your own GitHub and Google Drive are connected — it never shows stale or upstream data. A guided setup checklist tracks the four required steps and links straight to the relevant Settings sections. The dashboard automatically targets **your fork** (derived from the GitHub Pages URL), so every deployment shows its own live data.
+
+![First-Run Setup](docs/screenshots/onboarding.svg)
+
 ### Dashboard
 
 A polished Firebase-authenticated login screen gates the dashboard, with Google Sign-In and a one-click Demo Mode. The main overview shows repository count, backup session count, time since last run, and active workflow status — each stat card includes an SLA badge and trend indicator. A colored top accent bar, the signed-in user's avatar in the nav, and system Segoe UI typography round out the v3.0.0 visual overhaul.
@@ -84,7 +90,7 @@ Configure your GitHub Personal Access Token, connect Google Drive via OAuth, ver
 
 ### Demo Mode
 
-Click **"Explore with sample data →"** on the login screen to enter Demo Mode — no authentication required. The dashboard is populated with realistic sample data (5 repositories, 47 backup sessions, workflow run history including a simulated failure) and a persistent banner reminds you that live actions are disabled until you sign in.
+Click **"Explore with sample data →"** on the login screen to enter Demo Mode — no authentication required. The dashboard is populated with realistic sample data (5 repositories, 30 daily backup sessions, workflow run history including a simulated failure) — all stats, graphs, delta composition and fan-out status are **derived from one internally-consistent dataset**. A persistent banner reminds you that live actions are disabled until you sign in.
 
 ![Demo Mode](docs/screenshots/demo-mode.svg)
 
@@ -180,6 +186,9 @@ The dashboard surfaces the latest session's **delta composition** (full / delta 
 | **Build provenance** | CI generates an SPDX SBOM and signs it with `actions/attest-build-provenance` |
 | **JSON audit log** | Structured JSON-lines audit entries (SIEM-ingestible) |
 | **Restore wizard** | Dashboard modal builds the exact `gh workflow run` command for any provider/session |
+| **First-run onboarding** | Setup checklist gates the dashboard until GitHub + Drive are configured; no stale/upstream data on first login |
+| **Fork-aware targeting** | Dashboard auto-derives the target repo from the Pages URL, so each fork shows its own live data (override in Settings) |
+| **Dynamic demo data** | Demo stats, graphs, composition & fan-out are all derived from one dataset — always internally consistent |
 | **SBOM generation** | Optional `include_sbom=true` input generates SPDX SBOM via `anchore/sbom-action@v0` |
 | **Auto-restore test** | Monthly `monthly-restore-test.yml` dry-run verifies restore integrity; result appended to audit log |
 | **PWA / offline** | `manifest.json` + cache-first service worker — install dashboard to home screen, works offline |

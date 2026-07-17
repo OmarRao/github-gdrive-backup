@@ -1,5 +1,5 @@
 # GitHub → Google Drive Backup — Technical User Guide
-**Version 3.5.0** | Last updated: 2026-07-17
+**Version 3.6.0** | Last updated: 2026-07-17
 
 ---
 
@@ -268,7 +268,17 @@ When you open the dashboard you are presented with two paths. If Firebase is con
 
 ![Demo Mode](screenshots/demo-mode.svg)
 
-**Demo Mode** loads a realistic set of sample repositories, sessions, and reports so you can experience the full UI without any setup. A persistent **yellow banner** makes it obvious you are in demo mode, no real API calls are made, and any live action button (run backup, start restore, etc.) shows a **"Sign in to use live features"** toast instead of acting. This makes the dashboard safe to share publicly and ideal for evaluation, screenshots, and training. To leave Demo Mode, sign in (if Firebase is configured) and provide your GitHub PAT and Drive token in **Settings**.
+**Demo Mode** loads a realistic set of sample data — 5 repositories and **30 daily backup sessions** — so you can experience the full UI without any setup. Every number on screen (stat cards, storage-growth chart, timeline heatmap, delta composition, fan-out status, success rate, streak) is **derived from that single dataset**, so the demo is always internally consistent rather than showing hard-coded figures that contradict the graphs. A persistent **yellow banner** makes it obvious you are in demo mode, no real API calls are made, and any live action button shows a **"Sign in to use live features"** toast instead of acting.
+
+### 5.1A First-Run Setup & Dashboard Gating
+
+On your **first real sign-in**, the dashboard does not yet have your GitHub token or Drive connection — so it deliberately **does not fetch or display any data**. Instead of showing zeros, stale figures, or (worse) the upstream template's data, every stat renders as `—` and a **setup checklist** appears:
+
+![First-Run Setup](screenshots/onboarding.svg)
+
+The checklist tracks four steps — **GitHub token**, **GitHub account** (auto-verified from the token), **Google Drive connection**, and **backup folder ID** — each linking straight to the relevant Settings section, with a live progress bar. You can **Skip for now** to explore, and it reappears (until complete) whenever you return to the Dashboard. The dashboard only begins fetching live stats once all four are done.
+
+**Fork-aware targeting.** The dashboard automatically determines which repository to talk to from its own GitHub Pages URL (`https://<you>.github.io/<repo>/` → `<you>/<repo>`), so **every fork's dashboard shows its own live data**, never the upstream's. When running locally or on custom hosting it falls back to a configurable owner/name (`gh_repo_owner` / `gh_repo_name` in `localStorage`).
 
 ### 5.2 Navigation
 

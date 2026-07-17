@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 560" width="900" height="560" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <rect x="0" y="0" width="900" height="560" fill="#0f172a"/>
+  <!-- dimmed gated dashboard behind -->
+  <rect x="24" y="24" width="852" height="60" rx="12" fill="#1e293b" opacity="0.5"/>
+  <rect x="24" y="96" width="200" height="90" rx="12" fill="#1e293b" opacity="0.45"/>
+  <rect x="236" y="96" width="200" height="90" rx="12" fill="#1e293b" opacity="0.45"/>
+  <rect x="448" y="96" width="200" height="90" rx="12" fill="#1e293b" opacity="0.45"/>
+  <rect x="660" y="96" width="216" height="90" rx="12" fill="#1e293b" opacity="0.45"/>
+  <text x="52" y="145" font-size="20" fill="#334155" font-weight="800">—</text>
+  <text x="264" y="145" font-size="20" fill="#334155" font-weight="800">—</text>
+  <text x="476" y="145" font-size="20" fill="#334155" font-weight="800">—</text>
+  <rect x="0" y="0" width="900" height="560" fill="#0f172a" opacity="0.55"/>
+
+  <!-- onboarding modal -->
+  <rect x="210" y="120" width="480" height="360" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="234" y="158" font-size="16" font-weight="700" fill="#0f172a">Welcome — let's finish setup</text>
+  <text x="234" y="182" font-size="12.5" fill="#64748b">Your dashboard shows live stats once GitHub and Google Drive are</text>
+  <text x="234" y="199" font-size="12.5" fill="#64748b">connected. Complete these steps to activate backups.</text>
+
+  <!-- progress -->
+  <rect x="234" y="214" width="360" height="6" rx="3" fill="#f1f5f9"/>
+  <rect x="234" y="214" width="180" height="6" rx="3" fill="#10b981"/>
+  <text x="666" y="220" text-anchor="end" font-size="12" font-weight="600" fill="#64748b">2 of 4 complete</text>
+
+  <!-- step 1 done -->
+  <rect x="234" y="236" width="432" height="46" rx="8" fill="#f0fdf4" stroke="#10b981"/>
+  <circle cx="258" cy="259" r="13" fill="#10b981"/><text x="258" y="263" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">✓</text>
+  <text x="284" y="256" font-size="13" font-weight="600" fill="#0f172a">Connect GitHub token</text>
+  <text x="284" y="271" font-size="11" fill="#64748b">Paste a PAT (repo, workflow scopes) in Settings → GitHub.</text>
+  <text x="648" y="263" text-anchor="end" font-size="11" font-weight="700" fill="#059669">Done</text>
+
+  <!-- step 2 done -->
+  <rect x="234" y="288" width="432" height="46" rx="8" fill="#f0fdf4" stroke="#10b981"/>
+  <circle cx="258" cy="311" r="13" fill="#10b981"/><text x="258" y="315" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">✓</text>
+  <text x="284" y="308" font-size="13" font-weight="600" fill="#0f172a">Verify GitHub account</text>
+  <text x="284" y="323" font-size="11" fill="#64748b">Auto-detected once your token is valid.</text>
+  <text x="648" y="315" text-anchor="end" font-size="11" font-weight="700" fill="#059669">Done</text>
+
+  <!-- step 3 pending -->
+  <rect x="234" y="340" width="432" height="46" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+  <circle cx="258" cy="363" r="13" fill="#f1f5f9"/><text x="258" y="367" text-anchor="middle" font-size="12" font-weight="700" fill="#64748b">3</text>
+  <text x="284" y="360" font-size="13" font-weight="600" fill="#0f172a">Connect Google Drive</text>
+  <text x="284" y="375" font-size="11" fill="#64748b">Authorize Drive in Settings → Google Drive.</text>
+  <rect x="592" y="352" width="66" height="22" rx="6" fill="#f8fafc" stroke="#e2e8f0"/><text x="625" y="367" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">Set up →</text>
+
+  <!-- step 4 pending -->
+  <rect x="234" y="392" width="432" height="46" rx="8" fill="#ffffff" stroke="#e2e8f0"/>
+  <circle cx="258" cy="415" r="13" fill="#f1f5f9"/><text x="258" y="419" text-anchor="middle" font-size="12" font-weight="700" fill="#64748b">4</text>
+  <text x="284" y="412" font-size="13" font-weight="600" fill="#0f172a">Set backup folder ID</text>
+  <text x="284" y="427" font-size="11" fill="#64748b">Paste your Drive backup folder ID.</text>
+  <rect x="592" y="404" width="66" height="22" rx="6" fill="#f8fafc" stroke="#e2e8f0"/><text x="625" y="419" text-anchor="middle" font-size="11" font-weight="600" fill="#334155">Set up →</text>
+
+  <!-- actions -->
+  <rect x="474" y="448" width="100" height="30" rx="8" fill="#f8fafc" stroke="#e2e8f0"/><text x="524" y="468" text-anchor="middle" font-size="12" font-weight="600" fill="#334155">Skip for now</text>
+  <rect x="582" y="448" width="84" height="30" rx="8" fill="#2563eb"/><text x="624" y="468" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">Go to Settings</text>
+</svg>
