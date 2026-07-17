@@ -33,8 +33,22 @@ describe('provider selection', () => {
     expect(() => resolveProviderId({ provider: 'bitbucket' })).toThrow(/Unknown restore provider/);
   });
 
-  test('exposes exactly github, gitlab, gitea', () => {
-    expect(Object.keys(PROVIDERS).sort()).toEqual(['gitea', 'github', 'gitlab']);
+  test('exposes github, gitlab, gitea, local', () => {
+    expect(Object.keys(PROVIDERS).sort()).toEqual(['gitea', 'github', 'gitlab', 'local']);
+  });
+});
+
+describe('local provider', () => {
+  test('needs no credentials and resolves a destination', () => {
+    const p = getProvider({ provider: 'local', localDest: './out' });
+    expect(p.id).toBe('local');
+    expect(p.localDest).toMatch(/out$/);
+    expect(p.remoteUrl('a', 'b')).toBeNull();
+  });
+  test('ensureRepo/label/milestone are no-ops', async () => {
+    const p = getProvider({ provider: 'local' });
+    await expect(p.ensureRepo('a', 'b')).resolves.toBeUndefined();
+    await expect(p.restoreLabels('a', 'b', [{ name: 'x' }])).resolves.toBeUndefined();
   });
 });
 

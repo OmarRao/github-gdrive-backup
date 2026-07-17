@@ -5,7 +5,6 @@ const { runBackup } = require('../../backup/index');
 const { runRestore } = require('../../restore/index');
 const GoogleDriveClient = require('../../backup/gdrive');
 const GitHubClient = require('../../backup/github');
-const logger = require('../../logger');
 
 // Active job state (in-memory; use a DB for production multi-node setups)
 const jobs = new Map();

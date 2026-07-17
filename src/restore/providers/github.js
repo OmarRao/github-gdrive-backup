@@ -50,6 +50,34 @@ function create(options = {}) {
         }).catch(() => {});
       }
     },
+
+    /**
+     * Best-effort re-creation of issues (opt-in via options.recreateIssues).
+     * Recreates title/body/labels with a provenance note; closes issues that
+     * were closed in the source. Skips PR entries (they surface via the issues
+     * API but can't be recreated as PRs).
+     */
+    async restoreIssues(owner, repo, issues = []) {
+      let created = 0;
+      // Oldest first so numbering roughly tracks the original order.
+      const ordered = [...issues].filter(i => !i.pull_request).reverse();
+      for (const issue of ordered) {
+        const provenance = `\n\n---\n_Restored from backup. Originally #${issue.number} by @${issue.user && issue.user.login} on ${issue.created_at}._`;
+        try {
+          const { data } = await octokit.issues.create({
+            owner, repo,
+            title: issue.title,
+            body: (issue.body || '') + provenance,
+            labels: (issue.labels || []).map(l => (typeof l === 'string' ? l : l.name)),
+          });
+          if ((issue.state || '').toLowerCase() === 'closed') {
+            await octokit.issues.update({ owner, repo, issue_number: data.number, state: 'closed' }).catch(() => {});
+          }
+          created++;
+        } catch { /* rate limit or perms — best effort */ }
+      }
+      return created;
+    },
   };
 }
 

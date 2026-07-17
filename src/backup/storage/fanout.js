@@ -64,8 +64,9 @@ async function initSessionFolders(sessionName) {
  * @returns {Promise<Array<{target,ok,size?,error?}>>}
  */
 async function mirrorFile(localPath, sessionFolders, fileName, expectedSize) {
-  const results = [];
-  for (const t of parseTargets()) {
+  // Mirror to every target concurrently — targets are independent, so a slow
+  // or failing destination never holds up the others.
+  return Promise.all(parseTargets().map(async (t) => {
     try {
       const folder = (sessionFolders && sessionFolders[t]) || '';
       const res = await _load(t).uploadFile(localPath, folder, fileName);
@@ -76,13 +77,12 @@ async function mirrorFile(localPath, sessionFolders, fileName, expectedSize) {
       } else {
         logger.info(`Mirrored ${fileName} → ${t} (${size} bytes)`);
       }
-      results.push({ target: t, ok, size });
+      return { target: t, ok, size };
     } catch (e) {
       logger.error(`Mirror to ${t} failed for ${fileName}: ${e.message}`);
-      results.push({ target: t, ok: false, error: e.message });
+      return { target: t, ok: false, error: e.message };
     }
-  }
-  return results;
+  }));
 }
 
 /**

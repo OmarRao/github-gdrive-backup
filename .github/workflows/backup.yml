@@ -22,7 +22,7 @@ on:
         required: false
         default: ''
       include:
-        description: 'What to include (comma-separated: code,issues,pull_requests,releases,wiki,labels,milestones)'
+        description: 'What to include (comma-separated: code,issues,pull_requests,releases,wiki,labels,milestones,config)'
         required: false
         default: 'code,issues,pull_requests,releases,wiki,labels,milestones'
       orgs:

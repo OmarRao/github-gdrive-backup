@@ -25,7 +25,7 @@ async function _getDrive() {
  */
 async function uploadFile(localPath, sessionFolder, fileName) {
   const drive = await _getDrive();
-  return drive.uploadFile(localPath, sessionFolder);
+  return drive.uploadFile(localPath, sessionFolder, 'application/zip', fileName);
 }
 
 /**

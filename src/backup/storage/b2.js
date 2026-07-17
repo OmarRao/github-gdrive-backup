@@ -47,12 +47,20 @@ async function uploadFile(localPath, sessionFolder, fileName) {
   const body   = fs.createReadStream(localPath);
   const size   = fs.statSync(localPath).size;
 
-  await client.send(new _PutObjectCommand({
+  const params = {
     Bucket:        process.env.B2_BUCKET,
     Key:           key,
     Body:          body,
     ContentLength: size,
-  }));
+  };
+  // Optional WORM: B2 supports S3-style Object Lock when enabled on the bucket.
+  const days = parseInt(process.env.B2_OBJECT_LOCK_DAYS || '0', 10);
+  if (days > 0) {
+    params.ObjectLockMode = (process.env.B2_OBJECT_LOCK_MODE || 'GOVERNANCE').toUpperCase();
+    params.ObjectLockRetainUntilDate = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  }
+
+  await client.send(new _PutObjectCommand(params));
 
   return { key, size: String(size) };
 }

@@ -13,6 +13,7 @@ const PROVIDERS = {
   github: () => require('./github'),
   gitlab: () => require('./gitlab'),
   gitea:  () => require('./gitea'),
+  local:  () => require('./local'),
 };
 
 /** Normalize and validate the configured provider id. */

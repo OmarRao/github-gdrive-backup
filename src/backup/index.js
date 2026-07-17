@@ -9,6 +9,7 @@ const GitHubClient = require('./github');
 const GoogleDriveClient = require('./gdrive');
 const fanout = require('./storage/fanout');
 const incremental = require('./incremental');
+const { renderIssuesHtml } = require('./issues-archive');
 const logger = require('../logger');
 
 const INCREMENTAL_MODE = (process.env.INCREMENTAL_MODE || '').trim().toLowerCase() === 'delta';
@@ -92,7 +93,16 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, increm
       if (incrementalCtx) {
         const prev = incrementalCtx.prevStateByRepo[name];
         const curRefs = incremental.readRefs(mirrorDir);
-        const mode = incremental.decideMode(prev && prev.refs, curRefs);
+        let mode = incremental.decideMode(prev && prev.refs, curRefs);
+
+        // Chain compaction: cap delta-chain depth so restore stays fast and a
+        // single aging base bundle can't hold the whole chain hostage. When the
+        // chain would exceed the max, take a fresh full base instead.
+        if (mode === 'delta' && prev && Array.isArray(prev.chain) &&
+            prev.chain.length >= incrementalCtx.maxChainDepth) {
+          logger.info(`↺ ${repo.full_name}: chain depth ${prev.chain.length} ≥ ${incrementalCtx.maxChainDepth} — compacting to a fresh full base`);
+          mode = 'full';
+        }
 
         if (mode === 'unchanged') {
           const state = {
@@ -204,6 +214,9 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, increm
     if (INCLUDE.includes('milestones')) {
       metadata.milestones = await withRateLimitRetry(() => gh.fetchMilestones(owner.login, name));
     }
+    if (INCLUDE.includes('config')) {
+      metadata.config = await withRateLimitRetry(() => gh.fetchRepoConfig(owner.login, name));
+    }
     if (INCLUDE.includes('wiki')) {
       const wikiDir = await gh.fetchWiki(owner.login, name, repoDir);
       if (wikiDir) {
@@ -231,6 +244,16 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, increm
       const res = await fanout.mirrorJson(TMP, `${name}-metadata.json`, metadata, mirrorFolders);
       mirrorResults.push({ file: `${name}-metadata.json`, targets: res });
     }
+
+    // Human-readable issues/PR archive (always restorable, no tooling needed).
+    if ((metadata.issues && metadata.issues.length) || (metadata.pull_requests && metadata.pull_requests.length)) {
+      const issuesHtmlPath = path.join(TMP, `${name}-issues-${Date.now()}.html`);
+      fs.writeFileSync(issuesHtmlPath, renderIssuesHtml(metadata));
+      await drive.uploadFile(issuesHtmlPath, repoFolder, 'text/html', 'issues.html');
+      if (mirrorFolders) await fanout.mirrorFile(issuesHtmlPath, mirrorFolders, `${name}-issues.html`);
+      fs.rmSync(issuesHtmlPath, { force: true });
+    }
+
     logger.info(`✓ ${repo.full_name} backed up`);
     return {
       repo: repo.full_name,
@@ -371,8 +394,13 @@ async function runBackup(options = {}) {
   // prior session so this run can upload only new git objects.
   let incrementalCtx = null;
   if (INCREMENTAL_MODE) {
-    incrementalCtx = { sessionName, prevStateByRepo: await loadPrevIncrementalState(drive, rootFolderId, sessionFolder) };
-    logger.info(`Incremental (delta) mode enabled — ${Object.keys(incrementalCtx.prevStateByRepo).length} repo state(s) carried forward`);
+    const maxChainDepth = Math.max(1, parseInt(process.env.INCREMENTAL_MAX_CHAIN || '20', 10));
+    incrementalCtx = {
+      sessionName,
+      maxChainDepth,
+      prevStateByRepo: await loadPrevIncrementalState(drive, rootFolderId, sessionFolder),
+    };
+    logger.info(`Incremental (delta) mode enabled — ${Object.keys(incrementalCtx.prevStateByRepo).length} repo state(s) carried forward; max chain depth ${maxChainDepth}`);
   }
 
   let repos = options.repos
@@ -426,11 +454,7 @@ async function runBackup(options = {}) {
     while (true) {
       let pageProjects = [];
       try {
-        const { https, http } = await (async () => {
-          const mod = gitlabHost.startsWith('https') ? require('https') : require('http');
-          return { https: mod, http: mod };
-        })();
-        // Use built-in https/http to fetch GitLab projects
+        // Fetch GitLab projects with the built-in http(s) module.
         const pageData = await new Promise((resolve, reject) => {
           const url = new URL(`${gitlabApiBase}/projects?membership=true&per_page=100&page=${glPage}`);
           const reqModule = url.protocol === 'https:' ? require('https') : require('http');

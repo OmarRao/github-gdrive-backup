@@ -98,6 +98,53 @@ class GitHubClient {
     return data;
   }
 
+  /**
+   * Capture repository configuration for config-level disaster recovery:
+   * settings, branch protection, collaborators, webhook shapes, and the NAMES
+   * of Actions secrets (values are never retrievable via the API and are never
+   * stored). Every call is best-effort — missing scopes simply omit that slice.
+   */
+  async fetchRepoConfig(owner, repo) {
+    const config = {};
+    let defaultBranch = 'main';
+    try {
+      const { data } = await this.octokit.repos.get({ owner, repo });
+      defaultBranch = data.default_branch || 'main';
+      config.settings = {
+        default_branch: data.default_branch,
+        visibility: data.visibility,
+        description: data.description,
+        homepage: data.homepage,
+        topics: data.topics,
+        has_issues: data.has_issues,
+        has_wiki: data.has_wiki,
+        has_projects: data.has_projects,
+        allow_squash_merge: data.allow_squash_merge,
+        allow_merge_commit: data.allow_merge_commit,
+        allow_rebase_merge: data.allow_rebase_merge,
+        delete_branch_on_merge: data.delete_branch_on_merge,
+        archived: data.archived,
+      };
+    } catch { /* insufficient scope */ }
+    try {
+      const { data } = await this.octokit.repos.getBranchProtection({ owner, repo, branch: defaultBranch });
+      config.branch_protection = { branch: defaultBranch, rules: data };
+    } catch { /* no protection or no admin scope */ }
+    try {
+      const { data } = await this.octokit.repos.listCollaborators({ owner, repo, per_page: 100 });
+      config.collaborators = data.map(c => ({ login: c.login, role_name: c.role_name, permissions: c.permissions }));
+    } catch { /* no push access */ }
+    try {
+      const { data } = await this.octokit.actions.listRepoSecrets({ owner, repo, per_page: 100 });
+      config.secret_names = (data.secrets || []).map(s => s.name); // names only — never values
+    } catch { /* no admin scope */ }
+    try {
+      const { data } = await this.octokit.repos.listWebhooks({ owner, repo, per_page: 100 });
+      config.webhooks = data.map(w => ({ events: w.events, active: w.active, url: w.config && w.config.url }));
+    } catch { /* no admin scope */ }
+    return config;
+  }
+
   async fetchWiki(owner, repo, destDir) {
     try {
       const wikiUrl = `https://x-access-token:${this.token}@github.com/${owner}/${repo}.wiki.git`;

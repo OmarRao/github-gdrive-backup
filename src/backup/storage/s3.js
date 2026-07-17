@@ -52,10 +52,28 @@ async function uploadFile(localPath, sessionFolder, fileName) {
     Key:           key,
     Body:          body,
     ContentLength: size,
+    ...wormParams(),
   }));
 
   // Return an object shaped like a Drive file response so callers can read .size
   return { key, size: String(size) };
+}
+
+/**
+ * Optional WORM (write-once-read-many) object-lock parameters. Set
+ * S3_OBJECT_LOCK_DAYS>0 (bucket must have Object Lock enabled). Mode defaults
+ * to GOVERNANCE; set S3_OBJECT_LOCK_MODE=COMPLIANCE for un-bypassable locks.
+ * Makes backups ransomware-proof — they cannot be deleted or overwritten until
+ * the retention date passes.
+ */
+function wormParams() {
+  const days = parseInt(process.env.S3_OBJECT_LOCK_DAYS || '0', 10);
+  if (!days || days <= 0) return {};
+  const until = new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  return {
+    ObjectLockMode: (process.env.S3_OBJECT_LOCK_MODE || 'GOVERNANCE').toUpperCase(),
+    ObjectLockRetainUntilDate: until,
+  };
 }
 
 /**

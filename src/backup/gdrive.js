@@ -38,8 +38,8 @@ class GoogleDriveClient {
     return folder.data.id;
   }
 
-  async uploadFile(filePath, parentFolderId, mimeType = 'application/zip') {
-    const name = path.basename(filePath);
+  async uploadFile(filePath, parentFolderId, mimeType = 'application/zip', overrideName) {
+    const name = overrideName || path.basename(filePath);
     const size = fs.statSync(filePath).size;
     logger.info(`Uploading ${name} (${(size / 1024 / 1024).toFixed(2)} MB)`);
 

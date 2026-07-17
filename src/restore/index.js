@@ -117,6 +117,60 @@ async function reconstructFromChain(drive, ctx, repoName, repoFiles) {
   return mirrorDir;
 }
 
+/** Parse `sha\tref` lines from git ls-remote / show-ref output into a map. */
+function parseRefLines(text) {
+  const map = {};
+  (text || '').split('\n').filter(Boolean).forEach(line => {
+    const [sha, ref] = line.split(/\s+/);
+    if (sha && ref) map[ref] = sha;
+  });
+  return map;
+}
+
+/**
+ * Deliver a reconstructed/extracted git repo to the destination and verify it.
+ * Push mode: add remote, force-push all branches + tags, then compare the
+ * destination's refs (git ls-remote) against the local source refs.
+ * Local mode: copy the bare mirror to <localDest>/<repo>.git and verify on disk.
+ *
+ * @returns {Promise<{verified:boolean, refs:number, mismatches:string[]}>}
+ */
+async function deliverGit(provider, repoDir, targetOwner, repoName) {
+  const localRefs = incremental.readRefs(repoDir);
+  const heads = Object.keys(localRefs).filter(r => r.startsWith('refs/heads/') || r.startsWith('refs/tags/'));
+
+  if (provider.id === 'local') {
+    const destBase = provider.localDest;
+    fs.mkdirSync(destBase, { recursive: true });
+    const dest = path.join(destBase, `${repoName}.git`);
+    fs.rmSync(dest, { recursive: true, force: true });
+    fs.cpSync(repoDir, dest, { recursive: true });
+    const destRefs = incremental.readRefs(dest);
+    const mismatches = heads.filter(r => destRefs[r] !== localRefs[r]);
+    logger.info(`Saved ${repoName} → ${dest} (${heads.length} refs, ${mismatches.length ? mismatches.length + ' mismatch' : 'verified'})`);
+    return { verified: mismatches.length === 0, refs: heads.length, mismatches };
+  }
+
+  const remoteUrl = provider.remoteUrl(targetOwner, repoName);
+  await simpleGit(repoDir).addRemote('target', remoteUrl).catch(() => {});
+  await simpleGit(repoDir).push('target', '--all', ['--force']);
+  await simpleGit(repoDir).push('target', '--tags', ['--force']);
+
+  // Post-restore verification: confirm the destination's tips match the source.
+  let mismatches = heads;
+  try {
+    const remoteText = await simpleGit(repoDir).listRemote(['target']);
+    const remoteRefs = parseRefLines(remoteText);
+    mismatches = heads.filter(r => remoteRefs[r] !== localRefs[r]);
+    if (mismatches.length) logger.warn(`Post-restore verification: ${mismatches.length}/${heads.length} refs differ on ${targetOwner}/${repoName}`);
+    else logger.info(`Post-restore verified: ${heads.length} refs match on ${targetOwner}/${repoName}`);
+  } catch (e) {
+    logger.warn(`Could not verify remote refs for ${targetOwner}/${repoName}: ${e.message}`);
+    return { verified: false, refs: heads.length, mismatches: ['verification-failed'] };
+  }
+  return { verified: mismatches.length === 0, refs: heads.length, mismatches };
+}
+
 async function restoreRepo(provider, drive, repoFiles, owner, options = {}, manifestHashes = null, ctx = null) {
   const bundleFile = repoFiles.find(f => f.name.endsWith('.bundle') || f.name.endsWith('.bundle.enc'));
   const stateFile = repoFiles.find(f => f.name === 'backup-state.json');
@@ -137,18 +191,16 @@ async function restoreRepo(provider, drive, repoFiles, owner, options = {}, mani
   // Create the destination repo if it doesn't exist (provider-agnostic)
   await provider.ensureRepo(targetOwner, repoName, options);
 
+  let verification = null;
+
   // Delta (bundle) restore: reconstruct the full mirror from the bundle chain.
   if (isIncremental) {
     const mirrorDir = await reconstructFromChain(drive, ctx, repoName, repoFiles);
-    const remoteUrl = provider.remoteUrl(targetOwner, repoName);
-    await simpleGit(mirrorDir).addRemote('target', remoteUrl).catch(() => {});
-    await simpleGit(mirrorDir).push('target', '--all', ['--force']);
-    await simpleGit(mirrorDir).push('target', '--tags', ['--force']);
+    verification = await deliverGit(provider, mirrorDir, targetOwner, repoName);
     fs.rmSync(mirrorDir, { recursive: true, force: true });
-    logger.info(`Pushed reconstructed git content to ${targetOwner}/${repoName}`);
   }
 
-  // Push git content (full-archive restore)
+  // Full-archive restore
   if (gitFile && !isIncremental) {
     const isEncrypted = gitFile.name.endsWith('.enc');
     const downloadDest = path.join(TMP, `${repoName}-restore${isEncrypted ? '.zip.enc' : '.zip'}`);
@@ -156,10 +208,10 @@ async function restoreRepo(provider, drive, repoFiles, owner, options = {}, mani
     const extractDir = path.join(TMP, `${repoName}-extract`);
     fs.mkdirSync(extractDir, { recursive: true });
 
-    // Feature 2: Download with manifest hash verification
+    // Download with manifest hash verification
     await downloadAndVerify(drive, gitFile, downloadDest, manifestHashes);
 
-    // Feature 9: Decrypt if file ends in .enc
+    // Decrypt if file ends in .enc
     if (isEncrypted) {
       logger.info(`Decrypting ${gitFile.name}...`);
       await decryptFile(downloadDest, zipTmp);
@@ -168,20 +220,15 @@ async function restoreRepo(provider, drive, repoFiles, owner, options = {}, mani
 
     await extractZip(zipTmp, { dir: extractDir });
 
-    const remoteUrl = provider.remoteUrl(targetOwner, repoName);
-
     const gitDir = fs.readdirSync(extractDir).find(d =>
       fs.statSync(path.join(extractDir, d)).isDirectory()
     );
     const repoPath = gitDir ? path.join(extractDir, gitDir) : extractDir;
 
-    await simpleGit(repoPath).addRemote('target', remoteUrl).catch(() => {});
-    await simpleGit(repoPath).push('target', '--all', ['--force']);
-    await simpleGit(repoPath).push('target', '--tags', ['--force']);
+    verification = await deliverGit(provider, repoPath, targetOwner, repoName);
 
     fs.rmSync(zipTmp, { force: true });
     fs.rmSync(extractDir, { recursive: true, force: true });
-    logger.info(`Pushed git content to ${targetOwner}/${repoName}`);
   }
 
   // Restore labels & milestones via the destination provider (best-effort)
@@ -192,21 +239,32 @@ async function restoreRepo(provider, drive, repoFiles, owner, options = {}, mani
     await provider.restoreMilestones(targetOwner, repoName, meta.milestones);
   }
 
+  // Opt-in best-effort issue re-creation (provider must support it).
+  if (options.recreateIssues && meta.issues?.length && typeof provider.restoreIssues === 'function') {
+    const n = await provider.restoreIssues(targetOwner, repoName, meta.issues);
+    logger.info(`Re-created ${n} issue(s) on ${targetOwner}/${repoName}`);
+  }
+
   logger.info(`✓ Restored ${meta.repo} → ${provider.id}:${targetOwner}/${repoName}`);
-  return { original: meta.repo, restored: `${targetOwner}/${repoName}`, provider: provider.id };
+  return {
+    original: meta.repo,
+    restored: `${targetOwner}/${repoName}`,
+    provider: provider.id,
+    ...(verification ? { verified: verification.verified, refs: verification.refs, mismatches: verification.mismatches } : {}),
+  };
 }
 
 async function runRestore(options = {}) {
-  const owner = options.owner || process.env.GITHUB_USER || process.env.RESTORE_TARGET_OWNER;
-
-  if (!owner) throw new Error('A target owner is required (GITHUB_USER or RESTORE_TARGET_OWNER).');
-
   fs.mkdirSync(TMP, { recursive: true });
 
-  // Build the destination provider (github | gitlab | gitea). Each provider
-  // validates its own credentials when constructed.
+  // Build the destination provider (github | gitlab | gitea | local). Each
+  // provider validates its own credentials when constructed.
   const provider = getProvider(options);
   logger.info(`Restore destination provider: ${provider.id}`);
+
+  // A remote target owner is required for push providers, but not for local.
+  const owner = options.owner || process.env.GITHUB_USER || process.env.RESTORE_TARGET_OWNER || (provider.id === 'local' ? 'local' : '');
+  if (!owner) throw new Error('A target owner is required (GITHUB_USER or RESTORE_TARGET_OWNER).');
 
   const auth = await GoogleDriveClient.createAuthClient(
     process.env.GOOGLE_CLIENT_SECRET_PATH || './credentials/google-client-secret.json',
@@ -215,9 +273,16 @@ async function runRestore(options = {}) {
   const drive = new GoogleDriveClient(auth);
   const rootFolderId = options.folderId || process.env.GDRIVE_FOLDER_ID;
 
-  // List backup sessions
+  // List backup sessions. A session may be selected by explicit id, by name
+  // (from the workflow's session_name input), or defaults to the latest.
   const sessions = await drive.listBackups(rootFolderId);
-  const sessionId = options.sessionId || sessions[0]?.id;
+  let sessionId = options.sessionId;
+  if (!sessionId && options.sessionName) {
+    const match = sessions.find(s => s.name === options.sessionName);
+    if (!match) throw new Error(`Session "${options.sessionName}" not found in Drive folder.`);
+    sessionId = match.id;
+  }
+  if (!sessionId) sessionId = sessions[0]?.id;
   if (!sessionId) throw new Error('No backup sessions found in Drive folder.');
 
   const sessionName = sessions.find(s => s.id === sessionId)?.name;
