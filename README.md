@@ -122,6 +122,14 @@ Press <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>K</kbd> anywhere to open a fuzzy comma
 
 ---
 
+### Backup Composition, Chain Lineage & Restore Wizard
+
+The dashboard surfaces the latest session's **delta composition** (full / delta / unchanged) and **3-2-1 fan-out** status per mirror target. The session drawer visualizes each repo's **delta chain lineage** and Restore Confidence. The **Restore Wizard** builds the exact `gh workflow run` command for any provider (GitHub / GitLab / Gitea / local) and session — copy and go.
+
+![Composition & Restore Wizard](docs/screenshots/composition-wizard.svg)
+
+---
+
 ## Features
 
 | Feature | Details |
@@ -160,6 +168,18 @@ Press <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>K</kbd> anywhere to open a fuzzy comma
 | **Backblaze B2** | `STORAGE_TARGET=b2` — S3-compatible, reuses `@aws-sdk/client-s3` with custom B2 endpoint |
 | **Multi-destination fan-out (3-2-1)** | `BACKUP_MIRROR_TARGETS=s3,b2` mirrors every archive, manifest & summary to secondary clouds with per-file size verification; Drive stays primary, mirror failures never fail the backup |
 | **Cross-provider restore** | Restore a Drive session into **GitHub, GitLab, or Gitea** — pick the destination at dispatch time (`RESTORE_TARGET_PROVIDER`); git history, labels & milestones recreated on the target |
+| **Local restore** | `RESTORE_TARGET_PROVIDER=local` reconstructs each repo to a bare mirror on disk — DR drills & offline inspection, no remote push |
+| **Chain-aware cleanup** | Retention never deletes a base/intermediate bundle a retained delta chain still needs — no silent data loss |
+| **Chain compaction** | `INCREMENTAL_MAX_CHAIN` caps delta depth, forcing a fresh full base so restores stay fast |
+| **Post-restore verification** | After each restore, destination ref tips are compared against the source; result reported per repo |
+| **Repo config backup** | `INCLUDE=config` captures settings, branch protection, collaborators, webhook shapes & Actions secret **names** (never values) |
+| **Issues/PR HTML archive** | Every session gets a self-contained `issues.html`; optional best-effort issue re-creation on GitHub restore |
+| **WORM / object lock** | `S3_OBJECT_LOCK_DAYS` / `B2_OBJECT_LOCK_DAYS` make mirrored copies immutable (ransomware-proof) |
+| **Integration smoke test** | Secrets-gated CI: real delta backup + local restore round-trip verifying git history |
+| **Dependabot auto-merge** | Grouped patch/minor updates auto-approved & merged once CI passes |
+| **Build provenance** | CI generates an SPDX SBOM and signs it with `actions/attest-build-provenance` |
+| **JSON audit log** | Structured JSON-lines audit entries (SIEM-ingestible) |
+| **Restore wizard** | Dashboard modal builds the exact `gh workflow run` command for any provider/session |
 | **SBOM generation** | Optional `include_sbom=true` input generates SPDX SBOM via `anchore/sbom-action@v0` |
 | **Auto-restore test** | Monthly `monthly-restore-test.yml` dry-run verifies restore integrity; result appended to audit log |
 | **PWA / offline** | `manifest.json` + cache-first service worker — install dashboard to home screen, works offline |
@@ -401,6 +421,7 @@ A backup captured from GitHub isn't locked to GitHub. Because the archived git m
 | GitHub *(default)* | `github` | `GH_BACKUP_TOKEN` |
 | GitLab (SaaS or self-hosted) | `gitlab` | `GITLAB_TOKEN`, optional `GITLAB_HOST` (default `https://gitlab.com`) |
 | Gitea (self-hosted) | `gitea` | `GITEA_TOKEN`, `GITEA_HOST` |
+| Local disk (no push) | `local` | none — writes to `RESTORE_LOCAL_DIR` |
 
 Each provider handles its own repo/project creation, authenticated remote URL, and label/milestone recreation (best-effort). The git push path is identical across providers, so branches and tags always transfer faithfully.
 

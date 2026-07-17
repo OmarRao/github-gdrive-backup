@@ -1,5 +1,5 @@
 # GitHub → Google Drive Backup — Technical User Guide
-**Version 3.4.0** | Last updated: 2026-07-14
+**Version 3.5.0** | Last updated: 2026-07-17
 
 ---
 
@@ -67,6 +67,7 @@
     - [14.4 Supported Frameworks (SOX, HIPAA, ISO 27001, SOC 2)](#144-supported-frameworks-sox-hipaa-iso-27001-soc-2)
 15. [PWA & Offline Support](#15-pwa--offline-support)
 15A. [Dashboard Insights & Productivity (v3.1)](#15a-dashboard-insights--productivity-v31)
+15B. [Reliability & Operations (v3.5)](#15b-reliability--operations-v35)
 16. [Troubleshooting](#16-troubleshooting)
 17. [FAQ](#17-faq)
 18. [Version History](#18-version-history)
@@ -977,6 +978,44 @@ Every toast is also persisted (last 30, in `localStorage`) to a bell dropdown in
 ### Report JSON export
 
 The **Reports** tab now offers an **Export JSON** button alongside CSV and the compliance PDF. The JSON payload includes an `exported_at` timestamp, repository name, run count, and a structured array of every run (id, workflow, status, event, timestamp, duration) — ideal for feeding downstream tooling or SIEM ingestion.
+
+---
+
+## 15B. Reliability & Operations (v3.5)
+
+Version 3.5 is a reliability, DR-depth, and operations release. Highlights:
+
+### Chain-aware cleanup (retention safety)
+`src/cleanup/index.js` now runs a pure `planCleanup()` that, before deleting any aged session, reads the `backup-state.json` of every **retained** session and protects the entire delta chain each one depends on. An old **base** or intermediate bundle is never deleted while a newer session still needs it to restore — closing a data-loss hazard inherent to naive age-based pruning of delta chains. Protected-but-old sessions are logged explicitly.
+
+### Chain compaction
+`INCREMENTAL_MAX_CHAIN` (default 20) caps delta-chain depth. When a repo's chain would exceed it, the next backup takes a **fresh full base** instead of another delta — keeping restores fast and bounding how long any single base must be retained.
+
+### Post-restore verification
+After pushing (or saving locally), restore compares the destination's ref tips against the reconstructed source and reports `{ verified, refs, mismatches }` per repo. A restore that "ran" is now a restore that's **proven**.
+
+### Local restore (no push)
+`RESTORE_TARGET_PROVIDER=local` reconstructs each repo to a bare mirror under `RESTORE_LOCAL_DIR` (`<repo>.git`) with no remote and no credentials — ideal for DR drills, audits, and migrations into unsupported systems.
+
+### Repo configuration backup
+`INCLUDE=config` captures repository settings, default-branch protection rules, collaborators, webhook shapes, and the **names** of Actions secrets (values are never retrievable via the API and are never stored) into `metadata.json` — config-level DR beyond code.
+
+### Issues/PR archive & re-creation
+Every session with issues/PRs gets a self-contained, browsable `issues.html` (no tooling needed, works offline). On GitHub restores you can opt into best-effort **issue re-creation** (`recreate_issues`) with a provenance note and original-state preservation.
+
+### WORM / object lock
+Set `S3_OBJECT_LOCK_DAYS` / `B2_OBJECT_LOCK_DAYS` (bucket Object Lock enabled) to make mirrored copies immutable until the retention date — ransomware-proof secondary copies. Mode defaults to `GOVERNANCE`; use `COMPLIANCE` for un-bypassable locks.
+
+### Composition, chain lineage & restore wizard (dashboard)
+The dashboard shows the latest session's **delta composition** (full/delta/unchanged) and **fan-out** mirror status; the session drawer visualizes each repo's **chain lineage**; and the **Restore Wizard** generates the exact `gh workflow run restore.yml` command for any provider and session.
+
+![Composition & Restore Wizard](screenshots/composition-wizard.svg)
+
+### Operations
+- **Integration smoke test** (`integration-smoke.yml`) — secrets-gated CI that runs a **real** delta backup to Drive and a local restore, verifying reconstructed git history; self-skips without secrets.
+- **Dependabot auto-merge** — grouped patch/minor updates are auto-approved and merged once CI passes.
+- **Build provenance** — CI generates an SPDX SBOM and signs it via `actions/attest-build-provenance`.
+- **JSON audit log** (`src/audit/log.js`) — structured, SIEM-ingestible JSON-lines entries.
 
 ---
 

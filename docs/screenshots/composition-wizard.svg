@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 440" width="900" height="440" font-family="'Segoe UI', system-ui, -apple-system, sans-serif">
+  <rect x="0" y="0" width="900" height="440" fill="#f1f5f9"/>
+
+  <!-- Composition card -->
+  <rect x="24" y="24" width="470" height="392" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+  <text x="48" y="56" font-size="15" font-weight="700" fill="#0f172a">Backup Composition &amp; Fan-out</text>
+  <text x="48" y="76" font-size="12" fill="#64748b">Latest session — delta strategy and 3-2-1 mirror status</text>
+
+  <!-- composition bar -->
+  <g>
+    <rect x="48" y="96" width="88" height="26" rx="0" fill="#2563eb"/>
+    <rect x="136" y="96" width="264" height="26" fill="#10b981"/>
+    <rect x="400" y="96" width="46" height="26" fill="#94a3b8"/>
+    <rect x="48" y="96" width="398" height="26" rx="6" fill="none" stroke="#e2e8f0"/>
+    <text x="92" y="113" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">2</text>
+    <text x="268" y="113" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">46</text>
+  </g>
+  <!-- legend -->
+  <rect x="48" y="140" width="10" height="10" rx="3" fill="#2563eb"/><text x="64" y="149" font-size="12" fill="#64748b">Full base · 2</text>
+  <rect x="150" y="140" width="10" height="10" rx="3" fill="#10b981"/><text x="166" y="149" font-size="12" fill="#64748b">Delta · 46</text>
+  <rect x="250" y="140" width="10" height="10" rx="3" fill="#94a3b8"/><text x="266" y="149" font-size="12" fill="#64748b">Unchanged (skipped) · 11</text>
+
+  <!-- mirror chips -->
+  <rect x="48" y="176" width="150" height="30" rx="15" fill="#f8fafc" stroke="#e2e8f0"/>
+  <circle cx="66" cy="191" r="4" fill="#10b981"/><text x="78" y="195" font-size="12" font-weight="600" fill="#0f172a">S3 — 47 ok</text>
+  <rect x="210" y="176" width="190" height="30" rx="15" fill="#f8fafc" stroke="#e2e8f0"/>
+  <circle cx="228" cy="191" r="4" fill="#f59e0b"/><text x="240" y="195" font-size="12" font-weight="600" fill="#0f172a">B2 — 46 ok, 1 failed</text>
+
+  <!-- chain lineage -->
+  <text x="48" y="246" font-size="13" font-weight="700" fill="#0f172a">Delta chain <tspan font-weight="400" fill="#64748b">(depth 4)</tspan></text>
+  <rect x="48" y="258" width="64" height="22" rx="6" fill="#2563eb"/><text x="80" y="273" text-anchor="middle" font-size="10.5" font-weight="700" fill="#fff">full base</text>
+  <text x="118" y="273" font-size="11" fill="#94a3b8">→</text>
+  <rect x="132" y="258" width="40" height="22" rx="6" fill="#f0fdf4" stroke="#10b981"/><text x="152" y="273" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">Δ 1</text>
+  <text x="178" y="273" font-size="11" fill="#94a3b8">→</text>
+  <rect x="192" y="258" width="40" height="22" rx="6" fill="#f0fdf4" stroke="#10b981"/><text x="212" y="273" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">Δ 2</text>
+  <text x="238" y="273" font-size="11" fill="#94a3b8">→</text>
+  <rect x="252" y="258" width="40" height="22" rx="6" fill="#f0fdf4" stroke="#10b981"/><text x="272" y="273" text-anchor="middle" font-size="10.5" font-weight="700" fill="#059669">Δ 3</text>
+
+  <text x="48" y="320" font-size="12" fill="#475569" font-weight="600">Restore Confidence</text>
+  <circle cx="60" cy="342" r="14" fill="none" stroke="#10b981" stroke-width="3.5" stroke-dasharray="82 88" transform="rotate(-90 60 342)"/>
+  <text x="60" y="346" text-anchor="middle" font-size="9" font-weight="700" fill="#0f172a">98</text>
+  <text x="84" y="340" font-size="12" fill="#64748b">Integrity metadata present,</text>
+  <text x="84" y="356" font-size="12" fill="#64748b">all archives accounted for.</text>
+
+  <!-- Restore wizard -->
+  <rect x="518" y="24" width="358" height="392" rx="14" fill="#0f172a"/>
+  <text x="542" y="56" font-size="15" font-weight="700" fill="#ffffff">Restore Wizard</text>
+  <text x="542" y="80" font-size="11" font-weight="700" letter-spacing="0.4" fill="#64748b">DESTINATION PROVIDER</text>
+  <rect x="542" y="88" width="310" height="30" rx="6" fill="#1e293b" stroke="#334155"/><text x="556" y="108" font-size="12.5" fill="#e2e8f0">GitLab (SaaS or self-hosted)</text>
+  <text x="542" y="140" font-size="11" font-weight="700" letter-spacing="0.4" fill="#64748b">SESSION</text>
+  <rect x="542" y="148" width="310" height="30" rx="6" fill="#1e293b" stroke="#334155"/><text x="556" y="168" font-size="12.5" fill="#e2e8f0">session-2026-07-16</text>
+  <text x="542" y="200" font-size="11" font-weight="700" letter-spacing="0.4" fill="#64748b">COMMAND TO RUN</text>
+  <rect x="542" y="208" width="310" height="120" rx="8" fill="#020617" stroke="#334155"/>
+  <text x="556" y="230" font-size="11" font-family="ui-monospace,monospace" fill="#4ade80">gh workflow run restore.yml \</text>
+  <text x="556" y="248" font-size="11" font-family="ui-monospace,monospace" fill="#e2e8f0">  -f target_provider=gitlab \</text>
+  <text x="556" y="266" font-size="11" font-family="ui-monospace,monospace" fill="#e2e8f0">  -f session_name="session-…" \</text>
+  <text x="556" y="284" font-size="11" font-family="ui-monospace,monospace" fill="#e2e8f0">  -f target_owner="platform" \</text>
+  <text x="556" y="302" font-size="11" font-family="ui-monospace,monospace" fill="#e2e8f0">  -f repos="api-service"</text>
+  <rect x="640" y="344" width="120" height="34" rx="8" fill="#1e293b" stroke="#334155"/><text x="700" y="366" text-anchor="middle" font-size="12" font-weight="600" fill="#e2e8f0">Copy command</text>
+  <rect x="770" y="344" width="82" height="34" rx="8" fill="#2563eb"/><text x="811" y="366" text-anchor="middle" font-size="12" font-weight="600" fill="#fff">Done</text>
+</svg>
