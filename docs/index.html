@@ -1142,6 +1142,32 @@
     @media (max-width: 720px) {
       #dash-charts-row { grid-template-columns: 1fr !important; }
     }
+
+    /* ── Composition bar + mirror chips ───────────────────────────────────── */
+    .comp-bar { display: flex; height: 26px; border-radius: 6px; overflow: hidden; border: 1px solid var(--border); }
+    .comp-seg { display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; min-width: 0; }
+    .comp-seg.full { background: #2563eb; }
+    .comp-seg.delta { background: #10b981; }
+    .comp-seg.unchanged { background: #94a3b8; }
+    .comp-legend { display: flex; gap: 16px; margin-top: 10px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+    .comp-legend .dot { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
+    .mirror-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+    .mirror-chip { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border: 1px solid var(--border); border-radius: 20px; font-size: 12px; font-weight: 600; background: var(--bg-hover); }
+    .mirror-chip .m-led { width: 8px; height: 8px; border-radius: 50%; }
+    .mirror-chip.ok .m-led { background: var(--primary); }
+    .mirror-chip.warn .m-led { background: var(--warn); }
+
+    /* ── Restore wizard ───────────────────────────────────────────────────── */
+    .wiz-step { margin-bottom: 16px; }
+    .wiz-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; color: var(--muted); margin-bottom: 6px; }
+    .wiz-cmd { background: var(--bg-sidebar); color: #e2e8f0; font-family: ui-monospace, monospace; font-size: 12px; padding: 14px; border-radius: var(--radius-sm); white-space: pre-wrap; word-break: break-all; line-height: 1.6; }
+
+    /* ── Chain lineage ────────────────────────────────────────────────────── */
+    .chain-lineage { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 8px; }
+    .chain-node { font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 6px; }
+    .chain-node.base { background: #2563eb; color: #fff; }
+    .chain-node.delta { background: var(--primary-bg); color: var(--primary-h); border: 1px solid var(--primary); }
+    .chain-arrow { color: var(--muted-light); font-size: 11px; }
   </style>
 </head>
 <body class="locked">
@@ -1464,6 +1490,16 @@
       </div>
     </div>
 
+    <div class="card" id="composition-card" style="display:none">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Backup Composition &amp; Fan-out</div>
+          <div class="card-subtitle">Latest session — delta strategy and 3-2-1 mirror status</div>
+        </div>
+      </div>
+      <div id="composition-body"></div>
+    </div>
+
     <div class="card">
       <div class="card-header">
         <div>
@@ -1566,6 +1602,10 @@
         <h1>Restore Drive &rarr; GitHub</h1>
         <div class="page-subtitle">Browse sessions and trigger a restore workflow</div>
       </div>
+      <button class="btn btn-secondary" onclick="openRestoreWizard()" aria-label="Open restore wizard">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M5 3v4M3 5h4M6 17v4m-2-2h4"/><path d="M13 3l3.5 3.5L7 16l-3.5-.5L3 12z"/></svg>
+        Restore Wizard
+      </button>
     </div>
 
     <div id="restore-drive-banner" class="notice notice-info">
@@ -2312,6 +2352,50 @@
   <div class="drawer-body" id="drawer-body"></div>
 </aside>
 
+<!-- ── Restore wizard ───────────────────────────────────────────────────── -->
+<div id="restore-wizard-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" style="max-width:560px">
+    <div class="modal-header">
+      <span class="modal-title">Restore Wizard</span>
+      <button class="modal-close" onclick="closeModal()" aria-label="Close">
+        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+    <div class="wiz-step">
+      <div class="wiz-label">Destination provider</div>
+      <select id="wiz-provider" class="form-input" onchange="updateWizard()">
+        <option value="github">GitHub</option>
+        <option value="gitlab">GitLab</option>
+        <option value="gitea">Gitea</option>
+        <option value="local">Local (reconstruct to disk, no push)</option>
+      </select>
+    </div>
+    <div class="wiz-step">
+      <div class="wiz-label">Session</div>
+      <select id="wiz-session" class="form-input" onchange="updateWizard()"></select>
+    </div>
+    <div class="wiz-step" id="wiz-owner-step">
+      <div class="wiz-label">Target owner / namespace</div>
+      <input id="wiz-owner" class="form-input" placeholder="e.g. my-org" oninput="updateWizard()" />
+    </div>
+    <div class="wiz-step">
+      <div class="wiz-label">Repos (blank = all in session)</div>
+      <input id="wiz-repos" class="form-input" placeholder="repo-a, repo-b" oninput="updateWizard()" />
+    </div>
+    <div class="wiz-step">
+      <label class="checkbox-label"><input type="checkbox" id="wiz-recreate" onchange="updateWizard()" /> Re-create issues (GitHub, best-effort)</label>
+    </div>
+    <div class="wiz-step">
+      <div class="wiz-label">Command to run</div>
+      <div class="wiz-cmd" id="wiz-cmd"></div>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="copyWizardCmd()">Copy command</button>
+      <button class="btn btn-primary" onclick="closeModal()">Done</button>
+    </div>
+  </div>
+</div>
+
 <div id="shortcuts-modal" class="modal-overlay hidden" onclick="if(event.target===this)closeModal()">
   <div class="modal-box" style="max-width:400px">
     <div class="modal-header">
@@ -2437,6 +2521,9 @@ const DEMO = (() => {
     reports: { total: 47, rate: '97.9%', failed: 1, streak: '8 days' },
     quota: { usedGB: 14.2, totalGB: 100 },
     slaHours: 26,
+    // v3.5 — delta composition + fan-out status from the latest session summary
+    composition: { full: 1, delta: 3, unchanged: 1 },
+    mirror: { targets: ['s3', 'b2'], perTarget: { s3: { ok: 5, failed: 0 }, b2: { ok: 4, failed: 1 } } },
   };
 })();
 
@@ -2729,6 +2816,39 @@ function renderDashboardWidgets(sessions, runs) {
   renderHealthGrid(sessions, runs);
   renderStorageChart(sessions);
   renderHeatmap(sessions, runs);
+  renderComposition();
+}
+
+// Backup composition (delta modes) + fan-out mirror status from latest summary.
+function renderComposition() {
+  const card = document.getElementById('composition-card');
+  const body = document.getElementById('composition-body');
+  if (!card || !body) return;
+  const comp = window.DEMO_MODE ? DEMO.composition : (window._latestSummary && window._latestSummary.incremental);
+  const mirror = window.DEMO_MODE ? DEMO.mirror : (window._latestSummary && window._latestSummary.mirror);
+  if (!comp && !mirror) { card.style.display = 'none'; return; }
+  card.style.display = '';
+
+  let html = '';
+  if (comp) {
+    const full = comp.full || 0, delta = comp.delta || 0, unch = comp.unchanged || 0;
+    const total = Math.max(1, full + delta + unch);
+    const seg = (n, cls, label) => n ? `<div class="comp-seg ${cls}" style="width:${(n/total*100).toFixed(1)}%" title="${label}: ${n}">${n/total > 0.08 ? n : ''}</div>` : '';
+    html += `<div class="comp-bar" role="img" aria-label="Backup composition: ${full} full, ${delta} delta, ${unch} unchanged">
+        ${seg(full,'full','Full')}${seg(delta,'delta','Delta')}${seg(unch,'unchanged','Unchanged')}</div>
+      <div class="comp-legend">
+        <span><span class="dot" style="background:#2563eb"></span>Full base · ${full}</span>
+        <span><span class="dot" style="background:#10b981"></span>Delta · ${delta}</span>
+        <span><span class="dot" style="background:#94a3b8"></span>Unchanged (skipped) · ${unch}</span>
+      </div>`;
+  }
+  if (mirror && mirror.perTarget) {
+    html += `<div class="mirror-chips">` + Object.entries(mirror.perTarget).map(([t, s]) => {
+      const failed = s.failed || 0;
+      return `<span class="mirror-chip ${failed ? 'warn' : 'ok'}"><span class="m-led"></span>${t.toUpperCase()} — ${s.ok || 0} ok${failed ? `, ${failed} failed` : ''}</span>`;
+    }).join('') + `</div>`;
+  }
+  body.innerHTML = html;
 }
 
 function renderHealthGrid(sessions, runs) {
@@ -3266,6 +3386,25 @@ function runCmdk(i) {
   it.run();
 }
 
+// Render a delta-chain lineage (base → delta → …) for the session drawer.
+function chainLineageHtml(s) {
+  // Prefer real chain metadata; otherwise synthesize a representative one in demo.
+  let chain = s && s.chain;
+  if (!chain && window.DEMO_MODE) {
+    const idx = DEMO.sessions.indexOf(s);
+    const depth = Math.min(3, DEMO.sessions.length - 1 - idx); // older = deeper chain
+    chain = ['base', ...Array.from({ length: Math.max(0, depth) }, () => 'delta')];
+  }
+  if (!chain || !chain.length) return '';
+  const nodes = chain.map((c, i) => {
+    const isBase = i === 0 || c === 'base';
+    const label = isBase ? 'full base' : `Δ ${i}`;
+    return `<span class="chain-node ${isBase ? 'base' : 'delta'}">${label}</span>`;
+  }).join('<span class="chain-arrow">→</span>');
+  return `<div class="drawer-title" style="font-size:13px;margin:4px 0 6px">Delta chain <span style="font-weight:400;color:var(--muted)">(depth ${chain.length})</span></div>
+    <div class="chain-lineage" style="margin-bottom:16px">${nodes}</div>`;
+}
+
 // ── Session detail drawer ──────────────────────────────────────────────────────
 function openDrawer(sessionId) {
   const s = (_liveSessions || []).find(x => String(x.id) === String(sessionId));
@@ -3310,6 +3449,7 @@ function openDrawer(sessionId) {
         <div style="font-size:12px;color:var(--muted)">${failed ? 'Session had a failed repo — verify before relying on it.' : hasMeta ? 'Integrity metadata present, all archives accounted for.' : 'Verified restore-ready.'}</div>
       </div>
     </div>
+    ${chainLineageHtml(s)}
     <div class="drawer-title" style="font-size:13px;margin-bottom:6px">Repositories</div>
     ${repoRows}`;
 
@@ -3321,6 +3461,41 @@ function closeDrawer() {
   document.getElementById('drawer-overlay').classList.add('hidden');
   const d = document.getElementById('session-drawer');
   d.classList.add('hidden'); d.setAttribute('aria-hidden', 'true');
+}
+
+// ── Restore wizard ─────────────────────────────────────────────────────────────
+function openRestoreWizard() {
+  const sel = document.getElementById('wiz-session');
+  const sessions = (_liveSessions && _liveSessions.length) ? _liveSessions : (window.DEMO_MODE ? DEMO.sessions : []);
+  sel.innerHTML = '<option value="">(latest session)</option>' +
+    sessions.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+  document.getElementById('restore-wizard-modal').classList.remove('hidden');
+  updateWizard();
+}
+function updateWizard() {
+  const provider = document.getElementById('wiz-provider').value;
+  const session = document.getElementById('wiz-session').value;
+  const owner = document.getElementById('wiz-owner').value.trim();
+  const repos = document.getElementById('wiz-repos').value.trim();
+  const recreate = document.getElementById('wiz-recreate').checked;
+  // Owner is irrelevant for local restores.
+  document.getElementById('wiz-owner-step').style.display = provider === 'local' ? 'none' : '';
+
+  const lines = ['gh workflow run restore.yml \\', `  -f target_provider=${provider} \\`];
+  if (session) lines.push(`  -f session_name="${session}" \\`);
+  if (provider !== 'local' && owner) lines.push(`  -f target_owner="${owner}" \\`);
+  if (repos) lines.push(`  -f repos="${repos}" \\`);
+  if (recreate && provider === 'github') lines.push('  -f recreate_issues=true \\');
+  // strip trailing backslash on the last line
+  lines[lines.length - 1] = lines[lines.length - 1].replace(/ \\$/, '');
+  document.getElementById('wiz-cmd').textContent = lines.join('\n');
+}
+function copyWizardCmd() {
+  const txt = document.getElementById('wiz-cmd').textContent;
+  navigator.clipboard.writeText(txt).then(
+    () => showToast('Restore command copied to clipboard', 'success'),
+    () => showToast('Copy failed — select the text manually', 'error')
+  );
 }
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
