@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.0.0] — 2026-07-17
+
+### Changed
+- **Relicensed from MIT to a dual-license model: AGPL-3.0 + a separate commercial license.**
+  - `LICENSE` now contains the complete GNU AGPL-3.0 text (was MIT).
+  - `package.json` license field is now `AGPL-3.0-only`.
+  - Docker image now carries `org.opencontainers.image.licenses=AGPL-3.0-only`.
+
+### Added
+- `COMMERCIAL-LICENSE.md` — dual-license notice and commercial-licensing terms (contact `omarsrao@gmail.com`).
+- `TRADEMARKS.md` — trademark/branding policy (no brand rights granted by the code license).
+- `DEPENDENCY-LICENSE-REVIEW.md` — technical inventory of dependency licenses.
+- SPDX headers (`AGPL-3.0-only OR LicenseRef-Commercial`) on all owned source files.
+- README **Licensing** section and USERGUIDE §20.
+
+### Notes
+- No application behavior or production logic changed — this release is licensing/metadata/docs only.
+- Versions previously distributed under MIT remain governed by their original terms.
+
+---
+
 ## [2.0.0] — 2026-06-22
 
 ### Added

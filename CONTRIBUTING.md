@@ -92,3 +92,28 @@ For larger changes, open an issue first to discuss the approach.
 - Any file ending in `*token*`, `*secret*`, `*key*`
 
 These paths are already in `.gitignore`. Double-check `git status` before pushing.
+
+## Licensing of Contributions
+
+This project is **dual-licensed** — AGPL-3.0 for public use and a separate
+commercial license (see [`LICENSE`](LICENSE) and
+[`COMMERCIAL-LICENSE.md`](COMMERCIAL-LICENSE.md)).
+
+By submitting a contribution (pull request, patch, or otherwise) you agree that:
+
+- your contribution is your original work (or you have the right to submit it), and
+- you license it to the project under **AGPL-3.0**, **and** you grant the project
+  owner (Omar Rao) the right to also distribute your contribution under the
+  project's **commercial license**.
+
+This inbound grant is what allows the maintainer to keep offering the software
+under both licenses. New source files you add should carry the standard SPDX
+header:
+
+```
+Copyright (c) 2026 Omar Rao
+SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Commercial
+```
+
+The code license does not grant trademark or branding rights — see
+[`TRADEMARKS.md`](TRADEMARKS.md).

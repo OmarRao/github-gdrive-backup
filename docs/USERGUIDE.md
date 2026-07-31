@@ -1,5 +1,5 @@
 # GitHub → Google Drive Backup — Technical User Guide
-**Version 3.6.0** | Last updated: 2026-07-17
+**Version 4.0.0** | Last updated: 2026-07-17
 
 ---
 
@@ -1177,6 +1177,7 @@ The dashboard is now installable as a Progressive Web App:
 
 | Version | Date | Highlights |
 |---|---|---|
+| **4.0.0** | 2026-07-17 | **Relicensed to AGPL-3.0 + commercial dual-license** (was MIT). New `LICENSE` (AGPL-3.0), `COMMERCIAL-LICENSE.md`, `TRADEMARKS.md`, `DEPENDENCY-LICENSE-REVIEW.md`; SPDX headers on all owned source; README/USERGUIDE licensing sections. No application behavior changed. |
 | **3.0.0** | 2026-06-30 | 14 new features: Email Digest (SendGrid), MS Teams webhook, PAT Rotation Reminder, Session Diff, GFS Retention, SLA Breach Alerts, Compliance CSV Export, Anomaly Detection, Azure Blob, Backblaze B2, SBOM, Monthly Auto-Restore Test, PWA/offline, Repo Search |
 | **2.1.0** | 2026-06-26 | **Firebase Google Sign-In**, **Demo Mode** (sample data, yellow banner, no live calls), full UX overhaul, refreshed stat cards and reports, keyboard shortcuts, dark mode polish |
 | **2.0.0** | 2026-02-10 | Multi-org backups, GitLab source, point-in-time restore with dry-run, S3 storage target, AES-256-CBC encryption, SLA tracker, Compliance PDF export |
@@ -1189,3 +1190,37 @@ The dashboard is now installable as a Progressive Web App:
 **v2.0.0 — 2026-02-10.** The platform release: backups expanded beyond a single account to **multiple organizations** and an optional **GitLab source**; restores gained **point-in-time session selection** and a **dry-run** safety mode; storage gained an **S3 target**; and security gained **AES-256-CBC encryption** at rest. Operational maturity arrived with the **SLA tracker** and **Compliance PDF export** for SOX, HIPAA, ISO 27001, and SOC 2 evidence.
 
 **v1.0.0 — 2025-09-01.** The foundation: a serverless, Actions-driven daily backup of GitHub repositories to Google Drive, with the three core workflows and a first-generation dashboard for visibility and retention management.
+
+---
+
+## 20. Licensing
+
+**Copyright © 2026 Omar Rao.**
+
+As of v4.0.0 the project uses a **dual-license model**:
+
+- **AGPL-3.0 (open source).** The public repository is licensed under the GNU
+  Affero General Public License v3.0 — see [`LICENSE`](../LICENSE). Note the
+  AGPL network clause: if you run a modified version to provide a service over a
+  network, you must offer that version's complete corresponding source to its
+  users.
+- **Commercial license.** Organizations wanting closed-source, internal
+  proprietary, SaaS/hosted, integration, redistribution, resale, distributor, or
+  white-label rights — or that otherwise prefer not to meet the AGPL-3.0
+  obligations — must obtain a separate written commercial license. See
+  [`COMMERCIAL-LICENSE.md`](../COMMERCIAL-LICENSE.md); contact `omarsrao@gmail.com`.
+
+**Trademarks.** The code licenses do not grant rights to the project name,
+company name, logos, or branding — see [`TRADEMARKS.md`](../TRADEMARKS.md).
+
+**Dependencies.** A technical inventory of dependency licenses is in
+[`DEPENDENCY-LICENSE-REVIEW.md`](../DEPENDENCY-LICENSE-REVIEW.md) (informational,
+not legal advice).
+
+**Prior MIT releases.** Versions previously distributed under the MIT License
+remain governed by the terms under which they were originally distributed;
+adopting AGPL-3.0 applies to the current and future versions and does not revoke
+rights already granted under MIT for those earlier versions.
+
+Every source file owned by the project carries an SPDX header:
+`SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Commercial`.
