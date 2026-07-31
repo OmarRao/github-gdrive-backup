@@ -1,6 +1,7 @@
 # GitHub → Google Drive Backup
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-2563eb?logo=opensourceinitiative&logoColor=white)](LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-2563eb?logo=gnu&logoColor=white)](LICENSE)
+[![Commercial License](https://img.shields.io/badge/Commercial%20License-available-7c3aed)](COMMERCIAL-LICENSE.md)
 [![GitHub Actions](https://img.shields.io/badge/Automated-GitHub%20Actions-1a7f37?logo=github-actions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
 [![Backup Status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FOmarRao%2Fgithub-gdrive-backup%2Fmain%2Fdocs%2Fstatus.json&query=%24.status&label=Backup%20Status&color=22c55e&logo=githubactions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-GitHub%20Pages-2563eb?logo=github&logoColor=white)](https://omarrao.github.io/github-gdrive-backup/)
@@ -593,9 +594,35 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, project structure,
 
 ---
 
-## License
+## Licensing
 
-MIT — see [LICENSE](LICENSE)
+**Copyright © 2026 Omar Rao.**
+
+This project uses a **dual-license model**:
+
+- **Open source (AGPL-3.0).** The public repository is licensed under the
+  **GNU Affero General Public License v3.0** — see [LICENSE](LICENSE). You are
+  free to use, study, modify, and share it, provided you comply with the
+  AGPL-3.0 terms. In particular, AGPL-3.0 requires that if you run a modified
+  version to provide a network service, you make the complete corresponding
+  source code available to the users of that service.
+
+- **Commercial license.** Companies that want **closed-source**, **proprietary**,
+  **SaaS/hosted**, **reseller**, **distributor**, or **white-label** rights — or
+  otherwise do not wish to comply with AGPL-3.0 — must purchase a separate
+  commercial license. See [COMMERCIAL-LICENSE.md](COMMERCIAL-LICENSE.md) and
+  contact **omarsrao@gmail.com**.
+
+**Trademarks.** These licenses grant rights to the *code*, not to the *brand*.
+No product name, company name, logo, or trademark rights are granted — see
+[TRADEMARKS.md](TRADEMARKS.md).
+
+**Prior MIT releases.** Versions of this software that were previously
+distributed under the MIT License remain governed by the license terms under
+which those versions were originally distributed. Adopting AGPL-3.0 and the
+commercial option applies to the current and future versions; it does not, and
+is not intended to, revoke or alter any rights already granted under MIT for
+previously released versions.
 
 ---
 
