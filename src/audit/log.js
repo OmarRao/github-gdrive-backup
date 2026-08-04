@@ -1,4 +1,7 @@
-// Copyright (c) Omar Rao. All rights reserved.
+// Copyright (c) 2026 Omar Rao
+// SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Commercial
+// This file is available under the GNU Affero General Public License v3.0
+// or under a separate commercial license.
 /**
  * Structured JSON-lines audit log. Each entry is one JSON object per line so the
  * log is both append-only-cheap and machine-parseable (filterable in the UI,

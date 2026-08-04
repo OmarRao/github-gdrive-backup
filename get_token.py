@@ -1,3 +1,7 @@
+# Copyright (c) 2026 Omar Rao
+# SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Commercial
+# This file is available under the GNU Affero General Public License v3.0
+# or under a separate commercial license.
 """
 One-time Google OAuth flow — auto-captures the redirect code via a local server.
 No copy-paste needed: just click Allow in the browser and the token is saved.

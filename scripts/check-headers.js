@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-// Copyright (c) Omar Rao. All rights reserved.
+// Copyright (c) 2026 Omar Rao
+// SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Commercial
+// This file is available under the GNU Affero General Public License v3.0
+// or under a separate commercial license.
 /**
  * Standalone script to verify copyright headers in all src JS files.
  * Run: node scripts/check-headers.js
@@ -11,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SRC = path.join(__dirname, '..', 'src');
-const REQUIRED = 'Copyright (c) Omar Rao';
+const REQUIRED = 'SPDX-License-Identifier: AGPL-3.0-only';
 let missing = 0;
 
 function walk(dir) {
@@ -33,6 +36,6 @@ if (missing === 0) {
   console.log(`✓ All source files carry the copyright header.`);
   process.exit(0);
 } else {
-  console.error(`\n${missing} file(s) missing the copyright header. Add:\n  // Copyright (c) Omar Rao. All rights reserved.`);
+  console.error(`\n${missing} file(s) missing the SPDX license header. Add:\n  // Copyright (c) 2026 Omar Rao\n  // SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Commercial`);
   process.exit(1);
 }
