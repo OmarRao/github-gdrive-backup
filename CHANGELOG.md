@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `git cat-file --batch-check` process instead of one per ref.
 - **Configurable zip compression** — `BACKUP_ZIP_LEVEL` (default 6) for faster,
   less CPU-intensive archiving; set 9 for maximum compression.
+- **Faster SPA first load** — `preconnect`/`dns-prefetch` resource hints for the
+  Firebase / Google auth / GitHub / Drive origins to cut connection-setup latency.
 
 ### Notes
 - Behavior-preserving: same hashes, same on-disk encryption format, verified by

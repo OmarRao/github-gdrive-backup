@@ -12,6 +12,16 @@
   <title>GitHub → Google Drive Backup</title>
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#166534" />
+
+  <!-- Perf: warm up connections to the origins used on load & first interaction.
+       preconnect for assets fetched immediately (Firebase SDK, Google auth);
+       dns-prefetch for API hosts hit after sign-in. -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin />
+  <link rel="preconnect" href="https://accounts.google.com" />
+  <link rel="dns-prefetch" href="https://apis.google.com" />
+  <link rel="dns-prefetch" href="https://api.github.com" />
+  <link rel="dns-prefetch" href="https://www.googleapis.com" />
+
   <script src="https://accounts.google.com/gsi/client" async></script>
 
   <!-- Auth globals (classic script) — defined BEFORE the Firebase module so the module can call them -->

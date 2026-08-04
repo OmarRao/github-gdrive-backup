@@ -389,6 +389,12 @@ size — not available RAM — is the limit:
   `git cat-file --batch-check` process instead of one per ref.
 - **Parallel fan-out.** Secondary-destination mirror uploads run concurrently.
 
+The dashboard SPA is also tuned for fast loads: it ships **no web fonts** (system
+UI stack), **`preconnect`/`dns-prefetch`** hints warm up the Firebase, Google
+auth, GitHub, and Drive origins, inactive pages are `display:none` (skipped by
+layout), and a cache-first **service worker** serves the app shell instantly on
+repeat visits.
+
 ---
 
 ## Multi-Destination Fan-Out (3-2-1 Rule)
