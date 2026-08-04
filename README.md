@@ -362,6 +362,7 @@ GDRIVE_FOLDER_ID=1abc...xyz
 BACKUP_INCLUDE=code,issues,pull_requests,releases,wiki,labels,milestones
 BACKUP_CONCURRENCY=3
 BACKUP_TMP_DIR=./tmp
+BACKUP_ZIP_LEVEL=6          # zip compression 0-9 (lower = faster, larger)
 
 # Multi-destination fan-out (3-2-1) — Drive is always primary
 BACKUP_MIRROR_TARGETS=s3,b2
@@ -371,6 +372,28 @@ INCREMENTAL_MODE=delta
 
 PORT=3000
 ```
+
+### Performance notes
+
+The backup and restore paths are **streaming and memory-bounded**, so archive
+size — not available RAM — is the limit:
+
+- **Streaming hash & crypto.** SHA-256 hashing and AES-256-CBC encrypt/decrypt
+  stream the archive through in fixed-size chunks (`src/lib/archive-crypto.js`).
+  Peak memory stays roughly constant regardless of repo size, avoiding the
+  out-of-memory risk of loading multi-GB archives fully into a `Buffer`.
+- **Configurable compression.** `BACKUP_ZIP_LEVEL` (default `6`) trades a little
+  archive size for noticeably faster, less CPU-intensive zipping; set `9` for
+  maximum compression or `1` for the fastest backups.
+- **Batched git object checks.** Delta backups validate prior refs with a single
+  `git cat-file --batch-check` process instead of one per ref.
+- **Parallel fan-out.** Secondary-destination mirror uploads run concurrently.
+
+The dashboard SPA is also tuned for fast loads: it ships **no web fonts** (system
+UI stack), **`preconnect`/`dns-prefetch`** hints warm up the Firebase, Google
+auth, GitHub, and Drive origins, inactive pages are `display:none` (skipped by
+layout), and a cache-first **service worker** serves the app shell instantly on
+repeat visits.
 
 ---
 
