@@ -55,16 +55,26 @@ function decideMode(prevRefs, curRefs) {
   return 'delta';
 }
 
-/** Keep only SHAs that actually exist as objects in the mirror. */
+/**
+ * Keep only SHAs that actually exist as commit objects in the mirror.
+ * Uses a single `git cat-file --batch-check` process (fed all SHAs on stdin)
+ * instead of spawning one process per SHA — O(1) processes rather than O(n).
+ */
 function existingShas(mirrorDir, shas) {
-  return [...new Set(shas)].filter(sha => {
-    try {
-      execSync(`git cat-file -e "${sha}^{commit}"`, { cwd: mirrorDir, stdio: 'ignore' });
-      return true;
-    } catch {
-      return false;
-    }
-  });
+  const unique = [...new Set(shas)];
+  if (!unique.length) return [];
+  const input = unique.map(s => `${s}^{commit}`).join('\n') + '\n';
+  let out;
+  try {
+    out = execSync('git cat-file --batch-check', {
+      cwd: mirrorDir, input, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'],
+    });
+  } catch {
+    return [];
+  }
+  // One output line per input line, in order. Missing objects end with "missing".
+  const lines = out.split('\n').filter(l => l.length);
+  return unique.filter((_, i) => lines[i] && !/\bmissing$/.test(lines[i]));
 }
 
 /**

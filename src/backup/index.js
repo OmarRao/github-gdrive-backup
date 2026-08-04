@@ -5,7 +5,6 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const { execSync } = require('child_process');
 const archiver = require('archiver');
 const GitHubClient = require('./github');
@@ -13,7 +12,10 @@ const GoogleDriveClient = require('./gdrive');
 const fanout = require('./storage/fanout');
 const incremental = require('./incremental');
 const { renderIssuesHtml } = require('./issues-archive');
+const { sha256File, encryptFile } = require('../lib/archive-crypto');
 const logger = require('../logger');
+
+const ZIP_LEVEL = Math.min(9, Math.max(0, parseInt(process.env.BACKUP_ZIP_LEVEL || '6', 10)));
 
 const INCREMENTAL_MODE = (process.env.INCREMENTAL_MODE || '').trim().toLowerCase() === 'delta';
 
@@ -47,31 +49,13 @@ async function withRateLimitRetry(fn) {
 async function zipDirectory(srcDir, outFile) {
   return new Promise((resolve, reject) => {
     const output = fs.createWriteStream(outFile);
-    const archive = archiver('zip', { zlib: { level: 9 } });
+    const archive = archiver('zip', { zlib: { level: ZIP_LEVEL } });
     output.on('close', resolve);
     archive.on('error', reject);
     archive.pipe(output);
     archive.directory(srcDir, false);
     archive.finalize();
   });
-}
-
-function computeSha256(filePath) {
-  const hash = crypto.createHash('sha256');
-  const data = fs.readFileSync(filePath);
-  hash.update(data);
-  return hash.digest('hex');
-}
-
-function encryptFile(inputPath, outputPath, keyHex) {
-  const key = Buffer.from(keyHex, 'hex');
-  const iv = crypto.randomBytes(16);
-  const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
-  const input = fs.readFileSync(inputPath);
-  const encrypted = Buffer.concat([cipher.update(input), cipher.final()]);
-  // Prepend IV as first 16 bytes
-  const output = Buffer.concat([iv, encrypted]);
-  fs.writeFileSync(outputPath, output);
 }
 
 async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, incrementalCtx) {
@@ -137,7 +121,7 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, increm
       const zipPath = archivePath;
 
       // Compute SHA-256 of the archive
-      const sha256 = computeSha256(zipPath);
+      const sha256 = await sha256File(zipPath);
       const localSize = fs.statSync(zipPath).size;
 
       const encryptionKey = process.env.BACKUP_ENCRYPTION_KEY;
@@ -147,7 +131,7 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, increm
 
       if (encryptionKey) {
         const encPath = `${zipPath}.enc`;
-        encryptFile(zipPath, encPath, encryptionKey);
+        await encryptFile(zipPath, encPath, encryptionKey);
         fs.rmSync(zipPath, { force: true });
         uploadPath = encPath;
         uploadFileName = `${baseName}.enc`;

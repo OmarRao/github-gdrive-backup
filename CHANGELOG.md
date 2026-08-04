@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [4.1.0] — 2026-07-17
+
+### Performance
+- **Streaming SHA-256 & AES-256-CBC** — new `src/lib/archive-crypto.js` streams
+  hashing and encrypt/decrypt through fixed-size chunks instead of reading whole
+  archives into memory (removed ~3× buffering on encrypt). Constant peak memory
+  regardless of archive size; byte-for-byte identical output. Wired into backup
+  and restore.
+- **Batched git object validation** — `existingShas` now uses a single
+  `git cat-file --batch-check` process instead of one per ref.
+- **Configurable zip compression** — `BACKUP_ZIP_LEVEL` (default 6) for faster,
+  less CPU-intensive archiving; set 9 for maximum compression.
+
+### Notes
+- Behavior-preserving: same hashes, same on-disk encryption format, verified by
+  new `tests/archive-crypto.test.js` (round-trip + legacy-format compatibility).
+
+---
+
 ## [4.0.0] — 2026-07-17
 
 ### Changed

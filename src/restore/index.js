@@ -5,24 +5,19 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const crypto = require('crypto');
 const extractZip = require('extract-zip');
 const simpleGit = require('simple-git');
 const GoogleDriveClient = require('../backup/gdrive');
 const { getProvider } = require('./providers');
 const incremental = require('../backup/incremental');
+const { sha256File, decryptFile: decryptFileStream } = require('../lib/archive-crypto');
 const logger = require('../logger');
 
 const TMP = path.resolve(process.env.BACKUP_TMP_DIR || './tmp');
 
+// Streaming AES-256-CBC decrypt (constant memory); reads BACKUP_ENCRYPTION_KEY.
 async function decryptFile(encPath, zipPath) {
-  const encData = fs.readFileSync(encPath);
-  const iv = encData.slice(0, 16);
-  const ciphertext = encData.slice(16);
-  const key = Buffer.from(process.env.BACKUP_ENCRYPTION_KEY, 'hex');
-  const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
-  const decrypted = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-  fs.writeFileSync(zipPath, decrypted);
+  await decryptFileStream(encPath, zipPath, process.env.BACKUP_ENCRYPTION_KEY);
 }
 
 async function downloadAndVerify(drive, file, destPath, manifestHashes) {
@@ -30,8 +25,7 @@ async function downloadAndVerify(drive, file, destPath, manifestHashes) {
 
   if (manifestHashes && manifestHashes[file.name]) {
     const expected = manifestHashes[file.name];
-    const content = fs.readFileSync(destPath);
-    const actual = crypto.createHash('sha256').update(content).digest('hex');
+    const actual = await sha256File(destPath);
     if (actual !== expected) {
       logger.warn(`Hash mismatch for ${file.name}: expected ${expected}, got ${actual}`);
     } else {
