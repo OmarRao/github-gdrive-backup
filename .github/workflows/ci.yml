@@ -57,7 +57,7 @@ jobs:
           echo "All workflow YAML files are valid."
 
       - name: Check for secrets in source
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         continue-on-error: true
