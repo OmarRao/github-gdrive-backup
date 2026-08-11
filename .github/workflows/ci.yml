@@ -83,7 +83,7 @@ jobs:
           output-file: sbom.spdx.json
 
       - name: Attest build provenance for the SBOM
-        uses: actions/attest-build-provenance@v1
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: sbom.spdx.json
 
