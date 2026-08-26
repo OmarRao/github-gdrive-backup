@@ -109,3 +109,26 @@ informational only:
    purport to relicense third-party dependencies.
 
 Re-run this inventory whenever dependencies change (e.g. after Dependabot updates).
+
+## Known security advisories (open)
+
+| Package | Advisory | Severity | Fix | Status |
+|---|---|---|---|---|
+| `extract-zip` | [GHSA-jmr9-qjv8-65gv](https://github.com/advisories/GHSA-jmr9-qjv8-65gv) — unvalidated symlink path traversal during extraction | High | **No patched version available** | Tracked follow-up |
+
+**Where it's used:** restore only (`src/restore/index.js`) — extracting a repo's
+zip archive into a temp directory on an ephemeral CI runner.
+
+**Exposure & mitigation:**
+- The archives extracted are the project's **own** backups (bare git mirrors,
+  which do not contain symlinks). The risk is a *maliciously crafted* archive in
+  the storage bucket.
+- v5 adds **signed manifests** (`BACKUP_SIGNING_KEY` / `BACKUP_SIGNING_PUBLIC_KEY`)
+  and `BACKUP_REQUIRE_SIGNATURE=true`, giving tamper-evidence at the manifest
+  level — restore from a session whose manifest fails verification is aborted.
+- Restore only from storage you control, and keep restore runners ephemeral.
+
+**Planned remediation:** replace `extract-zip` with a streaming, path-safe
+extractor (rejecting `..`, absolute paths, and symlink entries). Deferred here
+because the swap requires installing a replacement package and must be validated
+against the restore path; it will be done as a focused, tested change.

@@ -4,6 +4,7 @@
 [![Commercial License](https://img.shields.io/badge/Commercial%20License-available-7c3aed)](COMMERCIAL-LICENSE.md)
 [![GitHub Actions](https://img.shields.io/badge/Automated-GitHub%20Actions-1a7f37?logo=github-actions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
 [![Backup Status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FOmarRao%2Fgithub-gdrive-backup%2Fmain%2Fdocs%2Fstatus.json&query=%24.status&label=Backup%20Status&color=22c55e&logo=githubactions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
+[![Restore Verified](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FOmarRao%2Fgithub-gdrive-backup%2Fmain%2Fdocs%2Frecovery-scorecard.json)](https://github.com/OmarRao/github-gdrive-backup/actions/workflows/monthly-restore-test.yml)
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-GitHub%20Pages-2563eb?logo=github&logoColor=white)](https://omarrao.github.io/github-gdrive-backup/)
 [![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Google Drive](https://img.shields.io/badge/Storage-Google%20Drive-4285F4?logo=googledrive&logoColor=white)](https://drive.google.com/)
@@ -190,6 +191,11 @@ The dashboard surfaces the latest session's **delta composition** (full / delta 
 | **First-run onboarding** | Setup checklist gates the dashboard until GitHub + Drive are configured; no stale/upstream data on first login |
 | **Fork-aware targeting** | Dashboard auto-derives the target repo from the Pages URL, so each fork shows its own live data (override in Settings) |
 | **Dynamic demo data** | Demo stats, graphs, composition & fan-out are all derived from one dataset — always internally consistent |
+| **Signed manifests** | Optional Ed25519 signature over `manifest.json` (`BACKUP_SIGNING_KEY`); verified on restore to detect tampering/forgery, not just corruption |
+| **Recovery scorecard** | Monthly restore drill publishes a "last verified restore + RTO" scorecard (`docs/recovery-scorecard.json`) surfaced as a README badge and dashboard tile |
+| **Tamper-evident audit log** | Hash-chained JSON-lines audit entries — editing or deleting past entries is detectable |
+| **GitHub Action** | Use as `uses: OmarRao/github-gdrive-backup@v5` in any workflow — no fork required |
+| **Container image (GHCR)** | Published to `ghcr.io/omarrao/github-gdrive-backup` on each release, with SBOM + signed provenance |
 | **SBOM generation** | Optional `include_sbom=true` input generates SPDX SBOM via `anchore/sbom-action@v0` |
 | **Auto-restore test** | Monthly `monthly-restore-test.yml` dry-run verifies restore integrity; result appended to audit log |
 | **PWA / offline** | `manifest.json` + cache-first service worker — install dashboard to home screen, works offline |
@@ -614,6 +620,55 @@ npm run audit         # npm audit --audit-level=high
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup, project structure, and guidelines.
+
+---
+
+## Trust & Verification
+
+A backup is only as good as its restore — so v5 makes recoverability and integrity **provable**.
+
+![Trust & Distribution](docs/screenshots/trust-distribution.svg)
+
+- **Signed manifests (Ed25519).** Set `BACKUP_SIGNING_KEY` (a PEM Ed25519 private key) and each session's `manifest.json` is signed to `manifest.json.sig`. On restore, set `BACKUP_SIGNING_PUBLIC_KEY` to verify it; SHA-256 catches *corruption*, the signature catches *tampering/forgery*. Set `BACKUP_REQUIRE_SIGNATURE=true` to abort a restore on a missing/invalid signature. Generate a keypair:
+  ```bash
+  node -e "const s=require('./src/lib/manifest-signing');const k=s.generateKeyPair();require('fs').writeFileSync('signing.key',k.privateKey);require('fs').writeFileSync('signing.pub',k.publicKey);console.log('wrote signing.key + signing.pub')"
+  ```
+- **Recovery scorecard.** The monthly restore drill (`monthly-restore-test.yml`) publishes `docs/recovery-scorecard.json` — *last verified restore + RTO* — shown as the **Restore Verified** badge above and a dashboard tile. "Backups exist" becomes "restores are verified."
+- **Tamper-evident audit log.** Audit entries (`src/audit/log.js`) are hash-chained: each carries the previous entry's SHA-256, so editing or deleting history is detectable via `verifyChain()`.
+
+---
+
+## Use as a GitHub Action
+
+No fork required — compose it into any workflow:
+
+```yaml
+- uses: OmarRao/github-gdrive-backup@v5
+  with:
+    github-token:         ${{ secrets.GH_BACKUP_TOKEN }}
+    gdrive-folder-id:     ${{ secrets.GDRIVE_FOLDER_ID }}
+    google-client-secret: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+    google-token:         ${{ secrets.GOOGLE_TOKEN }}
+    incremental-mode:     delta        # optional
+    mirror-targets:       s3,b2        # optional 3-2-1 fan-out
+    signing-key:          ${{ secrets.BACKUP_SIGNING_KEY }}   # optional
+```
+
+See [`action.yml`](action.yml) for all inputs. The action outputs a JSON `summary` (totals, delta composition, fan-out, signature).
+
+---
+
+## Container image (GHCR)
+
+Published to the GitHub Container Registry on each release with an SBOM and signed build provenance:
+
+```bash
+docker run --rm \
+  -e GITHUB_TOKEN=ghp_... -e GITHUB_USER=you \
+  -e GDRIVE_FOLDER_ID=... \
+  -v "$PWD/credentials:/app/credentials" \
+  ghcr.io/omarrao/github-gdrive-backup:v5 backup
+```
 
 ---
 
