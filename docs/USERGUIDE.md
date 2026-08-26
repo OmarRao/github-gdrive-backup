@@ -37,7 +37,7 @@
    - [8.1 Google Drive Structure](#81-google-drive-structure)
    - [8.2 S3 / Azure Blob / Backblaze B2](#82-s3--azure-blob--backblaze-b2)
    - [8.2A Multi-Destination Fan-Out (3-2-1 Rule)](#82a-multi-destination-fan-out-3-2-1-rule)
-   - [8.3 Retention Policy (Simple & GFS)](#83-retention-policy-simple--gfs)
+   - [8.3 Retention Policy (age-based)](#83-retention-policy-age-based)
    - [8.4 Drive Quota Monitoring](#84-drive-quota-monitoring)
 9. [Notifications & Monitoring](#9-notifications--monitoring)
    - [9.1 Slack Webhook](#91-slack-webhook)
@@ -569,31 +569,28 @@ Valid values are `s3`, `azure`, and `b2`. Each listed target's own credentials (
 
 **Encryption.** When `BACKUP_ENCRYPTION_KEY` is set, archives are mirrored in their already-encrypted (`.zip.enc`) form, so secondary copies are protected at rest just like the primary.
 
-### 8.3 Retention Policy (Simple & GFS)
+### 8.3 Retention Policy (age-based)
 
-`cleanup.yml` supports two retention modes selected via the `retention_policy` workflow input:
+`cleanup.yml` applies **simple age-based retention**: any session older than
+`RETENTION_DAYS` (default **21**) is deleted. It runs weekly on the **Sunday
+03:00 UTC** schedule, or on demand. Authentication uses the same **OAuth refresh
+token** as backup and restore (`GOOGLE_CLIENT_SECRET` + `GOOGLE_TOKEN`).
 
-**Simple retention** (default if you set `retention_policy=simple`) deletes any session older than your configured `RETENTION_DAYS`. This is the easiest option for individuals.
+**Chain-aware safety.** Deletion is age-based but never blindly destructive: the
+pure `planCleanup()` function first reads the `backup-state.json` of every
+*retained* session and protects the entire delta chain each one depends on, so an
+old **base** or intermediate bundle is never removed while a newer session still
+needs it to restore (see [15B](#15b-reliability--operations-v35)). Protected-but-old
+sessions are logged explicitly.
 
-**GFS — Grandfather-Father-Son** (default: `retention_policy=gfs`) applies a tiered policy that balances granularity with storage cost:
-
-| Tier | How many kept | Which sessions |
-|---|---|---|
-| Daily | 7 | The 7 most recent daily sessions |
-| Weekly | 4 | The most recent session per calendar week, for 4 weeks |
-| Monthly | 12 | The most recent session per calendar month, for 12 months |
-
-GFS is the recommended default for production use. It keeps last week's sessions at full granularity for quick rollback, provides weekly rollback points for the last month, and monthly archives going back a year — all at a fraction of the storage cost of a flat 365-day rolling window.
-
-To dispatch with a specific policy:
+To dispatch with a custom window:
 
 ```bash
-gh workflow run cleanup.yml -f retention_policy=gfs
-# or
-gh workflow run cleanup.yml -f retention_policy=simple
+gh workflow run cleanup.yml -f retention_days=30
 ```
 
-Choose a policy that satisfies your recovery objectives and compliance requirements (see [Section 14](#14-compliance--reporting)).
+Choose a window that satisfies your recovery objectives and compliance
+requirements (see [Section 14](#14-compliance--reporting)).
 
 ### 8.4 Drive Quota Monitoring
 
@@ -910,7 +907,7 @@ Entries are searchable in the UI and exportable to CSV. The log is also a key au
 
 | Framework | Relevant project capability |
 |---|---|
-| **SOX** | Audit log, GFS retention, change control via branch protection, CSV export |
+| **SOX** | Audit log, age-based retention, change control via branch protection, CSV export |
 | **HIPAA** | AES-256-CBC encryption at rest, access control allow-list, integrity verification, SBOM |
 | **ISO 27001** | Backup/restore procedures, SLA tracking, monthly restore test, PAT rotation reminder |
 | **SOC 2** | Availability (SLA tracker + hourly check), confidentiality (encryption), monitoring (audit log + anomaly detection) |
@@ -1115,8 +1112,8 @@ When the current backup session's total size deviates more than 20% from the 7-d
 **Can I install the dashboard as an app?**
 Yes — the dashboard is a PWA. Modern browsers will offer an Install prompt. After installation it launches in a standalone window and serves cached content offline. See [Section 15](#15-pwa--offline-support).
 
-**What is GFS retention?**
-Grandfather-Father-Son is a tiered retention policy: keep the last 7 daily sessions, the last 4 weekly sessions, and the last 12 monthly sessions. It gives strong rollback granularity without paying for a full flat 365-day window. Select it via `retention_policy=gfs` when dispatching `cleanup.yml`.
+**How does retention/cleanup work?**
+`cleanup.yml` uses simple age-based retention: sessions older than `RETENTION_DAYS` (default 21) are deleted on the weekly Sunday schedule. It is chain-aware — it never deletes a base/intermediate bundle a retained delta chain still needs. Override the window with `gh workflow run cleanup.yml -f retention_days=30`.
 
 **How do I get notified before my PAT expires?**
 Set the `PAT_EXPIRY_DATE` secret to your PAT's expiry date in `YYYY-MM-DD` format. The `pat-check.yml` workflow runs every Monday and sends a Teams card + email when the PAT is ≤7 days from expiry.
@@ -1155,9 +1152,9 @@ A weekly workflow (`pat-check.yml`, Mondays 08:00 UTC) checks `PAT_EXPIRY_DATE` 
 
 The **Reports** page now includes a **Session Diff** card. Select two sessions from the dropdowns and click **Compare** to see a table showing each repository's size in Session A and Session B, the delta, and whether repos were added or removed. Works in demo mode with sample data.
 
-### 19.6 Smart GFS Retention
+### 19.6 Age-Based Retention
 
-`cleanup.yml` now accepts a `retention_policy` input (`simple` or `gfs`). When `gfs` is selected the cleanup step logs the Grandfather-Father-Son retention plan (daily × 7, weekly × 4, monthly × 12) alongside the deleted/kept counts.
+`cleanup.yml` applies simple age-based retention (default 21 days) on the weekly Sunday schedule, authenticating with the OAuth refresh token. It is chain-aware — it protects any base/intermediate bundle a retained delta chain still needs — and logs deleted/kept (including chain-protected) counts. *(Earlier drafts referenced a "GFS" mode that was only ever logged, never enforced; that has been removed so the workflow no longer claims a policy the code does not implement — see issue #33.)*
 
 ### 19.7 SLA Breach Alerts
 

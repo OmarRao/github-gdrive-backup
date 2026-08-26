@@ -168,7 +168,7 @@ The dashboard surfaces the latest session's **delta composition** (full / delta 
 | **PAT rotation reminder** | Weekly `pat-check.yml` cron warns via Teams + email when PAT is ≤7 days from expiry |
 | **Repo search** | Filter the backup repo list by name directly in the Backup tab |
 | **Session diff** | Compare any two backup sessions side by side — added, removed, changed repos with byte deltas |
-| **GFS retention** | Grandfather-Father-Son policy (daily × 7, weekly × 4, monthly × 12) in `cleanup.yml` |
+| **Age-based retention** | Simple age-based cleanup (default 21 days, weekly Sunday schedule) in `cleanup.yml`; chain-aware so it never deletes a bundle a retained delta chain still needs |
 | **SLA breach alerts** | Hourly `sla-check.yml` posts Teams/email alert if backup age exceeds `SLA_HOURS` |
 | **Compliance CSV export** | One-click CSV export of full run history for audit evidence packages |
 | **Anomaly detection** | Auto-detects session size deviation >20% from 7-day average; dismissible dashboard banner |
@@ -530,7 +530,7 @@ github-gdrive-backup/
 │       ├── ci.yml               — CI: lint, test, copyright, audit, secret scan
 │       ├── backup.yml           — daily cron + manual backup (SBOM, storage target)
 │       ├── restore.yml          — manual restore
-│       ├── cleanup.yml          — GFS / simple retention cleanup
+│       ├── cleanup.yml          — simple age-based retention cleanup (chain-aware)
 │       ├── notify.yml           — Teams + SendGrid email digest
 │       ├── pat-check.yml        — weekly PAT expiry reminder
 │       ├── sla-check.yml        — hourly SLA breach alert
