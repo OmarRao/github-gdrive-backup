@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.1] — 2026-07-20
+
+### Changed
+- Dependency updates: `googleapis` → ^176, `globals` (dev) → ^17, plus transitive
+  patches. `npm audit`: 0 vulnerabilities; 105/105 tests pass.
+
+### Fixed
+- Cleanup retention (#33): simple 21-day age-based retention, OAuth refresh-token
+  auth, removed the unimplemented "GFS" workflow logging; docs corrected.
+
+### Security/quality
+- Added a **CodeQL** code-scanning workflow (security-and-quality queries).
+
+---
+
 ## [5.0.0] — 2026-07-20
 
 ### Added — Trust & verification
