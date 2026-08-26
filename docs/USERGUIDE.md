@@ -963,7 +963,7 @@ Directly under the stat cards, the **System Health** grid gives a traffic-light 
 
 ### Storage Growth chart
 
-An inline SVG area chart plots the size (MB) of the last 10 backup sessions oldest→newest. **Hover (or keyboard-focus) any point** to see an interactive tooltip with that session's name, size, delta mode (full/delta/unchanged), and date; the point enlarges to mark the active selection. Use it to spot steady growth (plan capacity) or sudden drops (investigate with Session Diff).
+A modern, gradient-filled **smooth area chart** plots the size (MB) of the last 10 backup sessions oldest→newest, with light gridlines, MB y-axis labels, and dated x-axis ticks. It renders at the container's exact pixel size (1 SVG unit = 1 px) so strokes and text stay crisp at any width — no stretching. **Hover (or keyboard-focus) any point** to see an interactive tooltip with that session's name, size, delta mode (full/delta/unchanged), and date; the point enlarges to mark the active selection. Use it to spot steady growth (plan capacity) or sudden drops (investigate with Session Diff).
 
 ### Backup Timeline heatmap
 

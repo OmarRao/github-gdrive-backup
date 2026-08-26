@@ -1046,16 +1046,16 @@
     .health-val  { font-size: 13.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .health-arrow { width: 15px; height: 15px; flex-shrink: 0; color: var(--muted-light); opacity: 0; transform: translateX(-3px); transition: opacity var(--t), transform var(--t), color var(--t); }
 
-    /* ── Storage growth area chart ────────────────────────────────────────── */
-    .area-chart { width: 100%; height: 140px; display: block; }
-    .area-chart .grid-line { stroke: var(--border); stroke-width: 1; }
-    .area-chart .area-fill { fill: var(--accent); opacity: .12; }
-    .area-chart .area-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-    .area-chart .area-dot  { fill: var(--bg-card); stroke: var(--accent); stroke-width: 2; transition: r .12s ease; }
-    .area-chart .area-dot.active { r: 5; fill: var(--accent); }
-    .area-chart .area-hit  { fill: transparent; cursor: pointer; outline: none; }
-    .area-chart .area-hit:focus-visible + text, .area-chart .area-hit:focus-visible { stroke: var(--accent); }
-    .area-chart text { fill: var(--muted); font-size: 10px; }
+    /* ── Storage growth area chart (crisp, 1 unit = 1px) ──────────────────── */
+    .sg-chart { display: block; width: 100%; overflow: visible; }
+    .sg-grid { stroke: var(--border); stroke-width: 1; shape-rendering: crispEdges; opacity: .7; }
+    .sg-area { stroke: none; }
+    .sg-line { fill: none; stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+    .sg-dot  { fill: var(--bg-card); stroke: var(--accent); stroke-width: 2; transition: r .12s ease; }
+    .sg-dot.active { r: 5.5; fill: var(--accent); }
+    .sg-hit  { fill: transparent; cursor: pointer; outline: none; }
+    .sg-ylabel, .sg-xlabel, .sg-unit { fill: var(--muted); font-size: 11px; font-family: inherit; }
+    .sg-unit { font-weight: 700; }
     /* Interactive chart tooltip */
     .chart-tip {
       position: absolute; z-index: 5; transform: translate(-50%, calc(-100% - 12px));
@@ -3124,30 +3124,81 @@ function renderHealthGrid(sessions, runs) {
     </div>`).join('');
 }
 
+// Catmull-Rom → cubic-bezier: a smooth, modern line through the points.
+function smoothPath(pts) {
+  if (pts.length < 2) return pts.length ? `M${pts[0][0]},${pts[0][1]}` : '';
+  let d = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2] || p2;
+    const c1x = p1[0] + (p2[0] - p0[0]) / 6, c1y = p1[1] + (p2[1] - p0[1]) / 6;
+    const c2x = p2[0] - (p3[0] - p1[0]) / 6, c2y = p2[1] - (p3[1] - p1[1]) / 6;
+    d += `C${c1x.toFixed(1)},${c1y.toFixed(1)} ${c2x.toFixed(1)},${c2y.toFixed(1)} ${p2[0].toFixed(1)},${p2[1].toFixed(1)}`;
+  }
+  return d;
+}
+
 function renderStorageChart(sessions) {
   const el = document.getElementById('storage-chart');
   if (!el) return;
   const data = sessions.filter(s => typeof s.sizeMB === 'number').slice(0, 10).reverse();
   if (data.length < 2) { el.innerHTML = '<p class="muted" style="font-size:12px">Not enough session data to chart.</p>'; return; }
-  const W = 380, H = 140, padL = 34, padB = 20, padT = 10, padR = 8;
+
+  // Render at the container's real pixel size so 1 unit == 1px — no stretching,
+  // so strokes and text stay crisp (the old preserveAspectRatio="none" distorted them).
+  el.style.position = 'relative';
+  // viewBox width == the element's real pixel width → exact 1:1 mapping (crisp,
+  // no letterboxing or non-uniform text scaling).
+  const W = Math.round(el.getBoundingClientRect().width) || 420;
+  const H = 180;
+  const padL = 40, padT = 16, padB = 30, padR = 14;
   const iw = W - padL - padR, ih = H - padT - padB;
-  const max = Math.max(...data.map(d => d.sizeMB)) * 1.1 || 1;
+  const uid = 'sg' + Math.random().toString(36).slice(2, 8);
+
+  const maxVal = Math.max(...data.map(d => d.sizeMB));
+  const max = Math.max(1, Math.ceil(maxVal * 1.15 / 50) * 50); // round headroom to 50 MB
   const x = i => padL + (iw * i / (data.length - 1));
   const y = v => padT + ih - (ih * v / max);
   const pts = data.map((d, i) => [x(i), y(d.sizeMB)]);
-  const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
-  const area = `M${pts[0][0].toFixed(1)} ${(padT+ih).toFixed(1)} ` + pts.map(p => 'L'+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ') + ` L${pts[pts.length-1][0].toFixed(1)} ${(padT+ih).toFixed(1)} Z`;
-  const gridY = [0, 0.5, 1].map(f => { const gy = padT + ih - ih*f; return `<line class="grid-line" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/><text x="${padL-6}" y="${gy+3}" text-anchor="end">${Math.round(max*f)}</text>`; }).join('');
-  // Visible dot + a larger transparent hit target for easy hover/focus.
+  const baseline = padT + ih;
+
+  const linePath = smoothPath(pts);
+  const areaPath = `${linePath} L${pts[pts.length - 1][0].toFixed(1)},${baseline} L${pts[0][0].toFixed(1)},${baseline} Z`;
+
+  // Horizontal gridlines + right-aligned y labels.
+  const ticks = [0, 0.25, 0.5, 0.75, 1];
+  const grid = ticks.map(f => {
+    const gy = padT + ih - ih * f;
+    return `<line class="sg-grid" x1="${padL}" y1="${gy.toFixed(1)}" x2="${W - padR}" y2="${gy.toFixed(1)}"/>` +
+      `<text class="sg-ylabel" x="${padL - 8}" y="${(gy + 4).toFixed(1)}" text-anchor="end">${Math.round(max * f)}</text>`;
+  }).join('');
+
+  // X-axis date labels: first, middle, last (compact).
+  const shortDate = d => d && d.createdTime ? new Date(d.createdTime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+  const xIdx = [0, Math.floor((data.length - 1) / 2), data.length - 1];
+  const xLabels = xIdx.map((i, k) => {
+    const anchor = k === 0 ? 'start' : k === xIdx.length - 1 ? 'end' : 'middle';
+    return `<text class="sg-xlabel" x="${x(i).toFixed(1)}" y="${(H - 10)}" text-anchor="${anchor}">${shortDate(data[i])}</text>`;
+  }).join('');
+
   const dots = pts.map((p, i) =>
-    `<circle class="area-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3"/>` +
-    `<circle class="area-hit" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="9" tabindex="0" role="button" data-i="${i}" aria-label="${data[i].name}: ${data[i].sizeMB} MB"/>`
+    `<circle class="sg-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3.5"/>` +
+    `<circle class="sg-hit" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="12" tabindex="0" role="button" data-i="${i}" aria-label="${data[i].name}: ${data[i].sizeMB} MB"/>`
   ).join('');
-  el.style.position = 'relative';
+
   el.innerHTML =
-    `<svg class="area-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Storage growth over the last ${data.length} backups">` +
-    `${gridY}<path class="area-fill" d="${area}"/><path class="area-line" d="${line}"/>${dots}` +
-    `<text x="${padL}" y="${H-4}">oldest</text><text x="${W-padR}" y="${H-4}" text-anchor="end">newest · MB</text></svg>` +
+    `<svg class="sg-chart" width="100%" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Storage growth over the last ${data.length} backups, in megabytes">` +
+      `<defs>` +
+        `<linearGradient id="${uid}-fill" x1="0" y1="0" x2="0" y2="1">` +
+          `<stop offset="0" stop-color="var(--accent)" stop-opacity="0.28"/>` +
+          `<stop offset="1" stop-color="var(--accent)" stop-opacity="0.02"/>` +
+        `</linearGradient>` +
+      `</defs>` +
+      `${grid}` +
+      `<path class="sg-area" d="${areaPath}" fill="url(#${uid}-fill)"/>` +
+      `<path class="sg-line" d="${linePath}"/>` +
+      `${dots}${xLabels}` +
+      `<text class="sg-unit" x="${W - padR}" y="12" text-anchor="end">MB</text>` +
+    `</svg>` +
     `<div class="chart-tip" id="storage-tip" hidden></div>`;
 
   const tip = el.querySelector('#storage-tip');
@@ -3158,15 +3209,13 @@ function renderStorageChart(sessions) {
     tip.innerHTML = `<div class="tip-title">${d.name}</div>` +
       `<div class="tip-row"><strong>${d.sizeMB} MB</strong>${mode}</div>` +
       (when ? `<div class="tip-sub">${when}</div>` : '');
-    // viewBox maps linearly to the element box (preserveAspectRatio=none),
-    // so fractional coordinates position the tooltip exactly.
     tip.style.left = (pts[i][0] / W * 100) + '%';
     tip.style.top = (pts[i][1] / H * 100) + '%';
     tip.hidden = false;
-    el.querySelectorAll('.area-dot').forEach((c, j) => c.classList.toggle('active', j === i));
+    el.querySelectorAll('.sg-dot').forEach((c, j) => c.classList.toggle('active', j === i));
   };
-  const hide = () => { tip.hidden = true; el.querySelectorAll('.area-dot.active').forEach(c => c.classList.remove('active')); };
-  el.querySelectorAll('.area-hit').forEach(h => {
+  const hide = () => { tip.hidden = true; el.querySelectorAll('.sg-dot.active').forEach(c => c.classList.remove('active')); };
+  el.querySelectorAll('.sg-hit').forEach(h => {
     const i = +h.dataset.i;
     h.addEventListener('mouseenter', () => show(i));
     h.addEventListener('mouseleave', hide);

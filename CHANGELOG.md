@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.3] — 2026-07-20
+
+### Fixed (dashboard)
+- **Storage Growth chart redesigned.** The previous chart used
+  `preserveAspectRatio="none"`, which stretched the viewBox and rendered blurry,
+  non-uniformly-scaled strokes and text. It now renders at the container's exact
+  pixel size (1 unit = 1 px) for crisp output, with a **smooth gradient area
+  curve** (Catmull-Rom bezier), light gridlines, MB y-axis labels, and dated
+  x-axis ticks. Interactive hover/focus tooltip retained.
+- Updated `dashboard-insights.svg` and USERGUIDE §15A to match.
+
+---
+
 ## [5.0.2] — 2026-07-20
 
 ### Changed (dashboard UX)
