@@ -1,7 +1,7 @@
 # Copyright (c) 2026 Omar Rao
 # SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Commercial
 name: 'GitHub Backup and Restore'
-description: 'Back up GitHub repositories (code, issues, PRs, releases, wiki) to Google Drive or S3/Azure/B2, with delta uploads, 3-2-1 fan-out, encryption and signed manifests.'
+description: 'Back up & restore GitHub repos to Google Drive, S3, Azure or B2 — delta uploads, 3-2-1 fan-out, encryption, signing'
 author: 'Omar Rao'
 branding:
   icon: 'hard-drive'

@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.6] — 2026-07-20
+
+### Fixed
+- Shortened the Action `description` to <125 characters, as required by the
+  GitHub Marketplace publish validation.
+
 ## [5.0.5] — 2026-07-20
 
 ### Changed
