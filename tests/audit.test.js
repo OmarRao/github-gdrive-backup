@@ -41,3 +41,34 @@ describe('audit JSONL', () => {
     expect(entries.map(e => e.event)).toEqual(['a', 'b']);
   });
 });
+
+describe('audit hash chain (tamper-evidence)', () => {
+  test('appended entries form a valid chain', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'audit-chain-'));
+    const file = path.join(dir, 'audit.jsonl');
+    audit.append(file, 'backup', { ok: 1 });
+    audit.append(file, 'restore', { ok: 2 });
+    audit.append(file, 'cleanup', { deleted: 3 });
+    const text = fs.readFileSync(file, 'utf8');
+    fs.rmSync(dir, { recursive: true, force: true });
+    const entries = audit.parse(text);
+    expect(entries[0].prev).toBe(audit.GENESIS);
+    expect(entries[1].prev).toBe(entries[0].hash);
+    expect(audit.verifyChain(entries)).toEqual({ ok: true, brokenAt: null });
+  });
+
+  test('editing a past entry breaks the chain', () => {
+    const a = audit.buildEntry('backup', { ok: 1 });
+    const b = audit.buildEntry('restore', { ok: 2 }, a.hash);
+    const tampered = { ...a, ok: 999 }; // edit content, keep old hash
+    expect(audit.verifyChain([tampered, b])).toMatchObject({ ok: false, brokenAt: 0, reason: 'hash-mismatch' });
+  });
+
+  test('deleting an entry breaks the chain', () => {
+    const a = audit.buildEntry('backup', { ok: 1 });
+    const b = audit.buildEntry('restore', { ok: 2 }, a.hash);
+    const c = audit.buildEntry('cleanup', { ok: 3 }, b.hash);
+    // Remove the middle entry — c.prev no longer matches a.hash.
+    expect(audit.verifyChain([a, c])).toMatchObject({ ok: false, brokenAt: 1, reason: 'prev-mismatch' });
+  });
+});

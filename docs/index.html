@@ -2624,6 +2624,9 @@ const DEMO = (() => {
       targets: ['s3', 'b2'],
       perTarget: { s3: { ok: archived, failed: 0 }, b2: { ok: archived - 1, failed: 1 } },
     },
+    // Trust signals: last verified restore drill + manifest signature.
+    recovery: { status: 'verified', rto_seconds: 252, last_verified: ago(2 * D), session: sessions[2].name },
+    signature: { algorithm: 'ed25519', key_fingerprint: 'a1b2c3d4e5f6a7b8' },
   };
 })();
 
@@ -2927,6 +2930,8 @@ async function loadDashboard() {
     // Pull the latest session's backup-summary.json for composition/fan-out.
     _latestSummary = await loadLatestSummary(files).catch(() => null);
   } catch { document.getElementById('stat-sessions').textContent = '—'; }
+  // Recovery scorecard is published to the site root (same-origin), not Drive.
+  try { window._recovery = await fetch('recovery-scorecard.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null); } catch { window._recovery = null; }
   _dashRuns = allRuns.slice(0,8);
   renderRuns(_dashRuns, document.getElementById('dash-runs'));
   renderDashboardWidgets(_liveSessions, allRuns);
@@ -3063,10 +3068,16 @@ function renderHealthGrid(sessions, runs) {
   const quota = demo ? DEMO.quota : null;
   const quotaPct = quota ? Math.round(quota.usedGB / quota.totalGB * 100) : null;
 
+  // Recovery scorecard (last verified restore) + manifest signature status.
+  const rec = demo ? DEMO.recovery : window._recovery;
+  const sig = demo ? DEMO.signature : (_latestSummary && _latestSummary.signature);
+
   const items = [
     { name: 'Last Backup', val: lastOk == null ? 'No data' : (lastOk ? 'Success' : 'Failed'), led: lastOk == null ? 'idle' : (lastOk ? 'ok' : 'err') },
     { name: 'SLA', val: slaOk == null ? '—' : (slaOk ? `Within ${slaHours}h` : 'Breached'), led: slaOk == null ? 'idle' : (slaOk ? 'ok' : 'err') },
     { name: 'Anomaly', val: anomaly == null ? 'No data' : (anomaly ? 'Detected' : 'Normal'), led: anomaly == null ? 'idle' : (anomaly ? 'warn' : 'ok') },
+    { name: 'Restore Verified', val: !rec || rec.status === 'pending' ? 'No drill yet' : (rec.status === 'verified' ? `${Math.round(rec.rto_seconds/60*10)/10}m RTO` : 'Failed'), led: !rec || rec.status === 'pending' ? 'idle' : (rec.status === 'verified' ? 'ok' : 'err') },
+    { name: 'Manifest Signature', val: !sig ? 'Unsigned' : `Signed (${sig.key_fingerprint ? sig.key_fingerprint.slice(0,8) : sig.algorithm || 'ed25519'})`, led: sig ? 'ok' : 'idle' },
     { name: 'Storage', val: quotaPct == null ? '—' : `${quotaPct}% used`, led: quotaPct == null ? 'idle' : (quotaPct > 90 ? 'err' : quotaPct > 80 ? 'warn' : 'ok') },
     { name: 'GitHub', val: (demo || ghToken) ? 'Connected' : 'Not linked', led: (demo || ghToken) ? 'ok' : 'idle' },
     { name: 'Drive', val: (demo || driveToken) ? 'Connected' : 'Not linked', led: (demo || driveToken) ? 'ok' : 'idle' },

@@ -1,5 +1,5 @@
 # GitHub → Google Drive Backup — Technical User Guide
-**Version 4.0.0** | Last updated: 2026-07-17
+**Version 5.0.0** | Last updated: 2026-07-20
 
 ---
 
@@ -68,6 +68,7 @@
 15. [PWA & Offline Support](#15-pwa--offline-support)
 15A. [Dashboard Insights & Productivity (v3.1)](#15a-dashboard-insights--productivity-v31)
 15B. [Reliability & Operations (v3.5)](#15b-reliability--operations-v35)
+15C. [Trust & Distribution (v5.0)](#15c-trust--distribution-v50)
 16. [Troubleshooting](#16-troubleshooting)
 17. [FAQ](#17-faq)
 18. [Version History](#18-version-history)
@@ -991,6 +992,29 @@ The **Reports** tab now offers an **Export JSON** button alongside CSV and the c
 
 ---
 
+## 15C. Trust & Distribution (v5.0)
+
+Version 5.0 makes recoverability and integrity **provable**, and packages the tool for one-line adoption.
+
+![Trust & Distribution](screenshots/trust-distribution.svg)
+
+### Signed manifests (Ed25519)
+SHA-256 hashes in the manifest catch corruption; they do not prove a backup wasn't *forged* by whoever can write to the bucket. Set `BACKUP_SIGNING_KEY` to a PEM Ed25519 private key and each session's `manifest.json` is signed to `manifest.json.sig` (`src/lib/manifest-signing.js`). On restore, set `BACKUP_SIGNING_PUBLIC_KEY` to verify it; the result (`valid` / `invalid` / `unsigned` / `no-key`) is logged and returned. Set `BACKUP_REQUIRE_SIGNATURE=true` to **abort** a restore on a missing or invalid signature. The signing public-key fingerprint is recorded in `backup-summary.json`. Generate a keypair with `require('./src/lib/manifest-signing').generateKeyPair()`.
+
+### Recovery scorecard
+The monthly restore drill (`monthly-restore-test.yml`) times the dry-run and publishes `docs/recovery-scorecard.json` via `src/lib/recovery-scorecard.js` — `status`, `last_verified`, and `rto_seconds`. It renders as the **Restore Verified** shields.io endpoint badge in the README and a **Restore Verified** tile in the dashboard's System Health panel, turning "backups exist" into "restores are verified, and here's how fast."
+
+### Tamper-evident audit log
+Audit entries (`src/audit/log.js`) are hash-chained: each entry carries `prev` (the SHA-256 of the previous entry) and its own `hash`. `verifyChain()` detects any edit (`hash-mismatch`) or deletion (`prev-mismatch`), so the audit trail cannot be silently rewritten.
+
+### Use as a GitHub Action
+`action.yml` exposes the backup as a composite action — `uses: OmarRao/github-gdrive-backup@v5` — so consumers compose it into their own workflows without forking. Inputs cover token/folder/credentials plus `incremental-mode`, `mirror-targets`, `zip-level`, `encryption-key`, and `signing-key`; it emits a JSON `summary` output.
+
+### Container image (GHCR)
+`publish.yml` builds and pushes `ghcr.io/omarrao/github-gdrive-backup` on each release, attaching an SBOM and a signed build-provenance attestation. Run it directly: `docker run ghcr.io/omarrao/github-gdrive-backup:v5 backup`.
+
+---
+
 ## 15B. Reliability & Operations (v3.5)
 
 Version 3.5 is a reliability, DR-depth, and operations release. Highlights:
@@ -1177,6 +1201,8 @@ The dashboard is now installable as a Progressive Web App:
 
 | Version | Date | Highlights |
 |---|---|---|
+| **5.0.0** | 2026-07-20 | **Trust & Distribution**: Ed25519 signed manifests + restore verification, recovery scorecard badge/tile, hash-chained audit log, GitHub Action (`action.yml`), GHCR container publish with SBOM + provenance. |
+| **4.1.0** | 2026-07-17 | Performance: streaming SHA-256/AES crypto, batched git object checks, tunable zip level, SPA resource hints. |
 | **4.0.0** | 2026-07-17 | **Relicensed to AGPL-3.0 + commercial dual-license** (was MIT). New `LICENSE` (AGPL-3.0), `COMMERCIAL-LICENSE.md`, `TRADEMARKS.md`, `DEPENDENCY-LICENSE-REVIEW.md`; SPDX headers on all owned source; README/USERGUIDE licensing sections. No application behavior changed. |
 | **3.0.0** | 2026-06-30 | 14 new features: Email Digest (SendGrid), MS Teams webhook, PAT Rotation Reminder, Session Diff, GFS Retention, SLA Breach Alerts, Compliance CSV Export, Anomaly Detection, Azure Blob, Backblaze B2, SBOM, Monthly Auto-Restore Test, PWA/offline, Repo Search |
 | **2.1.0** | 2026-06-26 | **Firebase Google Sign-In**, **Demo Mode** (sample data, yellow banner, no live calls), full UX overhaul, refreshed stat cards and reports, keyboard shortcuts, dark mode polish |

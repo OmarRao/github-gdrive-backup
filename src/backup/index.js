@@ -13,6 +13,7 @@ const fanout = require('./storage/fanout');
 const incremental = require('./incremental');
 const { renderIssuesHtml } = require('./issues-archive');
 const { sha256File, encryptFile } = require('../lib/archive-crypto');
+const signing = require('../lib/manifest-signing');
 const logger = require('../logger');
 
 const ZIP_LEVEL = Math.min(9, Math.max(0, parseInt(process.env.BACKUP_ZIP_LEVEL || '6', 10)));
@@ -495,11 +496,34 @@ async function runBackup(options = {}) {
   };
 
   const manifestPath = path.join(TMP, `manifest-${timestamp}.json`);
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
+  const manifestBytes = JSON.stringify(manifest, null, 2);
+  fs.writeFileSync(manifestPath, manifestBytes);
   await drive.uploadFile(manifestPath, sessionFolder);
   if (mirrorFolders) {
     await fanout.mirrorFile(manifestPath, mirrorFolders, 'manifest.json');
   }
+
+  // Optional Ed25519 manifest signing (tamper-evidence). Set BACKUP_SIGNING_KEY
+  // to a PEM Ed25519 private key; a manifest.json.sig is written alongside.
+  let signature = null;
+  const signingKey = process.env.BACKUP_SIGNING_KEY;
+  if (signingKey) {
+    try {
+      const sig = signing.sign(manifestBytes, signingKey);
+      const fp = process.env.BACKUP_SIGNING_PUBLIC_KEY
+        ? signing.fingerprint(process.env.BACKUP_SIGNING_PUBLIC_KEY) : null;
+      const sigPath = path.join(TMP, `manifest-${timestamp}.json.sig`);
+      fs.writeFileSync(sigPath, sig);
+      await drive.uploadFile(sigPath, sessionFolder, 'text/plain', 'manifest.json.sig');
+      if (mirrorFolders) await fanout.mirrorFile(sigPath, mirrorFolders, 'manifest.json.sig');
+      fs.rmSync(sigPath, { force: true });
+      signature = { algorithm: 'ed25519', ...(fp ? { key_fingerprint: fp } : {}) };
+      logger.info(`Manifest signed (ed25519${fp ? ', key ' + fp : ''})`);
+    } catch (e) {
+      logger.error(`Manifest signing failed: ${e.message}`);
+    }
+  }
+
   fs.rmSync(manifestPath, { force: true });
   logger.info(`Manifest written with ${manifestRepos.length} entries`);
 
@@ -532,6 +556,7 @@ async function runBackup(options = {}) {
     failed: results.filter(r => r.status === 'failed').length,
     ...(mirror ? { mirror } : {}),
     ...(incrementalSummary ? { incremental: incrementalSummary } : {}),
+    ...(signature ? { signature } : {}),
     results,
   };
 

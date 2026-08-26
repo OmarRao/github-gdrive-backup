@@ -45,12 +45,50 @@ jobs:
           BACKUP_TMP_DIR:            /tmp/gh-restore-test
         run: |
           echo "Starting monthly dry-run restore integrity test..."
+          echo "RESTORE_START=$(date +%s%3N)" >> $GITHUB_ENV
           node src/restore/index.js
+          echo "RESTORE_END=$(date +%s%3N)" >> $GITHUB_ENV
           echo "RESTORE_RESULT=success" >> $GITHUB_ENV
 
       - name: Mark result on failure
         if: steps.restore_test.outcome == 'failure'
-        run: echo "RESTORE_RESULT=failure" >> $GITHUB_ENV
+        run: |
+          echo "RESTORE_END=$(date +%s%3N)" >> $GITHUB_ENV
+          echo "RESTORE_RESULT=failure" >> $GITHUB_ENV
+
+      - name: Publish recovery scorecard
+        if: always()
+        continue-on-error: true
+        uses: actions/github-script@v7
+        env:
+          RESTORE_RESULT: ${{ env.RESTORE_RESULT }}
+          RESTORE_START: ${{ env.RESTORE_START }}
+          RESTORE_END: ${{ env.RESTORE_END }}
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { buildScorecard } = require(process.env.GITHUB_WORKSPACE + '/src/lib/recovery-scorecard');
+            const start = parseInt(process.env.RESTORE_START || '0', 10);
+            const end = parseInt(process.env.RESTORE_END || String(Date.now()), 10);
+            const sc = buildScorecard({
+              session: 'latest',
+              ok: (process.env.RESTORE_RESULT || 'failure') === 'success',
+              startedAt: start, finishedAt: end,
+            });
+            const content = Buffer.from(JSON.stringify(sc, null, 2)).toString('base64');
+            let sha;
+            try {
+              const res = await github.rest.repos.getContent({
+                owner: context.repo.owner, repo: context.repo.repo, path: 'docs/recovery-scorecard.json'
+              });
+              sha = res.data.sha;
+            } catch (_) {}
+            await github.rest.repos.createOrUpdateFileContents({
+              owner: context.repo.owner, repo: context.repo.repo,
+              path: 'docs/recovery-scorecard.json',
+              message: 'chore: update recovery scorecard [skip ci]',
+              content, ...(sha ? { sha } : {})
+            });
 
       - name: Append restore-test audit entry
         if: always()

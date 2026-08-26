@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "label": "restore verified",
+  "message": "pending first drill",
+  "color": "lightgrey",
+  "status": "pending",
+  "last_verified": null,
+  "rto_seconds": null,
+  "session": null,
+  "repos": null,
+  "signature": null
+}

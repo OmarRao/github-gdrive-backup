@@ -7,6 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.0] — 2026-07-20
+
+### Added — Trust & verification
+- **Signed manifests (Ed25519)** — `src/lib/manifest-signing.js`; `BACKUP_SIGNING_KEY`
+  signs `manifest.json` → `manifest.json.sig`, verified on restore with
+  `BACKUP_SIGNING_PUBLIC_KEY` (`BACKUP_REQUIRE_SIGNATURE=true` to enforce).
+- **Recovery scorecard** — `src/lib/recovery-scorecard.js`; the monthly restore
+  drill publishes `docs/recovery-scorecard.json` (last verified restore + RTO),
+  shown as a README endpoint badge and a dashboard tile.
+- **Tamper-evident audit log** — audit entries are now hash-chained with a
+  `verifyChain()` validator.
+
+### Added — Distribution
+- **GitHub Action** (`action.yml`) — `uses: OmarRao/github-gdrive-backup@v5`,
+  no fork required; outputs a JSON `summary`.
+- **GHCR publish workflow** (`publish.yml`) — container image on each release
+  with SBOM + signed build provenance.
+
+### Changed
+- Dashboard System Health adds **Restore Verified** and **Manifest Signature** tiles.
+- Docs, `.env.example`, and screenshots updated; SW cache → v6.
+
+### Notes
+- New crypto/scorecard/audit logic is unit-tested (16 new tests, 97 total).
+  No change to existing backup/restore data formats.
+
+---
+
 ## [4.1.0] — 2026-07-17
 
 ### Performance

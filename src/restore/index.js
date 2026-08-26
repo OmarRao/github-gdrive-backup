@@ -11,6 +11,7 @@ const GoogleDriveClient = require('../backup/gdrive');
 const { getProvider } = require('./providers');
 const incremental = require('../backup/incremental');
 const { sha256File, decryptFile: decryptFileStream } = require('../lib/archive-crypto');
+const signing = require('../lib/manifest-signing');
 const logger = require('../logger');
 
 const TMP = path.resolve(process.env.BACKUP_TMP_DIR || './tmp');
@@ -49,6 +50,47 @@ async function loadManifest(drive, files) {
     logger.warn(`Could not load manifest.json: ${err.message}`);
     fs.rmSync(manifestTmp, { force: true });
     return null;
+  }
+}
+
+/**
+ * Verify the Ed25519 signature over manifest.json for a session, when a
+ * manifest.json.sig is present and a public key is configured
+ * (BACKUP_SIGNING_PUBLIC_KEY). Returns 'valid' | 'invalid' | 'unsigned' |
+ * 'no-key'. If BACKUP_REQUIRE_SIGNATURE=true, an invalid/missing signature
+ * throws to abort the restore.
+ */
+async function verifySessionSignature(drive, files) {
+  const require_ = String(process.env.BACKUP_REQUIRE_SIGNATURE || '').toLowerCase() === 'true';
+  const manifestFile = files.find(f => f.name === 'manifest.json');
+  const sigFile = files.find(f => f.name === 'manifest.json.sig');
+  const pubKey = process.env.BACKUP_SIGNING_PUBLIC_KEY;
+
+  if (!sigFile) {
+    if (require_) throw new Error('Signature required but manifest.json.sig is missing for this session.');
+    return 'unsigned';
+  }
+  if (!pubKey) {
+    if (require_) throw new Error('Signature present but BACKUP_SIGNING_PUBLIC_KEY is not set.');
+    logger.warn('Session is signed but no BACKUP_SIGNING_PUBLIC_KEY provided — signature not verified.');
+    return 'no-key';
+  }
+  const mTmp = path.join(TMP, `verify-manifest-${Date.now()}.json`);
+  const sTmp = path.join(TMP, `verify-sig-${Date.now()}.sig`);
+  try {
+    await drive.downloadFile(manifestFile.id, mTmp);
+    await drive.downloadFile(sigFile.id, sTmp);
+    const ok = signing.verify(fs.readFileSync(mTmp), fs.readFileSync(sTmp, 'utf8').trim(), pubKey);
+    if (!ok) {
+      if (require_) throw new Error('Manifest signature verification FAILED — aborting restore.');
+      logger.warn('Manifest signature verification FAILED for this session.');
+      return 'invalid';
+    }
+    logger.info('Manifest signature verified ✓');
+    return 'valid';
+  } finally {
+    fs.rmSync(mTmp, { force: true });
+    fs.rmSync(sTmp, { force: true });
   }
 }
 
@@ -291,6 +333,9 @@ async function runRestore(options = {}) {
   const repoFolders = await drive.listFolderContents(sessionId);
   const repoList = repoFolders.filter(f => f.mimeType === 'application/vnd.google-apps.folder');
 
+  // Tamper-evidence: verify the session's manifest signature (if present/required).
+  const signatureStatus = await verifySessionSignature(drive, repoFolders);
+
   const reposToRestore = options.repos?.length
     ? repoList.filter(r => options.repos.includes(r.name))
     : repoList;
@@ -334,7 +379,8 @@ async function runRestore(options = {}) {
     }
   }
 
-  logger.info(`Restore complete: ${results.filter(r => r.status === 'success').length}/${results.length} succeeded`);
+  logger.info(`Restore complete: ${results.filter(r => r.status === 'success').length}/${results.length} succeeded (manifest signature: ${signatureStatus})`);
+  results.signatureStatus = signatureStatus;
   return results;
 }
 

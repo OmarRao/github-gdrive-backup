@@ -1,0 +1,130 @@
+# Copyright (c) 2026 Omar Rao
+# SPDX-License-Identifier: AGPL-3.0-only OR LicenseRef-Commercial
+name: 'GitHub → Google Drive Backup'
+description: 'Back up GitHub repositories (code, issues, PRs, releases, wiki) to Google Drive or S3/Azure/B2, with delta uploads, 3-2-1 fan-out, encryption and signed manifests.'
+author: 'Omar Rao'
+branding:
+  icon: 'hard-drive'
+  color: 'blue'
+
+inputs:
+  github-token:
+    description: 'GitHub token (PAT) with repo, workflow, read:org, read:user scopes.'
+    required: true
+  github-user:
+    description: 'GitHub username or org to back up (blank = the token owner).'
+    required: false
+    default: ''
+  gdrive-folder-id:
+    description: 'Google Drive destination folder ID.'
+    required: true
+  google-client-secret:
+    description: 'Contents of the Google OAuth client-secret JSON.'
+    required: true
+  google-token:
+    description: 'Contents of the Google OAuth token JSON.'
+    required: true
+  repos:
+    description: 'Comma-separated repo names to back up (blank = all).'
+    required: false
+    default: ''
+  include:
+    description: 'Data to include: code,issues,pull_requests,releases,wiki,labels,milestones,config'
+    required: false
+    default: 'code,issues,pull_requests,releases,wiki,labels,milestones'
+  incremental-mode:
+    description: "Archive strategy: 'full' (zip) or 'delta' (git bundle chain)."
+    required: false
+    default: 'full'
+  storage-target:
+    description: 'Primary storage: drive, s3, azure, or b2.'
+    required: false
+    default: 'drive'
+  mirror-targets:
+    description: 'Comma-separated secondary mirrors for 3-2-1 fan-out, e.g. "s3,b2".'
+    required: false
+    default: ''
+  zip-level:
+    description: 'Zip compression level 0-9 (lower = faster).'
+    required: false
+    default: '6'
+  encryption-key:
+    description: 'Optional AES-256-CBC key (64 hex chars) for encryption at rest.'
+    required: false
+    default: ''
+  signing-key:
+    description: 'Optional Ed25519 PEM private key to sign the manifest.'
+    required: false
+    default: ''
+  node-version:
+    description: 'Node.js version to run with.'
+    required: false
+    default: '22'
+
+outputs:
+  summary:
+    description: 'JSON backup summary (totals, mirror + delta composition, signature).'
+    value: ${{ steps.run.outputs.summary }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: npm ci --omit=dev || npm install --omit=dev
+
+    - name: Write Google credentials
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        GOOGLE_CLIENT_SECRET_JSON: ${{ inputs.google-client-secret }}
+        GOOGLE_TOKEN_JSON: ${{ inputs.google-token }}
+      run: |
+        mkdir -p credentials
+        printf '%s' "$GOOGLE_CLIENT_SECRET_JSON" > credentials/google-client-secret.json
+        printf '%s' "$GOOGLE_TOKEN_JSON"         > credentials/google-token.json
+
+    - name: Run backup
+      id: run
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      env:
+        GITHUB_TOKEN: ${{ inputs.github-token }}
+        GITHUB_USER: ${{ inputs.github-user }}
+        GDRIVE_FOLDER_ID: ${{ inputs.gdrive-folder-id }}
+        GOOGLE_CLIENT_SECRET_PATH: ./credentials/google-client-secret.json
+        GOOGLE_TOKEN_PATH: ./credentials/google-token.json
+        BACKUP_INCLUDE: ${{ inputs.include }}
+        INCREMENTAL_MODE: ${{ inputs.incremental-mode }}
+        STORAGE_TARGET: ${{ inputs.storage-target }}
+        BACKUP_MIRROR_TARGETS: ${{ inputs.mirror-targets }}
+        BACKUP_ZIP_LEVEL: ${{ inputs.zip-level }}
+        BACKUP_ENCRYPTION_KEY: ${{ inputs.encryption-key }}
+        BACKUP_SIGNING_KEY: ${{ inputs.signing-key }}
+        BACKUP_TMP_DIR: ${{ runner.temp }}/gh-backup
+        REPOS: ${{ inputs.repos }}
+      run: |
+        node -e "
+          const { runBackup } = require('./src/backup/index');
+          const repos = process.env.REPOS ? process.env.REPOS.split(',').map(r => r.trim()).filter(Boolean) : undefined;
+          runBackup(repos ? { repos } : {})
+            .then(s => {
+              const line = JSON.stringify(s).replace(/\n/g, ' ');
+              require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'summary=' + line + '\n');
+              console.log('Backup complete:', s.success + '/' + s.total, 'succeeded');
+              process.exit(s.failed > 0 ? 1 : 0);
+            })
+            .catch(e => { console.error(e); process.exit(1); });
+        "
+
+    - name: Clean up credentials
+      if: always()
+      shell: bash
+      working-directory: ${{ github.action_path }}
+      run: rm -rf credentials
