@@ -29,7 +29,7 @@
     "axios": "^1.7.9",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
-    "googleapis": "^173.0.0",
+    "googleapis": "^176.0.0",
     "multer": "^2.2.0",
     "node-stream-zip": "^1.16.0",
     "simple-git": "^3.27.0",
