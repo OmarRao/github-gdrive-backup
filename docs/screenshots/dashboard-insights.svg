@@ -45,31 +45,46 @@
   <rect x="24" y="216" width="414" height="320" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
   <text x="48" y="248" font-size="15" font-weight="700" fill="#0f172a">Storage Growth</text>
   <text x="48" y="268" font-size="12" fill="#64748b">Session size over the last 10 backups</text>
-  <!-- grid -->
-  <line x1="72" y1="300" x2="410" y2="300" stroke="#e2e8f0"/>
-  <line x1="72" y1="380" x2="410" y2="380" stroke="#e2e8f0"/>
-  <line x1="72" y1="460" x2="410" y2="460" stroke="#e2e8f0"/>
-  <text x="66" y="303" text-anchor="end" font-size="10" fill="#94a3b8">620</text>
-  <text x="66" y="383" text-anchor="end" font-size="10" fill="#94a3b8">310</text>
-  <text x="66" y="463" text-anchor="end" font-size="10" fill="#94a3b8">0</text>
-  <!-- area -->
-  <path d="M80 440 L118 360 L156 410 L194 330 L232 400 L270 320 L308 380 L346 300 L384 430 L402 460 L402 460 L80 460 Z" fill="#2563eb" opacity="0.12"/>
-  <path d="M80 440 L118 360 L156 410 L194 330 L232 400 L270 320 L308 380 L346 300 L384 430" fill="none" stroke="#2563eb" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+  <defs>
+    <linearGradient id="sgfill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#2563eb" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#2563eb" stop-opacity="0.02"/>
+    </linearGradient>
+  </defs>
+  <!-- gridlines + y labels -->
+  <g stroke="#eef2f7" stroke-width="1">
+    <line x1="72" y1="300" x2="410" y2="300"/><line x1="72" y1="340" x2="410" y2="340"/>
+    <line x1="72" y1="380" x2="410" y2="380"/><line x1="72" y1="420" x2="410" y2="420"/>
+    <line x1="72" y1="460" x2="410" y2="460"/>
+  </g>
+  <g font-size="11" fill="#94a3b8">
+    <text x="64" y="303" text-anchor="end">650</text>
+    <text x="64" y="383" text-anchor="end">325</text>
+    <text x="64" y="463" text-anchor="end">0</text>
+    <text x="410" y="288" text-anchor="end" font-weight="700">MB</text>
+  </g>
+  <!-- smooth gradient area + line -->
+  <path d="M80,438 C100,430 108,368 128,362 C148,356 156,404 176,398 C196,392 204,336 224,332 C244,328 252,392 272,326 C292,300 300,374 320,372 C340,370 348,306 368,302 C388,300 392,420 402,432 L402,460 L80,460 Z" fill="url(#sgfill)"/>
+  <path d="M80,438 C100,430 108,368 128,362 C148,356 156,404 176,398 C196,392 204,336 224,332 C244,328 252,392 272,326 C292,300 300,374 320,372 C340,370 348,306 368,302 C388,300 392,420 402,432" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
   <g fill="#ffffff" stroke="#2563eb" stroke-width="2">
-    <circle cx="80" cy="440" r="3"/><circle cx="118" cy="360" r="3"/><circle cx="156" cy="410" r="3"/><circle cx="194" cy="330" r="3"/><circle cx="232" cy="400" r="3"/><circle cx="308" cy="380" r="3"/><circle cx="346" cy="300" r="3"/><circle cx="384" cy="430" r="3"/>
+    <circle cx="80" cy="438" r="3.5"/><circle cx="128" cy="362" r="3.5"/><circle cx="176" cy="398" r="3.5"/><circle cx="224" cy="332" r="3.5"/><circle cx="320" cy="372" r="3.5"/><circle cx="368" cy="302" r="3.5"/><circle cx="402" cy="432" r="3.5"/>
   </g>
   <!-- hovered (active) point + interactive tooltip -->
-  <circle cx="270" cy="320" r="5" fill="#2563eb" stroke="#2563eb" stroke-width="2"/>
+  <circle cx="272" cy="326" r="5.5" fill="#2563eb" stroke="#2563eb" stroke-width="2"/>
   <g>
-    <rect x="214" y="256" width="150" height="52" rx="8" fill="#0f172a"/>
-    <text x="226" y="275" font-size="10.5" font-weight="700" fill="#ffffff">session-2026-08-20</text>
-    <text x="226" y="291" font-size="10.5" font-weight="700" fill="#e2e8f0">488 MB</text>
-    <rect x="272" y="282" width="40" height="13" rx="6" fill="#10b981"/>
-    <text x="292" y="292" text-anchor="middle" font-size="8" font-weight="700" fill="#062e1f">DELTA</text>
-    <text x="226" y="303" font-size="9" fill="#94a3b8">8/20/2026</text>
+    <rect x="212" y="258" width="156" height="56" rx="8" fill="#0f172a"/>
+    <text x="226" y="278" font-size="11" font-weight="700" fill="#ffffff">session-2026-08-22</text>
+    <text x="226" y="296" font-size="11" font-weight="700" fill="#e2e8f0">397 MB</text>
+    <rect x="272" y="286" width="40" height="14" rx="7" fill="#10b981"/>
+    <text x="292" y="296" text-anchor="middle" font-size="8" font-weight="700" fill="#062e1f">DELTA</text>
+    <text x="226" y="309" font-size="9" fill="#94a3b8">Aug 22</text>
   </g>
-  <text x="80" y="500" font-size="10" fill="#94a3b8">oldest</text>
-  <text x="410" y="500" text-anchor="end" font-size="10" fill="#94a3b8">newest · MB</text>
+  <!-- x-axis date labels -->
+  <g font-size="11" fill="#94a3b8">
+    <text x="80" y="486">Aug 17</text>
+    <text x="241" y="486" text-anchor="middle">Aug 21</text>
+    <text x="402" y="486" text-anchor="end">Aug 26</text>
+  </g>
 
   <!-- Backup Timeline card -->
   <rect x="462" y="216" width="414" height="320" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
