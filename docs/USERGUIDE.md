@@ -948,20 +948,22 @@ Version 3.1 adds a layer of at-a-glance intelligence and keyboard-first navigati
 
 ### System Health panel
 
-Directly under the stat cards, a six-tile **System Health** grid gives a traffic-light read on the whole system:
+Directly under the stat cards, the **System Health** grid gives a traffic-light read on the whole system. **Every tile is interactive** — click (or focus + Enter) any tile to jump straight to the section that explains or acts on it:
 
-| Tile | Green | Amber | Red |
-|---|---|---|---|
-| Last Backup | Success | — | Failed |
-| SLA | Within threshold | — | Breached |
-| Anomaly | Normal | Detected (>20% size deviation) | — |
-| Storage | ≤80% used | 80–90% | >90% |
-| GitHub | Connected | — | — |
-| Drive | Connected | — | — |
+| Tile | Green | Amber | Red | Opens |
+|---|---|---|---|---|
+| Last Backup | Success | — | Failed | Workflow Runs |
+| SLA | Within threshold | — | Breached | Reports |
+| Anomaly | Normal | Detected (>20% size deviation) | — | Reports |
+| Restore Verified | Verified (with RTO) | — | Failed | Restore |
+| Manifest Signature | Signed | — | — | Settings |
+| Storage | ≤80% used | 80–90% | >90% | Settings |
+| GitHub | Connected | — | — | Settings |
+| Drive | Connected | — | — | Settings |
 
 ### Storage Growth chart
 
-An inline SVG area chart plots the size (MB) of the last 10 backup sessions oldest→newest, with hover tooltips per point. Use it to spot steady growth (plan capacity) or sudden drops (investigate with Session Diff).
+An inline SVG area chart plots the size (MB) of the last 10 backup sessions oldest→newest. **Hover (or keyboard-focus) any point** to see an interactive tooltip with that session's name, size, delta mode (full/delta/unchanged), and date; the point enlarges to mark the active selection. Use it to spot steady growth (plan capacity) or sudden drops (investigate with Session Diff).
 
 ### Backup Timeline heatmap
 

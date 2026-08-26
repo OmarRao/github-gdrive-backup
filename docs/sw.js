@@ -3,7 +3,7 @@
 // This file is available under the GNU Affero General Public License v3.0
 // or under a separate commercial license.
 // Service Worker — cache-first for the app shell
-const CACHE  = 'gh-backup-v6';
+const CACHE  = 'gh-backup-v7';
 const SHELL  = [
   '/github-gdrive-backup/',
   '/github-gdrive-backup/index.html',
