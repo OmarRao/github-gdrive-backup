@@ -3,12 +3,13 @@
 // This file is available under the GNU Affero General Public License v3.0
 // or under a separate commercial license.
 const { google } = require('googleapis');
-const { GoogleAuth } = require('google-auth-library');
 const fs = require('fs');
 const path = require('path');
+const GoogleDriveClient = require('../backup/gdrive');
 
 const FOLDER_ID = process.env.GDRIVE_FOLDER_ID;
-const RETENTION_DAYS = parseInt(process.env.RETENTION_DAYS || '90', 10);
+// Simple age-based retention (default 21 days).
+const RETENTION_DAYS = parseInt(process.env.RETENTION_DAYS || '21', 10);
 const LOG_DIR = path.join(process.cwd(), 'logs');
 
 if (!fs.existsSync(LOG_DIR)) fs.mkdirSync(LOG_DIR, { recursive: true });
@@ -101,10 +102,12 @@ async function main() {
   if (!FOLDER_ID) { log('ERROR: GDRIVE_FOLDER_ID not set'); process.exit(1); }
   if (RETENTION_DAYS === 0) { log('Retention disabled (0 days), skipping cleanup'); return; }
 
-  const auth = new GoogleAuth({
-    keyFile: 'credentials/google-client-secret.json',
-    scopes: ['https://www.googleapis.com/auth/drive'],
-  });
+  // Authenticate with the OAuth refresh token (same flow as backup/restore),
+  // not a service-account key file.
+  const auth = await GoogleDriveClient.createAuthClient(
+    process.env.GOOGLE_CLIENT_SECRET_PATH || './credentials/google-client-secret.json',
+    process.env.GOOGLE_TOKEN_PATH || './credentials/google-token.json'
+  );
 
   const drive = google.drive({ version: 'v3', auth });
   const cutoff = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000);
