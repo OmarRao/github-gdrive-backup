@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.5] — 2026-07-20
+
+### Changed
+- Action Marketplace title set to **"GitHub Backup and Restore"**.
+
 ## [5.0.4] — 2026-07-20
 
 ### Changed
-- **Marketplace-ready Action metadata** — renamed the Action to a distinctive,
-  Marketplace-safe title ("GDrive Repo Backup and Restore"; removed the `→`
-  glyph that can break Marketplace slugs). Branding (icon `hard-drive`, color
+- **Marketplace-ready Action metadata** — removed the `→` glyph from the Action
+  name (it can break Marketplace slugs). Branding (icon `hard-drive`, color
   `blue`), inputs, and outputs unchanged.
 - Publishing a moving **`v5`** major tag so `uses: OmarRao/github-gdrive-backup@v5`
   and `ghcr.io/omarrao/github-gdrive-backup:v5` resolve.
