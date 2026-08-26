@@ -22,11 +22,11 @@
     "node": ">=18.0.0"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.600.0",
+    "@aws-sdk/client-s3": "^3.1116.0",
     "@azure/storage-blob": "^12.24.0",
     "@octokit/rest": "^20.1.1",
     "archiver": "^7.0.1",
-    "axios": "^1.7.9",
+    "axios": "^1.19.0",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
     "googleapis": "^173.0.0",
@@ -36,7 +36,7 @@
     "winston": "^3.17.0"
   },
   "devDependencies": {
-    "eslint": "^10.8.1",
+    "eslint": "^10.9.0",
     "globals": "^15.0.0",
     "jest": "^30.4.2",
     "nodemon": "^3.1.9"
