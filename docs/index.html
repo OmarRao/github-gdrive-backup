@@ -1027,23 +1027,50 @@
       display: flex; align-items: center; gap: 11px;
       padding: 12px 14px; border: 1px solid var(--border);
       border-radius: var(--radius-sm); background: var(--bg-hover);
+      cursor: pointer; user-select: none;
+      transition: border-color var(--t), box-shadow var(--t), transform var(--t), background var(--t);
     }
+    .health-item:hover {
+      border-color: var(--accent); background: var(--bg-card);
+      box-shadow: var(--shadow-md); transform: translateY(-1px);
+    }
+    .health-item:hover .health-arrow { opacity: 1; transform: translateX(0); color: var(--accent); }
+    .health-item:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .health-led { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px transparent; }
     .health-led.ok   { background: var(--primary); box-shadow: 0 0 0 3px var(--primary-bg); }
     .health-led.warn { background: var(--warn);    box-shadow: 0 0 0 3px var(--warn-bg); }
     .health-led.err  { background: var(--danger);  box-shadow: 0 0 0 3px var(--danger-bg); }
     .health-led.idle { background: var(--muted-light); }
-    .health-meta { display: flex; flex-direction: column; min-width: 0; }
+    .health-meta { display: flex; flex-direction: column; min-width: 0; flex: 1; }
     .health-name { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .4px; }
     .health-val  { font-size: 13.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .health-arrow { width: 15px; height: 15px; flex-shrink: 0; color: var(--muted-light); opacity: 0; transform: translateX(-3px); transition: opacity var(--t), transform var(--t), color var(--t); }
 
     /* ── Storage growth area chart ────────────────────────────────────────── */
     .area-chart { width: 100%; height: 140px; display: block; }
     .area-chart .grid-line { stroke: var(--border); stroke-width: 1; }
     .area-chart .area-fill { fill: var(--accent); opacity: .12; }
     .area-chart .area-line { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-    .area-chart .area-dot  { fill: var(--bg-card); stroke: var(--accent); stroke-width: 2; }
+    .area-chart .area-dot  { fill: var(--bg-card); stroke: var(--accent); stroke-width: 2; transition: r .12s ease; }
+    .area-chart .area-dot.active { r: 5; fill: var(--accent); }
+    .area-chart .area-hit  { fill: transparent; cursor: pointer; outline: none; }
+    .area-chart .area-hit:focus-visible + text, .area-chart .area-hit:focus-visible { stroke: var(--accent); }
     .area-chart text { fill: var(--muted); font-size: 10px; }
+    /* Interactive chart tooltip */
+    .chart-tip {
+      position: absolute; z-index: 5; transform: translate(-50%, calc(-100% - 12px));
+      background: var(--bg-sidebar); color: #e2e8f0; border: 1px solid var(--border-mid);
+      border-radius: var(--radius-sm); padding: 8px 10px; font-size: 11.5px; line-height: 1.5;
+      pointer-events: none; box-shadow: var(--shadow-lg); white-space: nowrap; min-width: 90px;
+    }
+    .chart-tip[hidden] { display: none; }
+    .chart-tip .tip-title { font-weight: 700; color: #fff; font-size: 12px; margin-bottom: 2px; }
+    .chart-tip .tip-row { display: flex; align-items: center; gap: 8px; }
+    .chart-tip .tip-sub { color: #94a3b8; font-size: 10.5px; margin-top: 2px; }
+    .chart-tip .tip-mode { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .3px; padding: 1px 6px; border-radius: 10px; }
+    .chart-tip .tip-mode.full { background: #2563eb; color: #fff; }
+    .chart-tip .tip-mode.delta { background: #10b981; color: #062e1f; }
+    .chart-tip .tip-mode.unchanged { background: #475569; color: #e2e8f0; }
 
     /* ── Timeline heatmap ─────────────────────────────────────────────────── */
     .heatmap { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -2888,7 +2915,7 @@ async function loadDashboard() {
     document.getElementById('dash-warn').classList.add('hidden');
     document.getElementById('stat-repos').textContent    = DEMO.stats.repos;
     document.getElementById('stat-sessions').textContent = DEMO.stats.sessions;
-    document.getElementById('stat-last').textContent     = relTime(DEMO.stats.lastBackup) + ' ✅';
+    document.getElementById('stat-last').textContent     = relTime(DEMO.stats.lastBackup);
     document.getElementById('stat-active').textContent   = DEMO.stats.active;
     setTrend('trend-repos', '↑ +1 vs last week', 'up');
     setTrend('trend-sessions', '↑ +12% vs last week', 'up');
@@ -3072,23 +3099,28 @@ function renderHealthGrid(sessions, runs) {
   const rec = demo ? DEMO.recovery : window._recovery;
   const sig = demo ? DEMO.signature : (_latestSummary && _latestSummary.signature);
 
+  // Each tile links to the section that explains or acts on it.
   const items = [
-    { name: 'Last Backup', val: lastOk == null ? 'No data' : (lastOk ? 'Success' : 'Failed'), led: lastOk == null ? 'idle' : (lastOk ? 'ok' : 'err') },
-    { name: 'SLA', val: slaOk == null ? '—' : (slaOk ? `Within ${slaHours}h` : 'Breached'), led: slaOk == null ? 'idle' : (slaOk ? 'ok' : 'err') },
-    { name: 'Anomaly', val: anomaly == null ? 'No data' : (anomaly ? 'Detected' : 'Normal'), led: anomaly == null ? 'idle' : (anomaly ? 'warn' : 'ok') },
-    { name: 'Restore Verified', val: !rec || rec.status === 'pending' ? 'No drill yet' : (rec.status === 'verified' ? `${Math.round(rec.rto_seconds/60*10)/10}m RTO` : 'Failed'), led: !rec || rec.status === 'pending' ? 'idle' : (rec.status === 'verified' ? 'ok' : 'err') },
-    { name: 'Manifest Signature', val: !sig ? 'Unsigned' : `Signed (${sig.key_fingerprint ? sig.key_fingerprint.slice(0,8) : sig.algorithm || 'ed25519'})`, led: sig ? 'ok' : 'idle' },
-    { name: 'Storage', val: quotaPct == null ? '—' : `${quotaPct}% used`, led: quotaPct == null ? 'idle' : (quotaPct > 90 ? 'err' : quotaPct > 80 ? 'warn' : 'ok') },
-    { name: 'GitHub', val: (demo || ghToken) ? 'Connected' : 'Not linked', led: (demo || ghToken) ? 'ok' : 'idle' },
-    { name: 'Drive', val: (demo || driveToken) ? 'Connected' : 'Not linked', led: (demo || driveToken) ? 'ok' : 'idle' },
+    { name: 'Last Backup', val: lastOk == null ? 'No data' : (lastOk ? 'Success' : 'Failed'), led: lastOk == null ? 'idle' : (lastOk ? 'ok' : 'err'), page: 'runs' },
+    { name: 'SLA', val: slaOk == null ? '—' : (slaOk ? `Within ${slaHours}h` : 'Breached'), led: slaOk == null ? 'idle' : (slaOk ? 'ok' : 'err'), page: 'reports' },
+    { name: 'Anomaly', val: anomaly == null ? 'No data' : (anomaly ? 'Detected' : 'Normal'), led: anomaly == null ? 'idle' : (anomaly ? 'warn' : 'ok'), page: 'reports' },
+    { name: 'Restore Verified', val: !rec || rec.status === 'pending' ? 'No drill yet' : (rec.status === 'verified' ? `${Math.round(rec.rto_seconds/60*10)/10}m RTO` : 'Failed'), led: !rec || rec.status === 'pending' ? 'idle' : (rec.status === 'verified' ? 'ok' : 'err'), page: 'restore' },
+    { name: 'Manifest Signature', val: !sig ? 'Unsigned' : `Signed (${sig.key_fingerprint ? sig.key_fingerprint.slice(0,8) : sig.algorithm || 'ed25519'})`, led: sig ? 'ok' : 'idle', page: 'settings' },
+    { name: 'Storage', val: quotaPct == null ? '—' : `${quotaPct}% used`, led: quotaPct == null ? 'idle' : (quotaPct > 90 ? 'err' : quotaPct > 80 ? 'warn' : 'ok'), page: 'settings' },
+    { name: 'GitHub', val: (demo || ghToken) ? 'Connected' : 'Not linked', led: (demo || ghToken) ? 'ok' : 'idle', page: 'settings' },
+    { name: 'Drive', val: (demo || driveToken) ? 'Connected' : 'Not linked', led: (demo || driveToken) ? 'ok' : 'idle', page: 'settings' },
   ];
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
   el.innerHTML = items.map(i => `
-    <div class="health-item">
+    <div class="health-item" role="button" tabindex="0" onclick="navTo('${i.page}')"
+      onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();navTo('${i.page}')}"
+      title="Open ${cap(i.page)}" aria-label="${i.name}: ${i.val}. Open ${i.page}.">
       <span class="health-led ${i.led}"></span>
       <span class="health-meta">
         <span class="health-name">${i.name}</span>
         <span class="health-val">${i.val}</span>
       </span>
+      <svg class="health-arrow" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>
     </div>`).join('');
 }
 
@@ -3106,8 +3138,41 @@ function renderStorageChart(sessions) {
   const line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' ');
   const area = `M${pts[0][0].toFixed(1)} ${(padT+ih).toFixed(1)} ` + pts.map(p => 'L'+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ') + ` L${pts[pts.length-1][0].toFixed(1)} ${(padT+ih).toFixed(1)} Z`;
   const gridY = [0, 0.5, 1].map(f => { const gy = padT + ih - ih*f; return `<line class="grid-line" x1="${padL}" y1="${gy}" x2="${W-padR}" y2="${gy}"/><text x="${padL-6}" y="${gy+3}" text-anchor="end">${Math.round(max*f)}</text>`; }).join('');
-  const dots = pts.map((p,i) => `<circle class="area-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3"><title>${data[i].name}: ${data[i].sizeMB} MB</title></circle>`).join('');
-  el.innerHTML = `<svg class="area-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Storage growth chart">${gridY}<path class="area-fill" d="${area}"/><path class="area-line" d="${line}"/>${dots}<text x="${padL}" y="${H-4}">oldest</text><text x="${W-padR}" y="${H-4}" text-anchor="end">newest · MB</text></svg>`;
+  // Visible dot + a larger transparent hit target for easy hover/focus.
+  const dots = pts.map((p, i) =>
+    `<circle class="area-dot" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="3"/>` +
+    `<circle class="area-hit" cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="9" tabindex="0" role="button" data-i="${i}" aria-label="${data[i].name}: ${data[i].sizeMB} MB"/>`
+  ).join('');
+  el.style.position = 'relative';
+  el.innerHTML =
+    `<svg class="area-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img" aria-label="Storage growth over the last ${data.length} backups">` +
+    `${gridY}<path class="area-fill" d="${area}"/><path class="area-line" d="${line}"/>${dots}` +
+    `<text x="${padL}" y="${H-4}">oldest</text><text x="${W-padR}" y="${H-4}" text-anchor="end">newest · MB</text></svg>` +
+    `<div class="chart-tip" id="storage-tip" hidden></div>`;
+
+  const tip = el.querySelector('#storage-tip');
+  const show = (i) => {
+    const d = data[i];
+    const when = d.createdTime ? relTime(d.createdTime) : '';
+    const mode = d.mode ? `<span class="tip-mode ${d.mode}">${d.mode}</span>` : '';
+    tip.innerHTML = `<div class="tip-title">${d.name}</div>` +
+      `<div class="tip-row"><strong>${d.sizeMB} MB</strong>${mode}</div>` +
+      (when ? `<div class="tip-sub">${when}</div>` : '');
+    // viewBox maps linearly to the element box (preserveAspectRatio=none),
+    // so fractional coordinates position the tooltip exactly.
+    tip.style.left = (pts[i][0] / W * 100) + '%';
+    tip.style.top = (pts[i][1] / H * 100) + '%';
+    tip.hidden = false;
+    el.querySelectorAll('.area-dot').forEach((c, j) => c.classList.toggle('active', j === i));
+  };
+  const hide = () => { tip.hidden = true; el.querySelectorAll('.area-dot.active').forEach(c => c.classList.remove('active')); };
+  el.querySelectorAll('.area-hit').forEach(h => {
+    const i = +h.dataset.i;
+    h.addEventListener('mouseenter', () => show(i));
+    h.addEventListener('mouseleave', hide);
+    h.addEventListener('focus', () => show(i));
+    h.addEventListener('blur', hide);
+  });
 }
 
 function renderHeatmap(sessions, runs) {

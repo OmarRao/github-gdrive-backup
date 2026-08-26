@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.0.2] — 2026-07-20
+
+### Changed (dashboard UX)
+- **System Health tiles are now interactive** — each tile is a button (click or
+  keyboard) that navigates to its section (Last Backup→Runs, SLA/Anomaly→Reports,
+  Restore Verified→Restore, Signature/Storage/GitHub/Drive→Settings), with hover
+  and focus states and a hover arrow.
+- **Storage Growth chart points are interactive** — hovering/focusing a point
+  shows a rich tooltip (session name, size, delta mode, date) and enlarges the
+  active point.
+- **Removed the ✅ glyph** from the Last Backup stat card (demo mode).
+
+---
+
 ## [5.0.1] — 2026-07-20
 
 ### Changed
