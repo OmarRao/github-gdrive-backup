@@ -5,7 +5,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const extractZip = require('extract-zip');
+const { extractZipSafe } = require('../lib/safe-extract');
 const simpleGit = require('simple-git');
 const GoogleDriveClient = require('../backup/gdrive');
 const { getProvider } = require('./providers');
@@ -257,7 +257,7 @@ async function restoreRepo(provider, drive, repoFiles, owner, options = {}, mani
       fs.rmSync(downloadDest, { force: true });
     }
 
-    await extractZip(zipTmp, { dir: extractDir });
+    await extractZipSafe(zipTmp, extractDir);
 
     const gitDir = fs.readdirSync(extractDir).find(d =>
       fs.statSync(path.join(extractDir, d)).isDirectory()

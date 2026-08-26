@@ -23,8 +23,8 @@ is not a substitute for review by a qualified attorney.
 | `axios` | `^1.7.9` | MIT |
 | `dotenv` | `^16.4.5` | BSD-2-Clause |
 | `express` | `^4.21.2` | MIT |
-| `extract-zip` | `^2.0.1` | BSD-2-Clause |
-| `googleapis` | `^144.0.0` | Apache-2.0 |
+| `googleapis` | `^173.0.0` | Apache-2.0 |
+| `node-stream-zip` | `^1.15.0` | MIT |
 | `multer` | `^2.2.0` | MIT |
 | `simple-git` | `^3.27.0` | MIT |
 | `winston` | `^3.17.0` | MIT |
@@ -110,25 +110,20 @@ informational only:
 
 Re-run this inventory whenever dependencies change (e.g. after Dependabot updates).
 
-## Known security advisories (open)
+## Known security advisories
 
-| Package | Advisory | Severity | Fix | Status |
-|---|---|---|---|---|
-| `extract-zip` | [GHSA-jmr9-qjv8-65gv](https://github.com/advisories/GHSA-jmr9-qjv8-65gv) — unvalidated symlink path traversal during extraction | High | **No patched version available** | Tracked follow-up |
+| Package | Advisory | Severity | Status |
+|---|---|---|---|
+| ~~`extract-zip`~~ | [GHSA-jmr9-qjv8-65gv](https://github.com/advisories/GHSA-jmr9-qjv8-65gv) — unvalidated symlink path traversal | High | **Resolved** — dependency removed |
 
-**Where it's used:** restore only (`src/restore/index.js`) — extracting a repo's
-zip archive into a temp directory on an ephemeral CI runner.
+**Resolution (v5.0.0).** `extract-zip` (no patched version was ever released) was
+**replaced** with `node-stream-zip` behind a path-safe wrapper
+(`src/lib/safe-extract.js`) that rejects absolute paths, `..` traversal, and
+symlink entries before writing anything to disk. Verified by
+`tests/safe-extract.test.js` (path-guard unit tests + a real zip-slip archive
+that is refused with nothing written outside the destination). `npm audit`
+reports **0 vulnerabilities**.
 
-**Exposure & mitigation:**
-- The archives extracted are the project's **own** backups (bare git mirrors,
-  which do not contain symlinks). The risk is a *maliciously crafted* archive in
-  the storage bucket.
-- v5 adds **signed manifests** (`BACKUP_SIGNING_KEY` / `BACKUP_SIGNING_PUBLIC_KEY`)
-  and `BACKUP_REQUIRE_SIGNATURE=true`, giving tamper-evidence at the manifest
-  level — restore from a session whose manifest fails verification is aborted.
-- Restore only from storage you control, and keep restore runners ephemeral.
-
-**Planned remediation:** replace `extract-zip` with a streaming, path-safe
-extractor (rejecting `..`, absolute paths, and symlink entries). Deferred here
-because the swap requires installing a replacement package and must be validated
-against the restore path; it will be done as a focused, tested change.
+This complements the v5 **signed manifests** (`BACKUP_SIGNING_KEY` /
+`BACKUP_SIGNING_PUBLIC_KEY`, `BACKUP_REQUIRE_SIGNATURE`), which add tamper-evidence
+at the manifest level.

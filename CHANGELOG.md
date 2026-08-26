@@ -29,8 +29,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Dashboard System Health adds **Restore Verified** and **Manifest Signature** tiles.
 - Docs, `.env.example`, and screenshots updated; SW cache → v6.
 
+### Security
+- **Removed `extract-zip`** (GHSA-jmr9-qjv8-65gv, symlink path traversal, no fix
+  available) and replaced it with `node-stream-zip` behind a path-safe extractor
+  (`src/lib/safe-extract.js`) that rejects `..`, absolute paths, and symlinks.
+  `npm audit`: 0 vulnerabilities.
+
 ### Notes
-- New crypto/scorecard/audit logic is unit-tested (16 new tests, 97 total).
+- New crypto/scorecard/audit/extraction logic is unit-tested (24 new tests, 105 total).
   No change to existing backup/restore data formats.
 
 ---
