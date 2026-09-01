@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "label": "restore verified",
-  "message": "pending first drill",
-  "color": "lightgrey",
-  "status": "pending",
-  "last_verified": null,
-  "rto_seconds": null,
-  "session": null,
+  "message": "FAILED",
+  "color": "red",
+  "status": "failed",
+  "last_verified": "2026-09-01T08:03:10.411Z",
+  "rto_seconds": 1,
+  "session": "latest",
   "repos": null,
   "signature": null
 }
