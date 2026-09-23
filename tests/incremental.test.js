@@ -26,9 +26,15 @@ function git(cmd, cwd) { execSync(`git ${cmd}`, { cwd, env: GIT_ENV, stdio: 'ign
 let work;
 beforeEach(() => { work = fs.mkdtempSync(path.join(os.tmpdir(), 'inc-')); });
 afterEach(() => {
-  // git can leave transient handles/packfiles in objects/; retry to avoid a
-  // flaky ENOTEMPTY on CI (Linux) during recursive removal.
-  fs.rmSync(work, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+  // Node's recursive rmSync can race and throw ENOTEMPTY on Linux when removing
+  // a git-populated tree. Retry, then fall back to `rm -rf` on POSIX (which does
+  // not exhibit the race) so a cleanup hiccup never fails the suite.
+  try {
+    fs.rmSync(work, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+  } catch (e) {
+    if (process.platform === 'win32') throw e;
+    execSync(`rm -rf "${work}"`, { stdio: 'ignore' });
+  }
 });
 
 function makeOrigin() {
