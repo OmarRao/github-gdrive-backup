@@ -46,7 +46,9 @@ backups remain restorable.
     and the Dockerfile, preventing arbitrary install-time script execution.
   - Added an **OpenSSF Scorecard** workflow (`scorecard.yml`) that publishes
     results to the code-scanning dashboard.
-  - `npm audit` remediated to **0 known vulnerabilities**.
+  - `npm audit` remediated to **0 known vulnerabilities**. Removed the unused
+    `multer` dependency (resolving four Dependabot alerts and reducing attack
+    surface) and pinned `qs` and `js-yaml` to patched versions via `overrides`.
 
 ### Added
 - `DASHBOARD_API_KEY`, `HOST`, and `API_RATE_LIMIT` environment variables
