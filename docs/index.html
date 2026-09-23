@@ -21,7 +21,7 @@
     style-src 'self' 'unsafe-inline';
     img-src 'self' data: https:;
     font-src 'self';
-    connect-src 'self' https://api.github.com https://*.googleapis.com https://accounts.google.com https://apis.google.com https://www.gstatic.com https://*.google.com;
+    connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://*.googleapis.com https://accounts.google.com https://apis.google.com https://www.gstatic.com https://*.google.com;
     frame-src https://accounts.google.com https://*.google.com https://*.firebaseapp.com;
     object-src 'none';
     base-uri 'self'" />
@@ -3484,7 +3484,7 @@ function renderRuns(runs, container) {
       ${runBadge(r.status, r.conclusion)}
       <span class="run-name">${esc(r.name)} <span class="run-num">#${esc(r.run_number)}</span></span>
       <span class="run-time">${relTime(r.created_at)}</span>
-      ${isRunsPage ? `<button class="run-link" onclick="showDiffModal('${escJs(r.name)} #${escJs(r.run_number)}', '${escJs(r.created_at)}')">Diff</button>` : ''}
+      ${isRunsPage ? `<button class="run-link" onclick="showDiffModal('${esc(escJs(r.name))} #${esc(escJs(r.run_number))}', '${esc(escJs(r.created_at))}')">Diff</button>` : ''}
       <a class="run-link" href="${encodeURI(r.html_url || '#')}" target="_blank" rel="noopener noreferrer">View &rarr;</a>
     </div>`).join('');
 }

@@ -15,10 +15,25 @@ const PORT = process.env.PORT || 3000;
 // Bind to localhost by default; set HOST=0.0.0.0 only behind a trusted proxy.
 const HOST = process.env.HOST || '127.0.0.1';
 
-// Security headers. CSP is disabled here because the served SPA carries its own
-// Content-Security-Policy meta tag; helmet still sets HSTS, noSniff, frameguard,
-// referrer-policy, etc.
-app.use(helmet({ contentSecurityPolicy: false }));
+// Security headers, including an enforced Content-Security-Policy that mirrors
+// the origins the dashboard SPA needs (Google auth/APIs, GitHub API). helmet
+// also sets HSTS, noSniff, frameguard, referrer-policy, etc.
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: true,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https://www.gstatic.com', 'https://accounts.google.com', 'https://apis.google.com'],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'https:'],
+      fontSrc: ["'self'"],
+      connectSrc: ["'self'", 'https://api.github.com', 'https://raw.githubusercontent.com', 'https://*.googleapis.com', 'https://accounts.google.com', 'https://apis.google.com', 'https://www.gstatic.com', 'https://*.google.com'],
+      frameSrc: ['https://accounts.google.com', 'https://*.google.com', 'https://*.firebaseapp.com'],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+    },
+  },
+}));
 
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
