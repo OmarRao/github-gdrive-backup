@@ -77,13 +77,13 @@ async function mirrorFile(localPath, sessionFolders, fileName, expectedSize) {
       const size = parseInt(res.size, 10);
       const ok = !expectedSize || size === expectedSize;
       if (!ok) {
-        logger.error(`Mirror size mismatch on ${String(t).replace(/[\r\n]+/g, ' ')} for ${String(fileName).replace(/[\r\n]+/g, ' ')}: expected ${expectedSize}, got ${size}`);
+        logger.error(`Mirror size mismatch on ${encodeURIComponent(t)} for ${encodeURIComponent(fileName)}: expected ${expectedSize}, got ${size}`);
       } else {
-        logger.info(`Mirrored ${String(fileName).replace(/[\r\n]+/g, ' ')} → ${String(t).replace(/[\r\n]+/g, ' ')} (${size} bytes)`);
+        logger.info(`Mirrored ${encodeURIComponent(fileName)} → ${encodeURIComponent(t)} (${size} bytes)`);
       }
       return { target: t, ok, size };
     } catch (e) {
-      logger.error(`Mirror to ${String(t).replace(/[\r\n]+/g, ' ')} failed for ${String(fileName).replace(/[\r\n]+/g, ' ')}: ${String(e.message).replace(/[\r\n]+/g, ' ')}`);
+      logger.error(`Mirror to ${encodeURIComponent(t)} failed for ${encodeURIComponent(fileName)}: ${encodeURIComponent(e.message)}`);
       return { target: t, ok: false, error: e.message };
     }
   }));
