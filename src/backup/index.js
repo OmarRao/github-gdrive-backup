@@ -159,12 +159,12 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, increm
       if (!encrypted) {
         const driveSize = parseInt(uploaded.size, 10);
         if (!driveSize || driveSize !== localSize) {
-          logger.error(`Verification failed for ${encodeURIComponent(name)}: local size ${localSize} bytes, Drive size ${driveSize || 0} bytes`);
+          logger.error(`Verification failed for ${String(name).replace(/\r\n|\r|\n/g, ' ')}: local size ${localSize} bytes, Drive size ${driveSize || 0} bytes`);
           throw new Error(`Upload verification failed: size mismatch for ${baseName}`);
         }
-        logger.info(`Verified ${encodeURIComponent(baseName)}: ${localSize} bytes matches Drive`);
+        logger.info(`Verified ${String(baseName).replace(/\r\n|\r|\n/g, ' ')}: ${localSize} bytes matches Drive`);
       } else {
-        logger.info(`Uploaded encrypted ${encodeURIComponent(uploadFileName)} (original size: ${localSize} bytes)`);
+        logger.info(`Uploaded encrypted ${String(uploadFileName).replace(/\r\n|\r|\n/g, ' ')} (original size: ${localSize} bytes)`);
       }
 
       manifestEntry = {
@@ -224,10 +224,10 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, increm
         fs.rmSync(wikiZip, { force: true });
         const wikiDriveSize = parseInt(wikiUploaded.size, 10);
         if (!wikiDriveSize || wikiDriveSize !== wikiLocalSize) {
-          logger.error(`Verification failed for ${encodeURIComponent(name)} wiki: local size ${wikiLocalSize} bytes, Drive size ${wikiDriveSize || 0} bytes`);
+          logger.error(`Verification failed for ${String(name).replace(/\r\n|\r|\n/g, ' ')} wiki: local size ${wikiLocalSize} bytes, Drive size ${wikiDriveSize || 0} bytes`);
           throw new Error(`Upload verification failed: size mismatch for ${name}-wiki.zip`);
         }
-        logger.info(`Verified ${encodeURIComponent(name)}-wiki.zip: ${wikiLocalSize} bytes matches Drive`);
+        logger.info(`Verified ${String(name).replace(/\r\n|\r|\n/g, ' ')}-wiki.zip: ${wikiLocalSize} bytes matches Drive`);
         metadata.wiki_backed_up = true;
       }
     }
