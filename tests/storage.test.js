@@ -9,9 +9,6 @@
  * These tests verify the public interface contract without hitting real cloud APIs.
  */
 
-const path = require('path');
-const fs = require('fs');
-const os = require('os');
 
 // ── S3 adapter ──────────────────────────────────────────────────────────────
 

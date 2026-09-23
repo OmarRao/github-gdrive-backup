@@ -42,9 +42,14 @@ on:
         required: false
         default: 'ubuntu-latest'
 
+permissions:
+  contents: read
+
 jobs:
   restore:
     runs-on: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
+    permissions:
+      contents: write   # appends to docs/audit.log via github-script
 
     steps:
       - name: Checkout

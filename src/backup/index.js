@@ -23,6 +23,10 @@ const INCREMENTAL_MODE = (process.env.INCREMENTAL_MODE || '').trim().toLowerCase
 const INCLUDE = (process.env.BACKUP_INCLUDE || 'code,issues,pull_requests,releases,wiki,labels,milestones').split(',');
 const TMP = path.resolve(process.env.BACKUP_TMP_DIR || './tmp');
 const CONCURRENCY = parseInt(process.env.BACKUP_CONCURRENCY || '3', 10);
+// Coordination marker written when the GitHub PAT is rejected, read by the
+// workflow's failure step. Kept inside the app-owned temp dir (not shared /tmp)
+// to avoid symlink/predictable-path attacks on multi-tenant hosts.
+const PAT_EXPIRED_MARKER = path.join(TMP, 'pat-expired');
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -33,7 +37,8 @@ async function withRateLimitRetry(fn) {
     return await fn();
   } catch (err) {
     if (err.status === 401) {
-      fs.writeFileSync('/tmp/pat-expired', '1');
+      fs.mkdirSync(TMP, { recursive: true });
+      fs.writeFileSync(PAT_EXPIRED_MARKER, '1', { mode: 0o600 });
       throw new Error('PAT_EXPIRED: GitHub token returned 401');
     }
     if (err.status === 403 || err.status === 429) {
@@ -154,12 +159,12 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, increm
       if (!encrypted) {
         const driveSize = parseInt(uploaded.size, 10);
         if (!driveSize || driveSize !== localSize) {
-          logger.error(`Verification failed for ${name}: local size ${localSize} bytes, Drive size ${driveSize || 0} bytes`);
+          logger.error(`Verification failed for ${String(name).replace(/[\r\n]+/g, ' ')}: local size ${localSize} bytes, Drive size ${driveSize || 0} bytes`);
           throw new Error(`Upload verification failed: size mismatch for ${baseName}`);
         }
-        logger.info(`Verified ${baseName}: ${localSize} bytes matches Drive`);
+        logger.info(`Verified ${String(baseName).replace(/[\r\n]+/g, ' ')}: ${localSize} bytes matches Drive`);
       } else {
-        logger.info(`Uploaded encrypted ${uploadFileName} (original size: ${localSize} bytes)`);
+        logger.info(`Uploaded encrypted ${String(uploadFileName).replace(/[\r\n]+/g, ' ')} (original size: ${localSize} bytes)`);
       }
 
       manifestEntry = {
@@ -219,10 +224,10 @@ async function backupRepo(gh, drive, repo, backupFolderId, mirrorFolders, increm
         fs.rmSync(wikiZip, { force: true });
         const wikiDriveSize = parseInt(wikiUploaded.size, 10);
         if (!wikiDriveSize || wikiDriveSize !== wikiLocalSize) {
-          logger.error(`Verification failed for ${name} wiki: local size ${wikiLocalSize} bytes, Drive size ${wikiDriveSize || 0} bytes`);
+          logger.error(`Verification failed for ${String(name).replace(/[\r\n]+/g, ' ')} wiki: local size ${wikiLocalSize} bytes, Drive size ${wikiDriveSize || 0} bytes`);
           throw new Error(`Upload verification failed: size mismatch for ${name}-wiki.zip`);
         }
-        logger.info(`Verified ${name}-wiki.zip: ${wikiLocalSize} bytes matches Drive`);
+        logger.info(`Verified ${String(name).replace(/[\r\n]+/g, ' ')}-wiki.zip: ${wikiLocalSize} bytes matches Drive`);
         metadata.wiki_backed_up = true;
       }
     }

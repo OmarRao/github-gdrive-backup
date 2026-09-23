@@ -6,6 +6,9 @@ on:
     - cron: '0 * * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   sla-check:
     runs-on: ubuntu-latest

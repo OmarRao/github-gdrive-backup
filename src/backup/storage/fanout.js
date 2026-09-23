@@ -17,6 +17,7 @@
  * and recorded in the summary but never fails the primary backup.
  */
 const fs   = require('fs');
+const crypto = require('crypto');
 const logger = require('../../logger');
 
 const ADAPTERS = { s3: './s3', azure: './azure', b2: './b2' };
@@ -76,13 +77,13 @@ async function mirrorFile(localPath, sessionFolders, fileName, expectedSize) {
       const size = parseInt(res.size, 10);
       const ok = !expectedSize || size === expectedSize;
       if (!ok) {
-        logger.error(`Mirror size mismatch on ${t} for ${fileName}: expected ${expectedSize}, got ${size}`);
+        logger.error(`Mirror size mismatch on ${String(t).replace(/[\r\n]+/g, ' ')} for ${String(fileName).replace(/[\r\n]+/g, ' ')}: expected ${expectedSize}, got ${size}`);
       } else {
-        logger.info(`Mirrored ${fileName} → ${t} (${size} bytes)`);
+        logger.info(`Mirrored ${String(fileName).replace(/[\r\n]+/g, ' ')} → ${String(t).replace(/[\r\n]+/g, ' ')} (${size} bytes)`);
       }
       return { target: t, ok, size };
     } catch (e) {
-      logger.error(`Mirror to ${t} failed for ${fileName}: ${e.message}`);
+      logger.error(`Mirror to ${String(t).replace(/[\r\n]+/g, ' ')} failed for ${String(fileName).replace(/[\r\n]+/g, ' ')}: ${String(e.message).replace(/[\r\n]+/g, ' ')}`);
       return { target: t, ok: false, error: e.message };
     }
   }));
@@ -97,7 +98,9 @@ async function mirrorFile(localPath, sessionFolders, fileName, expectedSize) {
  */
 async function mirrorJson(tmpDir, fileName, obj, sessionFolders) {
   if (!enabled()) return [];
-  const tmp = require('path').join(tmpDir, `mirror-${Date.now()}-${fileName}`);
+  // Unpredictable scratch name (avoids temp-file races/symlink attacks); the
+  // real object name is passed separately to mirrorFile below.
+  const tmp = require('path').join(tmpDir, `mirror-${crypto.randomBytes(12).toString('hex')}.json`);
   fs.writeFileSync(tmp, JSON.stringify(obj, null, 2));
   try {
     return await mirrorFile(tmp, sessionFolders, fileName);

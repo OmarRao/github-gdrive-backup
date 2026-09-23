@@ -35,11 +35,21 @@ app.use(helmet({
   },
 }));
 
+// Global rate limit applied to every request (static assets + the SPA
+// catch-all), on top of the stricter per-API limiter below.
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: parseInt(process.env.GLOBAL_RATE_LIMIT || '1000', 10),
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+app.use(globalLimiter);
+
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Rate-limit the API surface (it can trigger real backup/restore operations).
+// Stricter rate limit on the API surface (it can trigger real backup/restore).
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: parseInt(process.env.API_RATE_LIMIT || '100', 10),
@@ -53,8 +63,8 @@ if (!process.env.DASHBOARD_API_KEY) {
 }
 app.use('/api', apiLimiter, apiKeyGuard(process.env.DASHBOARD_API_KEY), require('./routes/api'));
 
-// Serve the SPA for any non-API route
-app.get('*', (req, res) => {
+// Serve the SPA for any non-API route (rate-limited by globalLimiter above).
+app.get('*', globalLimiter, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 

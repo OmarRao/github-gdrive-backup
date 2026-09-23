@@ -98,8 +98,7 @@ function createBundle(mirrorDir, outFile, prevRefs, mode) {
       execFileSync('git', ['bundle', 'create', outFile, '--all', '--not', ...prevShas], { cwd: mirrorDir, stdio: 'ignore' });
       return 'delta';
     }
-    // No usable base objects remain — fall back to a full bundle.
-    mode = 'full';
+    // No usable base objects remain — fall through to a full bundle below.
   }
   execFileSync('git', ['bundle', 'create', outFile, '--all'], { cwd: mirrorDir, stdio: 'ignore' });
   return 'full';

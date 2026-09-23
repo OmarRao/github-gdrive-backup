@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.1.1] — 2026-09-23
+
+### Security
+
+Follow-up to 5.1.0 resolving the full **CodeQL code-scanning** backlog and
+tightening CI posture. No behavioral changes to backup/restore.
+
+- **Log injection** — user/remote-derived values (repo, session, file, and
+  owner names) are now passed through a `logger.sanitize()` barrier that strips
+  CR/LF/control characters before interpolation, preventing forged log entries.
+- **DOM XSS** — HTML-escaped all remaining dashboard sinks (GitHub username,
+  Drive folder name/ID, OAuth errors, toast messages, restore preview, and the
+  access allow-list), and escaped values interpolated into an `onclick`
+  attribute.
+- **Insecure temporary files** — the PAT-expiry marker and JSON mirror scratch
+  file now use the app-owned temp dir with unpredictable names; tests use
+  `fs.mkdtempSync`.
+- **Insecure randomness** — replaced `Math.random()` gradient-id generation with
+  `crypto.randomUUID()`.
+- **Missing rate limiting** — added a global rate limiter covering the static
+  assets and SPA catch-all route (tunable via `GLOBAL_RATE_LIMIT`), on top of
+  the stricter `/api` limiter.
+- **CI posture** — added least-privilege top-level `permissions:` to all
+  workflows and pinned the Docker base image by digest.
+- Removed dead/unused locals flagged by CodeQL.
+
 ## [5.1.0] — 2026-09-23
 
 ### Security

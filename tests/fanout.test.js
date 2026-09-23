@@ -13,6 +13,15 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+// Create a scratch file inside a fresh, uniquely-named temp directory
+// (mkdtempSync) to avoid predictable temp-file paths.
+function tmpFile(contents) {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fo-'));
+  const file = path.join(dir, 'data.txt');
+  fs.writeFileSync(file, contents);
+  return file;
+}
+
 // Mock the three storage adapters before requiring fanout.
 jest.mock('../src/backup/storage/s3', () => ({
   getOrCreateSessionFolder: jest.fn(async (_p, name) => name),
@@ -54,8 +63,7 @@ describe('session folder init', () => {
 describe('mirrorFile', () => {
   test('reports ok when size matches expected', async () => {
     process.env.BACKUP_MIRROR_TARGETS = 's3';
-    const tmp = path.join(os.tmpdir(), `fo-${Date.now()}.txt`);
-    fs.writeFileSync(tmp, 'hello world');
+    const tmp = tmpFile('hello world');
     const size = fs.statSync(tmp).size;
     const res = await fanout.mirrorFile(tmp, { s3: 'sess' }, 'file.txt', size);
     fs.rmSync(tmp, { force: true });
@@ -64,8 +72,7 @@ describe('mirrorFile', () => {
 
   test('flags size mismatch as not ok', async () => {
     process.env.BACKUP_MIRROR_TARGETS = 'b2';
-    const tmp = path.join(os.tmpdir(), `fo-${Date.now()}.txt`);
-    fs.writeFileSync(tmp, 'hello world');
+    const tmp = tmpFile('hello world');
     const res = await fanout.mirrorFile(tmp, { b2: 'sess' }, 'file.txt', 999);
     fs.rmSync(tmp, { force: true });
     expect(res[0].ok).toBe(false);
@@ -74,8 +81,7 @@ describe('mirrorFile', () => {
 
   test('mirrors to every configured target', async () => {
     process.env.BACKUP_MIRROR_TARGETS = 's3,b2';
-    const tmp = path.join(os.tmpdir(), `fo-${Date.now()}.txt`);
-    fs.writeFileSync(tmp, 'data');
+    const tmp = tmpFile('data');
     const res = await fanout.mirrorFile(tmp, { s3: 'sess', b2: 'sess' }, 'file.txt');
     fs.rmSync(tmp, { force: true });
     expect(res.map(r => r.target).sort()).toEqual(['b2', 's3']);
