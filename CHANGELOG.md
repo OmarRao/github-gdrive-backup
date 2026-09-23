@@ -11,12 +11,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- **Log injection (definitive fix).** The v5.1.1 inline `String(x).replace(/[\r\n]+/g, ' ')`
-  was not recognized by CodeQL as a sanitizer, so the 16 log-injection alerts
-  reopened. Replaced it with `encodeURIComponent()` on each user/remote value
-  before it is logged — the sanitizer CodeQL's log-injection query recognizes
-  unconditionally. Joined paths encode their identifier parts only, so `owner/repo`
-  stays readable in logs.
+- **Log injection (definitive fix).** The v5.1.1 inline
+  `String(x).replace(/[\r\n]+/g, ' ')` was not recognized by CodeQL as a
+  sanitizer, so the 16 log-injection alerts reopened. CodeQL's log-injection
+  query only credits a `String.prototype.replace` that removes `\n` **with an
+  empty replacement string** (`replaces(s, "") and s.regexpMatch("\\n")`); the
+  space replacement broke recognition. Every logged user/remote value now uses
+  `String(x).replace(/\n|\r/g, '')`, the exact recognized barrier.
 
 ## [5.1.1] — 2026-09-23
 
