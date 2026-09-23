@@ -29,4 +29,12 @@ const logger = createLogger({
   ],
 });
 
+// Strip CR/LF and other control characters from values that originate from
+// user/remote input (repo names, session names, API responses) before they are
+// interpolated into a log message, preventing log injection / forged entries.
+function sanitize(value) {
+  return String(value ?? '').replace(/[\r\n\t\x00-\x1f\x7f]+/g, ' ');
+}
+logger.sanitize = sanitize;
+
 module.exports = logger;

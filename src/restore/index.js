@@ -196,15 +196,16 @@ async function deliverGit(provider, repoDir, targetOwner, repoName) {
   await simpleGit(repoDir).push('target', '--tags', ['--force']);
 
   // Post-restore verification: confirm the destination's tips match the source.
-  let mismatches = heads;
+  let mismatches;
+  const dest = logger.sanitize(`${targetOwner}/${repoName}`);
   try {
     const remoteText = await simpleGit(repoDir).listRemote(['target']);
     const remoteRefs = parseRefLines(remoteText);
     mismatches = heads.filter(r => remoteRefs[r] !== localRefs[r]);
-    if (mismatches.length) logger.warn(`Post-restore verification: ${mismatches.length}/${heads.length} refs differ on ${targetOwner}/${repoName}`);
-    else logger.info(`Post-restore verified: ${heads.length} refs match on ${targetOwner}/${repoName}`);
+    if (mismatches.length) logger.warn(`Post-restore verification: ${mismatches.length}/${heads.length} refs differ on ${dest}`);
+    else logger.info(`Post-restore verified: ${heads.length} refs match on ${dest}`);
   } catch (e) {
-    logger.warn(`Could not verify remote refs for ${targetOwner}/${repoName}: ${e.message}`);
+    logger.warn(`Could not verify remote refs for ${dest}: ${logger.sanitize(e.message)}`);
     return { verified: false, refs: heads.length, mismatches: ['verification-failed'] };
   }
   return { verified: mismatches.length === 0, refs: heads.length, mismatches };
@@ -281,10 +282,10 @@ async function restoreRepo(provider, drive, repoFiles, owner, options = {}, mani
   // Opt-in best-effort issue re-creation (provider must support it).
   if (options.recreateIssues && meta.issues?.length && typeof provider.restoreIssues === 'function') {
     const n = await provider.restoreIssues(targetOwner, repoName, meta.issues);
-    logger.info(`Re-created ${n} issue(s) on ${targetOwner}/${repoName}`);
+    logger.info(`Re-created ${n} issue(s) on ${logger.sanitize(`${targetOwner}/${repoName}`)}`);
   }
 
-  logger.info(`✓ Restored ${meta.repo} → ${provider.id}:${targetOwner}/${repoName}`);
+  logger.info(`✓ Restored ${logger.sanitize(meta.repo)} → ${logger.sanitize(`${provider.id}:${targetOwner}/${repoName}`)}`);
   return {
     original: meta.repo,
     restored: `${targetOwner}/${repoName}`,
@@ -343,7 +344,7 @@ async function runRestore(options = {}) {
   // Feature 1: Dry run — list what would be restored without downloading or extracting
   if (process.env.DRY_RUN === 'true') {
     logger.info('DRY RUN — no files written.');
-    logger.info(`Session: ${sessionName} (id: ${sessionId})`);
+    logger.info(`Session: ${logger.sanitize(sessionName)} (id: ${logger.sanitize(sessionId)})`);
     logger.info(`Repos that would be restored (${reposToRestore.length}):`);
 
     let totalSize = 0;

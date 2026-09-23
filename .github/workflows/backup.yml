@@ -51,6 +51,9 @@ on:
         required: false
         default: 'https://gitlab.com'
 
+permissions:
+  contents: read
+
 jobs:
   backup:
     runs-on: ${{ github.event.inputs.runner || 'ubuntu-latest' }}
@@ -137,8 +140,10 @@ jobs:
 
       - name: Check for PAT expiry
         if: failure()
+        env:
+          BACKUP_TMP_DIR: /tmp/gh-backup
         run: |
-          if [ -f /tmp/pat-expired ]; then
+          if [ -f "${BACKUP_TMP_DIR}/pat-expired" ]; then
             echo "PAT_EXPIRED=true" >> $GITHUB_ENV
           fi
 

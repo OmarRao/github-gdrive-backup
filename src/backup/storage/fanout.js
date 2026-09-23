@@ -17,6 +17,7 @@
  * and recorded in the summary but never fails the primary backup.
  */
 const fs   = require('fs');
+const crypto = require('crypto');
 const logger = require('../../logger');
 
 const ADAPTERS = { s3: './s3', azure: './azure', b2: './b2' };
@@ -76,13 +77,13 @@ async function mirrorFile(localPath, sessionFolders, fileName, expectedSize) {
       const size = parseInt(res.size, 10);
       const ok = !expectedSize || size === expectedSize;
       if (!ok) {
-        logger.error(`Mirror size mismatch on ${t} for ${fileName}: expected ${expectedSize}, got ${size}`);
+        logger.error(`Mirror size mismatch on ${logger.sanitize(t)} for ${logger.sanitize(fileName)}: expected ${expectedSize}, got ${size}`);
       } else {
-        logger.info(`Mirrored ${fileName} → ${t} (${size} bytes)`);
+        logger.info(`Mirrored ${logger.sanitize(fileName)} → ${logger.sanitize(t)} (${size} bytes)`);
       }
       return { target: t, ok, size };
     } catch (e) {
-      logger.error(`Mirror to ${t} failed for ${fileName}: ${e.message}`);
+      logger.error(`Mirror to ${logger.sanitize(t)} failed for ${logger.sanitize(fileName)}: ${logger.sanitize(e.message)}`);
       return { target: t, ok: false, error: e.message };
     }
   }));
@@ -97,7 +98,9 @@ async function mirrorFile(localPath, sessionFolders, fileName, expectedSize) {
  */
 async function mirrorJson(tmpDir, fileName, obj, sessionFolders) {
   if (!enabled()) return [];
-  const tmp = require('path').join(tmpDir, `mirror-${Date.now()}-${fileName}`);
+  // Unpredictable scratch name (avoids temp-file races/symlink attacks); the
+  // real object name is passed separately to mirrorFile below.
+  const tmp = require('path').join(tmpDir, `mirror-${crypto.randomBytes(12).toString('hex')}.json`);
   fs.writeFileSync(tmp, JSON.stringify(obj, null, 2));
   try {
     return await mirrorFile(tmp, sessionFolders, fileName);

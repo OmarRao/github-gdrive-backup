@@ -2590,7 +2590,7 @@ function escJs(s) {
 const DEMO = (() => {
   const now = Date.now();
   const ago = (ms) => new Date(now - ms).toISOString();
-  const H = 3600000, D = 86400000, M = 60000;
+  const H = 3600000, D = 86400000;
 
   const repos = [
     { name: 'webapp-frontend', full_name: 'acme/webapp-frontend', private: false, lang: 'React app',     commits: 1247, lastCommit: ago(2*H) },
@@ -2822,7 +2822,7 @@ function signInWithGoogle() {
       'https://www.googleapis.com/auth/userinfo.email',
     ].join(' '),
     callback: async resp => {
-      if (resp.error) { showResult('drive-conn-result','error',`OAuth error: ${resp.error}`); return; }
+      if (resp.error) { showResult('drive-conn-result','error',`OAuth error: ${esc(resp.error)}`); return; }
       driveToken = resp.access_token; localStorage.setItem('drive_token', driveToken);
       await loadDriveUserInfo(); updateDriveStatus(); showDriveConnected(); updateBackupDriveBanner();
     },
@@ -2891,12 +2891,12 @@ async function verifyFolder() {
   try {
     const f = await driveFetch(`/drive/v3/files/${fid}?fields=name,mimeType&supportsAllDrives=true`);
     if (f.mimeType !== 'application/vnd.google-apps.folder') throw new Error('That ID is a file, not a folder.');
-    showResult('folder-verify-result','success',`Folder found: <strong>${f.name}</strong>`);
+    showResult('folder-verify-result','success',`Folder found: <strong>${esc(f.name)}</strong>`);
   } catch (err) {
     let msg = err.message;
     if (msg === 'Failed to fetch') msg = 'Network error — check CORS or token scope (drive.readonly).';
     if (msg.includes('404') || msg.includes('File not found')) msg = 'Folder not found — check the ID and your account access.';
-    showResult('folder-verify-result','error',msg);
+    showResult('folder-verify-result','error',esc(msg));
   }
 }
 
@@ -2906,7 +2906,7 @@ function saveDriveSettings() {
   document.getElementById('s-drive-folder').value = driveFolderID;
   localStorage.setItem('drive_folder_id', driveFolderID);
   updateBackupDriveBanner();
-  showResult('folder-verify-result','success',`Folder ID saved: <code>${driveFolderID}</code>`);
+  showResult('folder-verify-result','success',`Folder ID saved: <code>${esc(driveFolderID)}</code>`);
 }
 
 function updateBackupDriveBanner() {
@@ -3180,7 +3180,7 @@ function renderStorageChart(sessions) {
   const H = 180;
   const padL = 40, padT = 16, padB = 30, padR = 14;
   const iw = W - padL - padR, ih = H - padT - padB;
-  const uid = 'sg' + Math.random().toString(36).slice(2, 8);
+  const uid = 'sg' + crypto.randomUUID().slice(0, 8); // unique gradient id (cosmetic)
 
   const maxVal = Math.max(...data.map(d => d.sizeMB));
   const max = Math.max(1, Math.ceil(maxVal * 1.15 / 50) * 50); // round headroom to 50 MB
@@ -3322,7 +3322,6 @@ function toggleAll(v)   { document.querySelectorAll('.repo-cb').forEach(cb => cb
 async function triggerBackup() {
   if (window.demoGuard()) return;
   const result   = document.getElementById('backup-result');
-  const folderId = document.getElementById('backup-folder-id').value.trim() || driveFolderID;
   const checked  = [...document.querySelectorAll('.repo-cb:checked')].map(c => c.value.split('/')[1]);
   const include  = [...document.querySelectorAll('[name=inc]:checked')].map(c => c.value).join(',');
   result.className = 'result-area'; result.classList.remove('hidden');
@@ -3336,7 +3335,7 @@ async function triggerBackup() {
     result.innerHTML = `Backup workflow triggered! <a href="https://github.com/${REPO_OWNER}/${REPO_NAME}/actions/workflows/backup.yml" target="_blank">View run &rarr;</a>`;
     showToast('Backup workflow triggered successfully', 'success');
   } catch (err) {
-    result.classList.add('error'); result.innerHTML = err.message;
+    result.classList.add('error'); result.innerHTML = esc(err.message);
     showToast('Failed to trigger backup: ' + err.message, 'error');
   }
 }
@@ -3437,7 +3436,7 @@ async function saveGitHub() {
   const ok = await updateGHStatus();
   const el = document.getElementById('gh-conn-status');
   el.innerHTML = ok
-    ? `<div class="notice notice-success"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><span>Connected as <strong>${ghUser}</strong></span></div>`
+    ? `<div class="notice notice-success"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg><span>Connected as <strong>${esc(ghUser)}</strong></span></div>`
     : `<div class="notice notice-warn"><svg viewBox="0 0 24 24"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg><span>Authentication failed — check your token and scopes (needs: repo, workflow)</span></div>`;
 }
 
@@ -3635,7 +3634,7 @@ function showToast(msg, type='info', duration=4000) {
   const icon = { success: '✅', error: '❌', info: 'ℹ️' }[type] || 'ℹ️';
   const t = document.createElement('div');
   t.className = `toast ${type}`;
-  t.innerHTML = `<div class="toast-body"><span class="toast-icon">${icon}</span><span>${msg}</span></div>` +
+  t.innerHTML = `<div class="toast-body"><span class="toast-icon">${icon}</span><span>${esc(msg)}</span></div>` +
                 `<div class="toast-progress" style="animation-duration:${duration}ms"></div>`;
   document.getElementById('toast-container').appendChild(t);
   setTimeout(() => { t.style.transition = 'opacity .2s, transform .2s'; t.style.opacity = '0'; t.style.transform = 'translateX(20px)'; setTimeout(() => t.remove(), 200); }, duration);
@@ -3887,11 +3886,11 @@ function showRestorePreview() {
   body.innerHTML = `
     <div class="notice notice-warn" style="margin-bottom:12px">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      <span>This will create or overwrite repositories under <strong>${targetOwner}</strong>.</span>
+      <span>This will create or overwrite repositories under <strong>${esc(targetOwner)}</strong>.</span>
     </div>
     <div style="font-size:13px;color:var(--text-2);line-height:1.8">
-      <div><strong>Session:</strong> ${session}</div>
-      <div><strong>Target owner:</strong> ${targetOwner}</div>
+      <div><strong>Session:</strong> ${esc(session)}</div>
+      <div><strong>Target owner:</strong> ${esc(targetOwner)}</div>
       <div><strong>Action:</strong> Repos will be created if missing, branches force-pushed if existing.</div>
     </div>
   `;
@@ -4377,8 +4376,8 @@ function renderAllowlist() {
   } else {
     el.innerHTML = list.map(u => `
       <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:7px">
-        <span style="flex:1;font-size:13px;font-weight:500;color:var(--text-2)">${u}</span>
-        <button class="btn btn-secondary" style="font-size:11px;padding:3px 10px" onclick="removeFromAllowlist('${u}')">Remove</button>
+        <span style="flex:1;font-size:13px;font-weight:500;color:var(--text-2)">${esc(u)}</span>
+        <button class="btn btn-secondary" style="font-size:11px;padding:3px 10px" onclick="removeFromAllowlist('${esc(escJs(u))}')">Remove</button>
       </div>`).join('');
   }
 }
@@ -4448,7 +4447,6 @@ function exportCompliancePDF() {
 
   const done = reportRuns.filter(r => r.conclusion);
   const succ = done.filter(r => r.conclusion === 'success');
-  const fail = done.filter(r => r.conclusion === 'failure');
   const rate = done.length ? Math.round(succ.length / done.length * 100) : 0;
   const cutoff = now.getTime() - 90 * 86400000;
   const last90 = done.filter(r => new Date(r.created_at).getTime() >= cutoff);
