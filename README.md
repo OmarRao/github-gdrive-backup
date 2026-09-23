@@ -3,8 +3,6 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-2563eb?logo=gnu&logoColor=white)](LICENSE)
 [![Commercial License](https://img.shields.io/badge/Commercial%20License-available-7c3aed)](COMMERCIAL-LICENSE.md)
 [![GitHub Actions](https://img.shields.io/badge/Automated-GitHub%20Actions-1a7f37?logo=github-actions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
-[![Backup Status](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2FOmarRao%2Fgithub-gdrive-backup%2Fmain%2Fdocs%2Fstatus.json&query=%24.status&label=Backup%20Status&color=22c55e&logo=githubactions&logoColor=white)](https://github.com/OmarRao/github-gdrive-backup/actions)
-[![Restore Verified](https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FOmarRao%2Fgithub-gdrive-backup%2Fmain%2Fdocs%2Frecovery-scorecard.json)](https://github.com/OmarRao/github-gdrive-backup/actions/workflows/monthly-restore-test.yml)
 [![Live Dashboard](https://img.shields.io/badge/Live%20Dashboard-GitHub%20Pages-2563eb?logo=github&logoColor=white)](https://omarrao.github.io/github-gdrive-backup/)
 [![Node.js](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![Google Drive](https://img.shields.io/badge/Storage-Google%20Drive-4285F4?logo=googledrive&logoColor=white)](https://drive.google.com/)
@@ -162,7 +160,7 @@ The dashboard surfaces the latest session's **delta composition** (full / delta 
 | **Incremental backup** | Optional mode that only backs up repos changed since last session |
 | **True delta uploads** | `INCREMENTAL_MODE=delta` uploads only *new git objects* as a `git bundle` chain (full → delta → delta), skips unchanged repos entirely, and restores by replaying the chain |
 | **Auto-cleanup** | Weekly workflow removes Drive sessions beyond retention threshold |
-| **Health status** | `docs/status.json` updated on each run; live README badge reflects current status via shields.io dynamic badge |
+| **Health status** | `docs/status.json` updated on each run and surfaced live on the dashboard overview |
 | **Email digest** | Daily/weekly HTML summary via SendGrid — set `SENDGRID_API_KEY` to activate (`notify.yml`) |
 | **MS Teams webhook** | Adaptive Card notifications for backup success/failure — set `TEAMS_WEBHOOK_URL` (`notify.yml`) |
 | **PAT rotation reminder** | Weekly `pat-check.yml` cron warns via Teams + email when PAT is ≤7 days from expiry |
@@ -192,7 +190,7 @@ The dashboard surfaces the latest session's **delta composition** (full / delta 
 | **Fork-aware targeting** | Dashboard auto-derives the target repo from the Pages URL, so each fork shows its own live data (override in Settings) |
 | **Dynamic demo data** | Demo stats, graphs, composition & fan-out are all derived from one dataset — always internally consistent |
 | **Signed manifests** | Optional Ed25519 signature over `manifest.json` (`BACKUP_SIGNING_KEY`); verified on restore to detect tampering/forgery, not just corruption |
-| **Recovery scorecard** | Monthly restore drill publishes a "last verified restore + RTO" scorecard (`docs/recovery-scorecard.json`) surfaced as a README badge and dashboard tile |
+| **Recovery scorecard** | Monthly restore drill publishes a "last verified restore + RTO" scorecard (`docs/recovery-scorecard.json`) surfaced as a dashboard tile |
 | **Tamper-evident audit log** | Hash-chained JSON-lines audit entries — editing or deleting past entries is detectable |
 | **GitHub Action** | Use as `uses: OmarRao/github-gdrive-backup@v5` in any workflow — no fork required |
 | **Container image (GHCR)** | Published to `ghcr.io/omarrao/github-gdrive-backup` on each release, with SBOM + signed provenance |
@@ -575,7 +573,7 @@ github-gdrive-backup/
 - **MS Teams** — color-coded Adaptive Card (green = success, red = failure). Set `TEAMS_WEBHOOK_URL`.
 - **SendGrid email digest** — HTML table summarizing run status, repo count, and session link. Set `SENDGRID_API_KEY`.
 - **Slack** — plain text message (legacy). Set `SLACK_WEBHOOK_URL`.
-- **`docs/status.json`** — updated on every run; live README badge reflects current status.
+- **`docs/status.json`** — updated on every run; the dashboard overview reflects current status.
 
 Additional proactive alerts:
 - **PAT rotation reminder** (`pat-check.yml`, weekly Monday 08:00 UTC) — warns via Teams + email when `PAT_EXPIRY_DATE` is ≤7 days away.
@@ -643,7 +641,7 @@ A backup is only as good as its restore — so v5 makes recoverability and integ
   ```bash
   node -e "const s=require('./src/lib/manifest-signing');const k=s.generateKeyPair();require('fs').writeFileSync('signing.key',k.privateKey);require('fs').writeFileSync('signing.pub',k.publicKey);console.log('wrote signing.key + signing.pub')"
   ```
-- **Recovery scorecard.** The monthly restore drill (`monthly-restore-test.yml`) publishes `docs/recovery-scorecard.json` — *last verified restore + RTO* — shown as the **Restore Verified** badge above and a dashboard tile. "Backups exist" becomes "restores are verified."
+- **Recovery scorecard.** The monthly restore drill (`monthly-restore-test.yml`) publishes `docs/recovery-scorecard.json` — *last verified restore + RTO* — shown as a dashboard tile. "Backups exist" becomes "restores are verified."
 - **Tamper-evident audit log.** Audit entries (`src/audit/log.js`) are hash-chained: each carries the previous entry's SHA-256, so editing or deleting history is detectable via `verifyChain()`.
 
 ---
