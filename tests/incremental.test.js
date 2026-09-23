@@ -25,7 +25,11 @@ function git(cmd, cwd) { execSync(`git ${cmd}`, { cwd, env: GIT_ENV, stdio: 'ign
 
 let work;
 beforeEach(() => { work = fs.mkdtempSync(path.join(os.tmpdir(), 'inc-')); });
-afterEach(() => { fs.rmSync(work, { recursive: true, force: true }); });
+afterEach(() => {
+  // git can leave transient handles/packfiles in objects/; retry to avoid a
+  // flaky ENOTEMPTY on CI (Linux) during recursive removal.
+  fs.rmSync(work, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+});
 
 function makeOrigin() {
   const origin = path.join(work, 'origin');
