@@ -1,0 +1,7 @@
+name: "CodeQL config"
+
+# Only scan first-party source. Generated coverage reports and any minified
+# third-party bundles are not our code and produce noise, so exclude them.
+paths-ignore:
+  - coverage
+  - "**/*.min.js"

@@ -5,7 +5,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const archiver = require('archiver');
 const GitHubClient = require('./github');
 const GoogleDriveClient = require('./gdrive');
@@ -267,8 +267,27 @@ async function backupGitLabProject(drive, project, sessionFolder, gitlabToken, g
   let manifestEntry = null;
 
   try {
-    const cloneUrl = `https://oauth2:${gitlabToken}@${gitlabHost.replace(/^https?:\/\//, '')}/${projectPath}.git`;
-    execSync(`git clone --mirror "${cloneUrl}" "${safeDir}"`, { stdio: 'pipe' });
+    // No shell (execFileSync) so a crafted project name can't inject commands,
+    // and the token is passed via git config env — never in the URL, the argv,
+    // or the remote stored in the clone (avoids leakage in process lists/logs).
+    const bareHost = gitlabHost.replace(/^https?:\/\//, '');
+    const cloneUrl = `https://${bareHost}/${projectPath}.git`;
+    const authHeader = 'Authorization: Basic ' + Buffer.from(`oauth2:${gitlabToken}`).toString('base64');
+    try {
+      execFileSync('git', ['clone', '--mirror', cloneUrl, safeDir], {
+        stdio: 'pipe',
+        env: {
+          ...process.env,
+          GIT_TERMINAL_PROMPT: '0',
+          GIT_CONFIG_COUNT: '1',
+          GIT_CONFIG_KEY_0: 'http.extraheader',
+          GIT_CONFIG_VALUE_0: authHeader,
+        },
+      });
+    } catch {
+      // Never surface the auth header / token in error output.
+      throw new Error(`git clone failed for ${projectPath} (see runner logs; credentials redacted)`);
+    }
 
     const zipPath = `${safeDir}.zip`;
     await zipDirectory(safeDir, zipPath);

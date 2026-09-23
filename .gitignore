@@ -4,6 +4,7 @@ credentials/
 OAuth/
 tmp/
 logs/
+coverage/
 *.zip
 *.json.enc
 client_secret*.json

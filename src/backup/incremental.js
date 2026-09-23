@@ -20,13 +20,15 @@
  * delta locally); the saving is on the storage/upload side, which is the cost
  * that actually accrues over time on Drive/S3/B2.
  */
-const { execSync } = require('child_process');
+// execFileSync (no shell) is used for every git call so repo/ref names that
+// contain shell metacharacters can never be interpreted as commands.
+const { execFileSync } = require('child_process');
 
 /** Read the current ref → SHA map from a mirror clone. Empty repo → {}. */
 function readRefs(mirrorDir) {
   let out = '';
   try {
-    out = execSync('git show-ref', { cwd: mirrorDir, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
+    out = execFileSync('git', ['show-ref'], { cwd: mirrorDir, stdio: ['ignore', 'pipe', 'ignore'] }).toString();
   } catch {
     return {}; // `git show-ref` exits non-zero when there are no refs
   }
@@ -66,7 +68,7 @@ function existingShas(mirrorDir, shas) {
   const input = unique.map(s => `${s}^{commit}`).join('\n') + '\n';
   let out;
   try {
-    out = execSync('git cat-file --batch-check', {
+    out = execFileSync('git', ['cat-file', '--batch-check'], {
       cwd: mirrorDir, input, encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'],
     });
   } catch {
@@ -93,13 +95,13 @@ function createBundle(mirrorDir, outFile, prevRefs, mode) {
   if (mode === 'delta') {
     const prevShas = existingShas(mirrorDir, Object.values(prevRefs || {}));
     if (prevShas.length) {
-      execSync(`git bundle create "${outFile}" --all --not ${prevShas.join(' ')}`, { cwd: mirrorDir, stdio: 'ignore' });
+      execFileSync('git', ['bundle', 'create', outFile, '--all', '--not', ...prevShas], { cwd: mirrorDir, stdio: 'ignore' });
       return 'delta';
     }
     // No usable base objects remain — fall back to a full bundle.
     mode = 'full';
   }
-  execSync(`git bundle create "${outFile}" --all`, { cwd: mirrorDir, stdio: 'ignore' });
+  execFileSync('git', ['bundle', 'create', outFile, '--all'], { cwd: mirrorDir, stdio: 'ignore' });
   return 'full';
 }
 
@@ -112,9 +114,9 @@ function createBundle(mirrorDir, outFile, prevRefs, mode) {
  * @param {string} destDir       Output mirror repo directory.
  */
 function reconstruct(baseBundle, deltaBundles, destDir) {
-  execSync(`git clone --mirror "${baseBundle}" "${destDir}"`, { stdio: 'ignore' });
+  execFileSync('git', ['clone', '--mirror', baseBundle, destDir], { stdio: 'ignore' });
   for (const delta of deltaBundles || []) {
-    execSync(`git fetch "${delta}" "refs/*:refs/*"`, { cwd: destDir, stdio: 'ignore' });
+    execFileSync('git', ['fetch', delta, 'refs/*:refs/*'], { cwd: destDir, stdio: 'ignore' });
   }
   return destDir;
 }

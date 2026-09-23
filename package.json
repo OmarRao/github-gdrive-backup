@@ -1,6 +1,6 @@
 {
   "name": "github-gdrive-backup",
-  "version": "5.0.6",
+  "version": "5.1.0",
   "description": "Back up every GitHub repository to Google Drive — code, issues, PRs, releases, wiki, labels, milestones — and restore with one click.",
   "main": "src/server/app.js",
   "bin": {
@@ -29,8 +29,9 @@
     "axios": "^1.7.9",
     "dotenv": "^16.4.5",
     "express": "^4.21.2",
+    "express-rate-limit": "^7.5.1",
     "googleapis": "^176.0.0",
-    "multer": "^2.2.0",
+    "helmet": "^8.3.0",
     "node-stream-zip": "^1.16.0",
     "simple-git": "^3.27.0",
     "winston": "^3.17.0"
@@ -65,7 +66,9 @@
     "data-resilience"
   ],
   "overrides": {
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "qs": "^6.16.0",
+    "js-yaml": "^3.15.2"
   },
   "author": "Omar Rao <omarsrao@gmail.com>",
   "license": "AGPL-3.0-only"

@@ -210,8 +210,8 @@ gh secret set GDRIVE_FOLDER_ID --body "1AbCdEf...your-folder-id"
 gh secret set GOOGLE_CLIENT_SECRET < credentials/google-client-secret.json
 gh secret set GOOGLE_TOKEN         < credentials/google-token.json
 
-# Optional: encryption at rest (AES-256-CBC -> files stored as .zip.enc)
-gh secret set BACKUP_ENCRYPTION_KEY --body "$(openssl rand -base64 32)"
+# Optional: authenticated encryption at rest (AES-256-GCM -> files stored as .zip.enc)
+gh secret set BACKUP_ENCRYPTION_KEY --body "$(openssl rand -hex 32)"
 
 # Optional: Amazon S3 as the storage target
 gh secret set AWS_ACCESS_KEY_ID     --body "AKIA..."
@@ -228,7 +228,7 @@ The complete secret reference is below. Only the first five are required for a d
 | `GDRIVE_FOLDER_ID` | Destination Google Drive folder ID | Yes |
 | `GOOGLE_CLIENT_SECRET` | JSON of `credentials/google-client-secret.json` | Yes |
 | `GOOGLE_TOKEN` | JSON of `credentials/google-token.json` (from `get_token.py`) | Yes |
-| `BACKUP_ENCRYPTION_KEY` | AES-256-CBC key; archives stored as `.zip.enc` | Optional |
+| `BACKUP_ENCRYPTION_KEY` | AES-256-GCM key (64 hex chars); archives stored as `.zip.enc` | Optional |
 | `AWS_ACCESS_KEY_ID` | S3 access key (with `STORAGE_TARGET=s3`) | Optional |
 | `AWS_SECRET_ACCESS_KEY` | S3 secret key (with `STORAGE_TARGET=s3`) | Optional |
 | `AWS_BUCKET_NAME` | S3 bucket name (with `STORAGE_TARGET=s3`) | Optional |
@@ -421,16 +421,21 @@ GitLab support is treated as an **optional/extended source**: enable it only if 
 
 ### 6.6 Backup Encryption
 
-For encryption at rest, set the optional `BACKUP_ENCRYPTION_KEY` secret. When present, archives are encrypted with **AES-256-CBC** and stored with a `.zip.enc` extension instead of `.zip`. You can toggle encryption per run from the **Backup** tab's include/encryption options, or default it on via the workflow input.
+For encryption at rest, set the optional `BACKUP_ENCRYPTION_KEY` secret (a 32-byte key as 64 hex characters). When present, archives are encrypted with **authenticated AES-256-GCM** and stored with a `.zip.enc` extension instead of `.zip`. You can toggle encryption per run from the **Backup** tab's include/encryption options, or default it on via the workflow input.
 
 ```bash
-# Generate a strong key and store it as a secret
-gh secret set BACKUP_ENCRYPTION_KEY --body "$(openssl rand -base64 32)"
+# Generate a strong key (64 hex chars) and store it as a secret
+gh secret set BACKUP_ENCRYPTION_KEY --body "$(openssl rand -hex 32)"
 
-# Decrypt an archive locally when needed (illustrative)
-openssl enc -d -aes-256-cbc -salt \
-  -in repo-a.zip.enc -out repo-a.zip \
-  -pass pass:"$BACKUP_ENCRYPTION_KEY"
+# Decrypt an archive locally when needed, using the project's own helper.
+# (The GCM format carries a magic header, IV, and auth tag, so a plain
+#  `openssl enc` command cannot decrypt it; the restore workflow does this
+#  for you automatically.)
+BACKUP_ENCRYPTION_KEY=<your-hex-key> node -e "
+  require('./src/lib/archive-crypto')
+    .decryptFile('repo-a.zip.enc', 'repo-a.zip', process.env.BACKUP_ENCRYPTION_KEY)
+    .then(() => console.log('decrypted'));
+"
 ```
 
 **Important:** the encryption key is the only thing that can decrypt your archives. If you lose it, the backups are unrecoverable — store it in a password manager or secrets vault in addition to the GitHub secret. Rotating the key affects only future runs; archives written under an old key still require that old key to decrypt.
@@ -701,7 +706,7 @@ This separation means compromising the static dashboard host (GitHub Pages) does
 
 ### 10.2 Backup Encryption
 
-As covered in [6.6](#66-backup-encryption), setting `BACKUP_ENCRYPTION_KEY` enables **AES-256-CBC** encryption of archives at rest, written as `.zip.enc`. This protects backup contents even if the storage destination (Drive or S3) is exposed. The key is never written to storage and is required for both backup (to encrypt) and restore (to decrypt). Store it redundantly in a secrets vault; losing it makes encrypted archives unrecoverable.
+As covered in [6.6](#66-backup-encryption), setting `BACKUP_ENCRYPTION_KEY` enables **authenticated AES-256-GCM** encryption of archives at rest, written as `.zip.enc`. This protects backup contents even if the storage destination (Drive or S3) is exposed, and — because GCM is authenticated — any tampering with an encrypted archive (or use of the wrong key) is **detected and rejected on restore** rather than silently decrypting to corrupt data. The on-disk format is `GCM1 | 12-byte IV | ciphertext | 16-byte auth tag`. Archives written by versions before 5.1.0 used AES-256-CBC (`16-byte IV | ciphertext`) and are still decrypted automatically, so upgrading requires no migration. The key is never written to storage and is required for both backup (to encrypt) and restore (to decrypt). Store it redundantly in a secrets vault; losing it makes encrypted archives unrecoverable.
 
 ### 10.3 Integrity Verification
 
@@ -733,18 +738,43 @@ The step is gated with `if: success() && github.event.inputs.include_sbom == 'tr
 |---|---|---|
 | Encrypted Actions secrets | GitHub repo settings | Implemented |
 | Tokens in browser `localStorage` only | Dashboard | Implemented |
-| AES-256-CBC archive encryption | `BACKUP_ENCRYPTION_KEY` | Optional |
+| Authenticated AES-256-GCM archive encryption | `BACKUP_ENCRYPTION_KEY` | Optional |
 | Manifest integrity hashes | Session manifests | Implemented |
+| No-shell git (`execFileSync`, token via `http.extraheader`) | `src/backup/*` | Implemented |
+| Status-server hardening (helmet, rate-limit, API key, localhost) | `src/server/*` | Implemented |
+| Dashboard CSP + output escaping | `docs/index.html` | Implemented |
+| Actions pinned to commit SHAs | all workflows + `action.yml` | Implemented |
+| `--ignore-scripts` on dependency installs | workflows, Action, Dockerfile | Implemented |
+| OpenSSF Scorecard | `scorecard.yml` | Implemented |
+| CodeQL static analysis | `codeql.yml` | Implemented |
 | Branch protection | GitHub repo settings | Recommended |
 | Secret scanning / push protection | GitHub repo settings | Recommended |
 | SBOM generation (SPDX) | `backup.yml` — `include_sbom=true` | Optional |
 | CODEOWNERS — owner review required on all PRs | `.github/CODEOWNERS` | Implemented |
 | Copyright headers on all `src/` files | CI gate in `ci.yml` | Implemented |
 | ESLint — no-eval, eqeqeq, security rules | `eslint.config.js` (flat config) | Implemented |
-| Jest test suite (25 tests, 3 suites) | `tests/` | Implemented |
+| Jest test suite (113 tests, 14 suites) | `tests/` | Implemented |
 | Gitleaks secret scanning in CI | `ci.yml` | Implemented |
 
-### 10.8 CI Pipeline
+### 10.8 Status-Server Hardening
+
+The optional Express status server (`src/server/`) that some deployments run to expose backup status is hardened for exposure beyond localhost:
+
+- **Security headers** via [helmet](https://helmetjs.github.io/).
+- **Rate limiting** via [express-rate-limit](https://www.npmjs.com/package/express-rate-limit) — 100 requests per 15-minute window per IP by default; tune with `API_RATE_LIMIT`.
+- **Localhost binding by default.** The server listens on `127.0.0.1`. Only set `HOST=0.0.0.0` when it sits behind a trusted reverse proxy or firewall.
+- **Optional API-key gate.** Set `DASHBOARD_API_KEY` to require an `x-api-key` header on all `/api` routes; the comparison uses `crypto.timingSafeEqual` to avoid timing side-channels. If no key is set, the server logs a warning and leaves `/api` open — acceptable only for localhost-only use.
+
+The static dashboard SPA additionally ships a restrictive **Content-Security-Policy** and HTML-escapes all remote-sourced values (repo/session/run names, tooltips) to mitigate XSS.
+
+### 10.9 Supply-Chain Hardening
+
+- **SHA-pinned Actions.** Every third-party GitHub Action across all workflows and `action.yml` is pinned to a full commit SHA with a trailing `# vN` comment, so a compromised or retagged upstream release cannot alter a run while Dependabot still tracks new versions.
+- **No install-time scripts.** Dependency installs use `npm ci --ignore-scripts` (with an `npm install --ignore-scripts` fallback) in workflows, the composite Action, and the Docker image, blocking arbitrary `postinstall` execution from dependencies.
+- **OpenSSF Scorecard.** `scorecard.yml` runs the [Scorecard](https://github.com/ossf/scorecard) checks weekly and on push, publishing results to the code-scanning dashboard.
+- **Zero known vulnerabilities.** `npm audit` is kept clean; CI fails on high/critical advisories.
+
+### 10.10 CI Pipeline
 
 The `ci.yml` workflow runs on every push and pull request to `main`. It is the primary gate preventing broken, insecure, or unlicensed code from merging.
 
@@ -752,15 +782,17 @@ The `ci.yml` workflow runs on every push and pull request to `main`. It is the p
 
 **Steps in order:**
 
-1. **Checkout** — `actions/checkout@v4`
+1. **Checkout** — `actions/checkout` (SHA-pinned)
 2. **Node.js 22** — with npm cache
 3. **`npm ci`** — clean install from lockfile
 4. **Copyright header check** — `node scripts/check-headers.js`; exits 1 if any `src/*.js` is missing `// Copyright (c) Omar Rao. All rights reserved.`
 5. **ESLint** — `npm run lint`; rules include `no-eval`, `no-implied-eval`, `no-new-func`, `eqeqeq` (flat config, `eslint.config.js`)
-6. **Jest** — `npm test`; 25 tests across 3 suites; coverage threshold ≥20% lines
+6. **Jest** — `npm test`; 113 tests across 14 suites; coverage threshold ≥20% lines
 7. **`npm audit`** — high/critical vulnerabilities fail CI (`continue-on-error: true` for advisory-level findings)
-8. **yamllint** — validates all 8 workflow YAML files
+8. **yamllint** — validates the workflow YAML files
 9. **Gitleaks** — scans for accidentally committed secrets
+
+Static analysis (**CodeQL**, `codeql.yml`) and supply-chain scoring (**OpenSSF Scorecard**, `scorecard.yml`) run as separate scheduled/push workflows and report to the code-scanning dashboard.
 
 Run locally before pushing:
 
