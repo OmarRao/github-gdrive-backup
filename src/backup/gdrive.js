@@ -44,14 +44,14 @@ class GoogleDriveClient {
   async uploadFile(filePath, parentFolderId, mimeType = 'application/zip', overrideName) {
     const name = overrideName || path.basename(filePath);
     const size = fs.statSync(filePath).size;
-    logger.info(`Uploading ${logger.sanitize(name)} (${(size / 1024 / 1024).toFixed(2)} MB)`);
+    logger.info(`Uploading ${String(name).replace(/[\r\n]+/g, ' ')} (${(size / 1024 / 1024).toFixed(2)} MB)`);
 
     const res = await this.drive.files.create({
       requestBody: { name, parents: [parentFolderId] },
       media: { mimeType, body: fs.createReadStream(filePath) },
       fields: 'id,name,size,webViewLink',
     });
-    logger.info(`Uploaded ${logger.sanitize(name)} → ${logger.sanitize(res.data.webViewLink)}`);
+    logger.info(`Uploaded ${String(name).replace(/[\r\n]+/g, ' ')} → ${String(res.data.webViewLink).replace(/[\r\n]+/g, ' ')}`);
     return res.data;
   }
 
