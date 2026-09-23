@@ -5,10 +5,10 @@
 'use strict';
 
 /**
- * Tests for the streaming archive crypto/hash helpers. These assert the
- * streamed implementations are byte-for-byte compatible with the previous
- * in-memory ones (same SHA-256, same AES-256-CBC `IV||ciphertext` format,
- * lossless encrypt→decrypt round-trip) — i.e. no behavior change, just memory.
+ * Tests for the streaming archive crypto/hash helpers.
+ * - SHA-256 streaming matches the in-memory hash.
+ * - AES-256-GCM round-trips losslessly and DETECTS tampering (authenticated).
+ * - Legacy AES-256-CBC files still decrypt (backward compatibility).
  */
 
 const fs = require('fs');
@@ -26,7 +26,7 @@ afterEach(() => { fs.rmSync(dir, { recursive: true, force: true }); });
 describe('sha256File', () => {
   test('matches crypto.createHash over the same bytes', async () => {
     const f = path.join(dir, 'a.bin');
-    const data = crypto.randomBytes(1024 * 64 + 7); // odd size, multiple chunks
+    const data = crypto.randomBytes(1024 * 64 + 7);
     fs.writeFileSync(f, data);
     const expected = crypto.createHash('sha256').update(data).digest('hex');
     expect(await sha256File(f)).toBe(expected);
@@ -41,45 +41,53 @@ describe('sha256File', () => {
   });
 });
 
-describe('encrypt/decrypt streaming', () => {
+describe('AES-256-GCM (authenticated) round-trip', () => {
   test('round-trips content losslessly', async () => {
     const src = path.join(dir, 'plain.bin');
-    const enc = path.join(dir, 'plain.bin.enc');
+    const enc = path.join(dir, 'plain.enc');
     const dec = path.join(dir, 'plain.out');
     const data = crypto.randomBytes(1024 * 128 + 13);
     fs.writeFileSync(src, data);
-
     await encryptFile(src, enc, KEY);
     await decryptFile(enc, dec, KEY);
-
     expect(fs.readFileSync(dec).equals(data)).toBe(true);
   });
 
-  test('on-disk format is 16-byte IV followed by ciphertext (decryptable by the legacy in-memory path)', async () => {
-    const src = path.join(dir, 'p2.bin');
-    const enc = path.join(dir, 'p2.enc');
-    const data = Buffer.from('hello world '.repeat(1000));
-    fs.writeFileSync(src, data);
+  test('writes the GCM1 magic header', async () => {
+    const src = path.join(dir, 's.bin'); fs.writeFileSync(src, Buffer.from('hi'));
+    const enc = path.join(dir, 's.enc');
     await encryptFile(src, enc, KEY);
-
-    const encBytes = fs.readFileSync(enc);
-    const iv = encBytes.subarray(0, 16);
-    const ciphertext = encBytes.subarray(16);
-    // Decrypt using the previous (buffer-based) approach to prove compatibility.
-    const decipher = crypto.createDecipheriv('aes-256-cbc', Buffer.from(KEY, 'hex'), iv);
-    const out = Buffer.concat([decipher.update(ciphertext), decipher.final()]);
-    expect(out.equals(data)).toBe(true);
+    expect(fs.readFileSync(enc).subarray(0, 4).toString()).toBe('GCM1');
   });
 
-  test('ciphertext produced by the legacy path decrypts via the streaming path', async () => {
-    const data = Buffer.from('compatibility check '.repeat(500));
+  test('tampering with the ciphertext is DETECTED (decrypt throws)', async () => {
+    const src = path.join(dir, 't.bin'); fs.writeFileSync(src, crypto.randomBytes(4096));
+    const enc = path.join(dir, 't.enc');
+    await encryptFile(src, enc, KEY);
+    const buf = fs.readFileSync(enc);
+    buf[20] = buf[20] ^ 0xff;               // flip a ciphertext byte (after magic+iv)
+    fs.writeFileSync(enc, buf);
+    await expect(decryptFile(enc, path.join(dir, 't.out'), KEY)).rejects.toThrow();
+  });
+
+  test('a wrong key is rejected', async () => {
+    const src = path.join(dir, 'w.bin'); fs.writeFileSync(src, crypto.randomBytes(2048));
+    const enc = path.join(dir, 'w.enc');
+    await encryptFile(src, enc, KEY);
+    const wrong = 'ff'.repeat(32);
+    await expect(decryptFile(enc, path.join(dir, 'w.out'), wrong)).rejects.toThrow();
+  });
+});
+
+describe('legacy AES-256-CBC backward compatibility', () => {
+  test('decrypts a file written in the old IV||ciphertext CBC format', async () => {
+    const data = Buffer.from('legacy backup payload '.repeat(200));
     const iv = crypto.randomBytes(16);
     const cipher = crypto.createCipheriv('aes-256-cbc', Buffer.from(KEY, 'hex'), iv);
     const legacy = Buffer.concat([iv, cipher.update(data), cipher.final()]);
     const enc = path.join(dir, 'legacy.enc');
     const dec = path.join(dir, 'legacy.out');
     fs.writeFileSync(enc, legacy);
-
     await decryptFile(enc, dec, KEY);
     expect(fs.readFileSync(dec).equals(data)).toBe(true);
   });

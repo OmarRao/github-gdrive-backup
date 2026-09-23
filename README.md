@@ -384,7 +384,7 @@ PORT=3000
 The backup and restore paths are **streaming and memory-bounded**, so archive
 size — not available RAM — is the limit:
 
-- **Streaming hash & crypto.** SHA-256 hashing and AES-256-CBC encrypt/decrypt
+- **Streaming hash & crypto.** SHA-256 hashing and AES-256-GCM encrypt/decrypt
   stream the archive through in fixed-size chunks (`src/lib/archive-crypto.js`).
   Peak memory stays roughly constant regardless of repo size, avoiding the
   out-of-memory risk of loading multi-GB archives fully into a `Buffer`.
@@ -598,10 +598,12 @@ Additional proactive alerts:
 |------|------|-----------|
 | Copyright headers | shell `grep` across `src/` | Yes |
 | Linting | ESLint (`no-eval`, `no-implied-eval`, `no-new-func`, `eqeqeq`) | Yes |
-| Tests | Jest — 25 tests, 3 suites | Yes |
+| Tests | Jest — 113 tests, 14 suites | Yes |
 | Dependency audit | `npm audit --audit-level=high` | Warn |
 | Workflow YAML | `yamllint` | Warn |
 | Secret scanning | Gitleaks | Warn |
+| Static analysis | CodeQL | Warn |
+| Supply-chain posture | OpenSSF Scorecard | Warn |
 
 ```bash
 npm run lint          # ESLint
@@ -613,7 +615,15 @@ npm run audit         # npm audit --audit-level=high
 ### Runtime security
 - GitHub PAT scopes: `repo`, `workflow`, `read:org`, `read:user` — read-only for backup, no destructive permissions
 - Google Drive token scoped to `drive.file` in Actions, `drive.readonly` in the dashboard
-- Self-hosted Express server has no built-in auth — run locally or behind a reverse proxy
+- **Authenticated encryption at rest** — `BACKUP_ENCRYPTION_KEY` archives use AES-256-GCM (integrity-checked; tampering is detected on restore). Legacy AES-256-CBC archives still decrypt for backward compatibility.
+- **No shell, no secrets in argv** — all `git` calls use `execFileSync` with argument arrays (no shell interpolation → no command injection). The GitLab token is injected via `http.extraheader` (`GIT_CONFIG_*`), never placed in the clone URL or process arguments.
+- **Status server hardening** — [helmet](https://helmetjs.github.io/) security headers, [express-rate-limit](https://www.npmjs.com/package/express-rate-limit) (default 100 req / 15 min, tune with `API_RATE_LIMIT`), localhost binding by default (`HOST`), and an optional constant-time API-key guard on `/api` (`DASHBOARD_API_KEY`, compared with `crypto.timingSafeEqual`).
+- **Dashboard CSP + escaping** — a restrictive `Content-Security-Policy` and HTML-escaping of all remote data mitigate XSS.
+
+### Supply-chain hardening
+- Every GitHub Action is **pinned to a full commit SHA** (with a `# vN` comment for Dependabot tracking).
+- Dependency installs use `npm ci --ignore-scripts` (workflows, composite Action, and Docker image) to block install-time script execution.
+- **OpenSSF Scorecard** (`scorecard.yml`) publishes supply-chain posture to the code-scanning dashboard; `npm audit` is kept at **0 known vulnerabilities**.
 
 ---
 
@@ -764,7 +774,7 @@ When dispatching the backup workflow manually, enter your token in the **GitLab 
 
 ## Backup Encryption
 
-Set the `BACKUP_ENCRYPTION_KEY` GitHub Actions secret to a 32-byte hex string (64 hex characters) to enable AES-256-CBC encryption of all backup zips.
+Set the `BACKUP_ENCRYPTION_KEY` GitHub Actions secret to a 32-byte hex string (64 hex characters) to enable **authenticated AES-256-GCM** encryption of all backup zips.
 
 Generate a key:
 
@@ -772,7 +782,7 @@ Generate a key:
 openssl rand -hex 32
 ```
 
-When encryption is enabled, backup files are stored as `.zip.enc` instead of `.zip`. The first 16 bytes of each encrypted file are the IV; the remainder is the ciphertext. The restore workflow automatically decrypts files when `BACKUP_ENCRYPTION_KEY` is set.
+When encryption is enabled, backup files are stored as `.zip.enc` instead of `.zip`. New archives use the format `GCM1 | 12-byte IV | ciphertext | 16-byte auth tag`; the authentication tag is verified on restore, so any tampering (or a wrong key) is **detected and rejected** rather than silently producing corrupt data. Archives created by earlier versions (AES-256-CBC: `16-byte IV | ciphertext`) are still decrypted automatically. The restore workflow decrypts files whenever `BACKUP_ENCRYPTION_KEY` is set.
 
 ---
 

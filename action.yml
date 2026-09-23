@@ -49,7 +49,7 @@ inputs:
     required: false
     default: '6'
   encryption-key:
-    description: 'Optional AES-256-CBC key (64 hex chars) for encryption at rest.'
+    description: 'Optional AES-256-GCM key (64 hex chars) for authenticated encryption at rest.'
     required: false
     default: ''
   signing-key:
@@ -70,14 +70,14 @@ runs:
   using: 'composite'
   steps:
     - name: Set up Node.js
-      uses: actions/setup-node@v7
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
       with:
         node-version: ${{ inputs.node-version }}
 
     - name: Install dependencies
       shell: bash
       working-directory: ${{ github.action_path }}
-      run: npm ci --omit=dev || npm install --omit=dev
+      run: npm ci --omit=dev --ignore-scripts || npm install --omit=dev --ignore-scripts
 
     - name: Write Google credentials
       shell: bash

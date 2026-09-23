@@ -10,6 +10,22 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>GitHub → Google Drive Backup</title>
+
+  <!-- Content-Security-Policy: even if an XSS slipped through, connect-src limits
+       where the page can send data (no exfiltration to attacker domains), and
+       object-src/base-uri are locked down. Origins are limited to GitHub, Google
+       Drive, and Firebase/Google auth, which are the only backends this app uses. -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://www.gstatic.com https://accounts.google.com https://apis.google.com;
+    style-src 'self' 'unsafe-inline';
+    img-src 'self' data: https:;
+    font-src 'self';
+    connect-src 'self' https://api.github.com https://*.googleapis.com https://accounts.google.com https://apis.google.com https://www.gstatic.com https://*.google.com;
+    frame-src https://accounts.google.com https://*.google.com https://*.firebaseapp.com;
+    object-src 'none';
+    base-uri 'self'" />
+
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#166534" />
 
@@ -2558,6 +2574,18 @@ const REPO_OWNER  = REPO_TARGET.owner;
 const REPO_NAME   = REPO_TARGET.name;
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.readonly';
 
+// XSS guard: escape any remote/user-controlled string before it goes into
+// innerHTML or an HTML attribute (repo names, Drive folder names, run names,
+// account logins are all attacker-influenceable). Use escJs() additionally when
+// a value is interpolated inside an inline on* handler's JS string.
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function escJs(s) {
+  return String(s == null ? '' : s).replace(/[\\'"<>]/g, '');
+}
+
 // ── Demo data ──────────────────────────────────────────────────────────────────
 const DEMO = (() => {
   const now = Date.now();
@@ -3206,7 +3234,7 @@ function renderStorageChart(sessions) {
     const d = data[i];
     const when = d.createdTime ? relTime(d.createdTime) : '';
     const mode = d.mode ? `<span class="tip-mode ${d.mode}">${d.mode}</span>` : '';
-    tip.innerHTML = `<div class="tip-title">${d.name}</div>` +
+    tip.innerHTML = `<div class="tip-title">${esc(d.name)}</div>` +
       `<div class="tip-row"><strong>${d.sizeMB} MB</strong>${mode}</div>` +
       (when ? `<div class="tip-sub">${when}</div>` : '');
     tip.style.left = (pts[i][0] / W * 100) + '%';
@@ -3279,8 +3307,8 @@ function renderRepoList(repos, filtered) {
   if (!repos.length) { el.innerHTML = '<p class="muted" style="padding:12px">No repos found.</p>'; return; }
   el.innerHTML = repos.map(r => `
     <label class="repo-item">
-      <input type="checkbox" class="repo-cb" value="${r.full_name}" style="accent-color:var(--accent);width:14px;height:14px;flex-shrink:0" />
-      <span class="repo-name">${r.name}</span>
+      <input type="checkbox" class="repo-cb" value="${esc(r.full_name)}" style="accent-color:var(--accent);width:14px;height:14px;flex-shrink:0" />
+      <span class="repo-name">${esc(r.name)}</span>
       <span class="repo-badge ${r.private ? 'private':''}">${r.private ? 'private' : 'public'}</span>
     </label>`).join('');
 }
@@ -3323,13 +3351,13 @@ async function loadSessions() {
     _liveSessions = DEMO.sessions;
     populateSessionDropdown(DEMO.sessions);
     el.innerHTML = DEMO.sessions.map(s => `
-      <div class="session-item" data-id="${s.id}" data-name="${s.name}" onclick="selectSession(this)">
+      <div class="session-item" data-id="${esc(s.id)}" data-name="${esc(s.name)}" onclick="selectSession(this)">
         <div class="session-icon">
           <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
         </div>
-        <span class="session-name">${s.name} <span class="run-num" style="font-weight:400">· ${s.repoCount} repos · ${s.sizeMB} MB</span></span>
+        <span class="session-name">${esc(s.name)} <span class="run-num" style="font-weight:400">· ${s.repoCount} repos · ${s.sizeMB} MB</span></span>
         <span class="session-date">${s.status === 'failure' ? '<span style="color:var(--danger)">1 failed</span> · ' : ''}${relTime(s.createdTime)}</span>
-        <button class="btn btn-secondary" style="padding:4px 9px;font-size:11px;margin-left:8px" onclick="event.stopPropagation();openDrawer('${s.id}')">Details</button>
+        <button class="btn btn-secondary" style="padding:4px 9px;font-size:11px;margin-left:8px" onclick="event.stopPropagation();openDrawer('${escJs(s.id)}')">Details</button>
       </div>`).join('');
     return;
   }
@@ -3345,11 +3373,11 @@ async function loadSessions() {
       _liveSessions = sessions.map(s => ({ id: s.id, name: s.name, createdTime: s.createdTime }));
       populateSessionDropdown(sessions);
       el.innerHTML = sessions.map(s => `
-        <div class="session-item" data-id="${s.id}" data-name="${s.name}" onclick="selectSession(this)">
+        <div class="session-item" data-id="${esc(s.id)}" data-name="${esc(s.name)}" onclick="selectSession(this)">
           <div class="session-icon">
             <svg viewBox="0 0 24 24"><path d="M19.35 10.04A7.49 7.49 0 0 0 12 4C9.11 4 6.6 5.64 5.35 8.04A5.994 5.994 0 0 0 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96z"/></svg>
           </div>
-          <span class="session-name">${s.name}</span>
+          <span class="session-name">${esc(s.name)}</span>
           <span class="session-date">${relTime(s.createdTime)}</span>
         </div>`).join('');
     } catch (err) { el.innerHTML = `<p style="color:var(--danger);padding:12px">Drive error: ${err.message}</p>`; }
@@ -3454,10 +3482,10 @@ function renderRuns(runs, container) {
   container.innerHTML = runs.map(r => `
     <div class="run-item">
       ${runBadge(r.status, r.conclusion)}
-      <span class="run-name">${r.name} <span class="run-num">#${r.run_number}</span></span>
+      <span class="run-name">${esc(r.name)} <span class="run-num">#${esc(r.run_number)}</span></span>
       <span class="run-time">${relTime(r.created_at)}</span>
-      ${isRunsPage ? `<button class="run-link" onclick="showDiffModal('${r.name} #${r.run_number}', '${r.created_at}')">Diff</button>` : ''}
-      <a class="run-link" href="${r.html_url}" target="_blank">View &rarr;</a>
+      ${isRunsPage ? `<button class="run-link" onclick="showDiffModal('${escJs(r.name)} #${escJs(r.run_number)}', '${escJs(r.created_at)}')">Diff</button>` : ''}
+      <a class="run-link" href="${encodeURI(r.html_url || '#')}" target="_blank" rel="noopener noreferrer">View &rarr;</a>
     </div>`).join('');
 }
 
@@ -3740,7 +3768,7 @@ function openDrawer(sessionId) {
       const sz = Math.round(per * (0.6 + (i % 3) * 0.3));
       return `<div class="drawer-repo">
         <span class="repo-badge ${r.private?'private':''}" style="min-width:52px;text-align:center">${r.private?'private':'public'}</span>
-        <span class="dr-name">${r.name}</span>
+        <span class="dr-name">${esc(r.name)}</span>
         ${isFailed ? '<span class="dr-size" style="color:var(--danger);font-weight:600">failed</span>' : `<span class="dr-size">${sz} MB</span>`}
       </div>`;
     }).join('');
@@ -3780,7 +3808,7 @@ function openRestoreWizard() {
   const sel = document.getElementById('wiz-session');
   const sessions = (_liveSessions && _liveSessions.length) ? _liveSessions : (window.DEMO_MODE ? DEMO.sessions : []);
   sel.innerHTML = '<option value="">(latest session)</option>' +
-    sessions.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+    sessions.map(s => `<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
   document.getElementById('restore-wizard-modal').classList.remove('hidden');
   updateWizard();
 }
@@ -3902,14 +3930,14 @@ function renderAccounts() {
   list.innerHTML = accounts.length ? accounts.map((a, i) => `
     <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:8px">
       <div style="flex:1">
-        <div style="font-weight:600;font-size:13px;color:var(--text-2)">${a.user}</div>
-        <div style="font-size:11px;color:var(--muted)">Token ending ···${a.token.slice(-4)}</div>
+        <div style="font-weight:600;font-size:13px;color:var(--text-2)">${esc(a.user)}</div>
+        <div style="font-size:11px;color:var(--muted)">Token ending ···${esc(a.token.slice(-4))}</div>
       </div>
       <button class="btn btn-secondary" style="font-size:11px;padding:4px 10px" onclick="removeAccount(${i})">Remove</button>
     </div>
   `).join('') : '<p style="color:var(--muted);font-size:13px">No additional accounts. Add one above.</p>';
   sel.innerHTML = [{ user: ghUser || 'Primary', token: '' }, ...accounts]
-    .map((a, i) => `<option value="${i}">${i === 0 ? 'Primary — ' : ''}${a.user}</option>`).join('');
+    .map((a, i) => `<option value="${i}">${i === 0 ? 'Primary — ' : ''}${esc(a.user)}</option>`).join('');
 }
 
 function addAccount() {
@@ -3920,7 +3948,7 @@ function addAccount() {
       accounts.push({ user: u.login, token });
       localStorage.setItem('gh_accounts', JSON.stringify(accounts));
       renderAccounts();
-      showToast(`Added account: ${u.login}`, 'success');
+      showToast(`Added account: ${esc(u.login)}`, 'success');
     }).catch(() => showToast('Invalid token or network error', 'error'));
 }
 
@@ -4503,7 +4531,7 @@ function populateSessionDropdown(sessions) {
   const sel = document.getElementById('restore-session-select');
   if (!sel) return;
   sel.innerHTML = '<option value="">— Select a session —</option>' +
-    sessions.map(s => `<option value="${s.id}" data-name="${s.name}">${s.name}</option>`).join('');
+    sessions.map(s => `<option value="${esc(s.id)}" data-name="${esc(s.name)}">${esc(s.name)}</option>`).join('');
 }
 
 async function onSessionSelectChange(sessionId) {
