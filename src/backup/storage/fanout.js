@@ -17,7 +17,6 @@
  * and recorded in the summary but never fails the primary backup.
  */
 const fs   = require('fs');
-const crypto = require('crypto');
 const logger = require('../../logger');
 
 const ADAPTERS = { s3: './s3', azure: './azure', b2: './b2' };
@@ -98,14 +97,17 @@ async function mirrorFile(localPath, sessionFolders, fileName, expectedSize) {
  */
 async function mirrorJson(tmpDir, fileName, obj, sessionFolders) {
   if (!enabled()) return [];
-  // Unpredictable scratch name (avoids temp-file races/symlink attacks); the
-  // real object name is passed separately to mirrorFile below.
-  const tmp = require('path').join(tmpDir, `mirror-${crypto.randomBytes(12).toString('hex')}.json`);
+  const path = require('path');
+  // Create a fresh, exclusively-owned temp directory (mkdtempSync is atomic and
+  // unpredictable) to avoid temp-file races / symlink attacks; the real object
+  // name is passed separately to mirrorFile below.
+  const scratchDir = fs.mkdtempSync(path.join(tmpDir, 'mirror-'));
+  const tmp = path.join(scratchDir, 'payload.json');
   fs.writeFileSync(tmp, JSON.stringify(obj, null, 2));
   try {
     return await mirrorFile(tmp, sessionFolders, fileName);
   } finally {
-    fs.rmSync(tmp, { force: true });
+    fs.rmSync(scratchDir, { recursive: true, force: true });
   }
 }
 
