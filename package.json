@@ -33,7 +33,7 @@
     "googleapis": "^176.0.0",
     "helmet": "^8.3.0",
     "node-stream-zip": "^1.16.0",
-    "simple-git": "^3.27.0",
+    "simple-git": "^4.0.1",
     "winston": "^3.17.0"
   },
   "devDependencies": {
