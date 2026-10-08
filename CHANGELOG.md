@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [5.1.3] — 2026-10-08
+
+### Security
+
+- **Insecure temporary file (CodeQL).** `mirrorJson()` now creates an
+  exclusively-owned scratch directory with `fs.mkdtempSync()` and writes inside
+  it, instead of a predictable path under the caller's temp dir — resolving the
+  last open `js/insecure-temporary-file` alert (a random filename alone did not
+  satisfy CWE-377 since a test caller passed `os.tmpdir()`).
+- **Supply chain.** Dockerfile now uses `npm ci` (lockfile integrity-hashed
+  install) instead of `npm install`.
+
 ## [5.1.2] — 2026-09-23
 
 ### Security

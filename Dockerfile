@@ -8,7 +8,8 @@ LABEL org.opencontainers.image.licenses="AGPL-3.0-only" \
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install --omit=dev --ignore-scripts
+# npm ci installs exactly the lockfile-pinned (integrity-hashed) versions.
+RUN npm ci --omit=dev --ignore-scripts
 COPY src/ ./src/
 RUN mkdir -p credentials
 ENV NODE_ENV=production
